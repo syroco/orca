@@ -1,13 +1,18 @@
 
-# Created by https://www.gitignore.io/api/c,qt,lua,ros,osx,c++,linux,python,windows,kdevelop4,qtcreator
+# Visual Studio Code
+.vscode
 
+# orca logs
 orca-log.*
+
+# linter
 compile_commands.json
-### OROCOS ###
+
+# OROCOS
 .tb_history
 orocos.log
 
-### CLion ###
+# CLion
 .idea/
 
 ### C ###
