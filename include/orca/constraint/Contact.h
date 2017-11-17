@@ -52,7 +52,7 @@ public:
     
     void removeFromProblem();
     
-    void disactivate();
+    void desactivate();
 
     void activate();
 

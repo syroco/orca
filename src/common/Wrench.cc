@@ -16,10 +16,10 @@ void Wrench::activate()
     is_activated_ = true;
 }
 
-void Wrench::disactivate()
+void Wrench::desactivate()
 {
     if(!is_activated_)
-        std::cerr << "Contact already disactivated " << std::endl;
+        std::cerr << "Contact already desactivated " << std::endl;
     is_activated_ = false;
 }
 

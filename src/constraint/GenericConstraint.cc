@@ -44,10 +44,10 @@ void GenericConstraint::activate()
     is_activated_ = true;
 }
 
-void GenericConstraint::disactivate()
+void GenericConstraint::desactivate()
 {
     if(!is_activated_)
-        std::cerr << "Contact already disactivated " << std::endl;
+        std::cerr << "Contact already desactivated " << std::endl;
     is_activated_ = false;
 }
 
@@ -88,7 +88,10 @@ const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 
 void GenericConstraint::setConstraintMatrix(const Eigen::MatrixXd& newC)
 {
-    constraint_function_.constraintMatrix() = newC;
+    if(newC.cols() == cols() && newC.rows() == rows())
+        constraint_function_.constraintMatrix() = newC;
+    else
+        throw std::runtime_error(util::Formatter() << "Size do not match. Provided " << Size(newC) << ", expected " << getSize());
 }
 
 void GenericConstraint::setLowerBound(const Eigen::VectorXd& low)

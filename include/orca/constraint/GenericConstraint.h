@@ -42,50 +42,149 @@ namespace orca
 namespace constraint
 {
 
-class GenericConstraint : public common::TaskCommon
+    /**
+     * @brief Builds a double bounded function : l < C.x < u
+     * With x the control variable, l = lowerBound, 
+     * u = upperBound, and C the constraint matrix.
+     * 
+     */
+    class GenericConstraint : public common::TaskCommon
 {
 public:
+    /**
+     * @brief Construct the double bounded function, and set its default state : activated.
+     * The lowerBound is set to -inf and the upper bound to +inf
+     * C is set to Zero by default.
+     * 
+     * @param control_var The control variable it depends on
+     */
     GenericConstraint(optim::ControlVariable control_var);
     
+    /**
+     * @brief Destructor. Also removes from problem if still active/inserted
+     * 
+     */
     virtual ~GenericConstraint();
 
+    /**
+     * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
+     * 
+     */
     virtual void activate();
     
+    /**
+     * @brief Check if the constraint is active in the solver
+     * 
+     * @return bool
+     */
     virtual bool isActivated() const;
 
-    virtual void disactivate();
+    /**
+     * @brief Desactivates the constraint : in the solver it is seen as -inf < 0.x < inf
+     * 
+     */
+    virtual void desactivate();
+    
+    /**
+     * @brief Get the size of the constraint matrix (rows,cols)
+     * 
+     * @return orca::math::Size
+     */
+    math::Size getSize() const; 
 
-    math::Size getSize() const;
-
+    /**
+     * @brief Get the number of rows of the constraint matrix
+     * 
+     * @return int
+     */
     int rows() const;
 
+    /**
+     * @brief Get the number of column (it should be the size of the control variable chosen) of the constraint matrix
+     * 
+     * @return int
+     */
     int cols() const;
 
+    /**
+     * @brief Returns the lower bound from the constraint function (alias)
+     * 
+     * @return const Eigen::VectorXd&
+     */
     virtual const Eigen::VectorXd& getLowerBound() const;
 
+    /**
+     * @brief Returns the upperbound from the constraint function (alias)
+     * 
+     * @return const Eigen::VectorXd&
+     */
     virtual const Eigen::VectorXd& getUpperBound() const;
 
+    /**
+     * @brief Returns the constraint matrix from the constraint function (alias)
+     * 
+     * @return const Eigen::MatrixXd&
+     */
     virtual const Eigen::MatrixXd& getConstraintMatrix() const;
 
+    /**
+     * @brief Get the underlying constraint function containing the 2 bound vectors and the constraint matrix
+     * 
+     * @return const orca::math::ConstraintFunction&
+     */
     const math::ConstraintFunction& getConstraintFunction() const;
     
+    /**
+     * @brief Insert the constraint in the QP problem
+     * 
+     */
     virtual void insertInProblem();
     
+    /**
+     * @brief Removes the constraint from the QP problem
+     * 
+     */
     virtual void removeFromProblem();
     
 protected:
+
+    /**
+     * @brief Replace the constraint matrix with a new one
+     * 
+     * @param newC The new constraint matrix
+     */
     void setConstraintMatrix(const Eigen::MatrixXd& newC);
 
+    /**
+     * @brief Replace the lower bound with a new one
+     * 
+     * @param low The new lowerbound
+     */
     void setLowerBound(const Eigen::VectorXd& low);
 
+    /**
+     * @brief Replace the upper bound with a new one
+     * 
+     * @param up The new upperbound
+     */
     void setUpperBound(const Eigen::VectorXd& up);
 
+    /**
+     * @brief Returns a reference to the constraint matrix from the constraint function (alias)
+     * 
+     * @return Eigen::MatrixXd&
+     */
     Eigen::MatrixXd& constraintMatrix();
 
+    /**
+     * @brief Get a reference the underlying constraint function containing the 2 bound vectors and the constraint matrix
+     * 
+     * @return orca::math::ConstraintFunction& 
+     */
     math::ConstraintFunction& constraintFunction();
 
 private:
-    bool is_activated_ = false;
+    bool is_activated_;
     math::ConstraintFunction constraint_function_;
 };
 

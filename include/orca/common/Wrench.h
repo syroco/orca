@@ -49,7 +49,7 @@ public:
     
     bool isActivated() const;
 
-    void disactivate();
+    void desactivate();
     
     void insertInProblem();
     

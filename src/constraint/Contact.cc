@@ -8,7 +8,7 @@ Contact::Contact()
 , friction_cone_(new LinearizedCoulombConstraint)
 , ex_condition_(new ContactExistenceConditionConstraint)
 {
-    this->disactivate();
+    this->desactivate();
 }
 
 void Contact::insertInProblem()
@@ -23,11 +23,11 @@ void Contact::removeFromProblem()
     ex_condition_->removeFromProblem();
 }
 
-void Contact::disactivate()
+void Contact::desactivate()
 {
     // TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0
-    friction_cone_->disactivate();
-    ex_condition_->disactivate();
+    friction_cone_->desactivate();
+    ex_condition_->desactivate();
 }
 
 void Contact::activate()

@@ -44,13 +44,16 @@ namespace math
 
 struct Size
 {
+    template <typename Derived> Size(const Eigen::MatrixBase<Derived>& mat)
+    : Size(mat.rows(),mat.cols())
+    {}
+    
     Size(int rows = 0, int cols = 0)
     : rows_(rows)
     , cols_(cols)
     {}
     Size(const Size& s)
-    : rows_(s.rows())
-    , cols_(s.cols())
+    : Size(s.rows(),s.cols())
     {}
     bool operator==(const Size& s) const
     {
