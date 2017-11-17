@@ -22,6 +22,10 @@ endif()
 #################### Catkin ###########################
 include_directories(external/plog-1.1.3/include)
 
+#################### JSON Parser ###########################
+include_directories(external/json-2.1.1/include)
+
+
 #################### qpOASES ##########################
 find_package(qpOASES QUIET)
 # # idyntree
