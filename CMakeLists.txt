@@ -7,7 +7,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.cmake)
 add_definitions(-std=c++11)
 
-find_package(Eigen3 REQUIRED)
+#################### Eigen3 ###########################
+find_package(Eigen3 QUIET)
+if(NOT Eigen3_FOUND)
+    message(WARNING "Using internal Eigen3, please consider installing it standalone.")
+    set(EIGEN3_INCLUDE_DIRS external/eigen-3.3.4)
+endif()
+
 include_directories(
     include
     ${EIGEN3_INCLUDE_DIRS}
