@@ -8,7 +8,7 @@ using namespace orca::common;
 ContactExistenceConditionConstraint::ContactExistenceConditionConstraint()
 : EqualityConstraint(ControlVariable::JointSpaceAcceleration)
 {
-    
+
 }
 
 void ContactExistenceConditionConstraint::insertInProblem()
@@ -80,5 +80,8 @@ const Eigen::MatrixXd& ContactExistenceConditionConstraint::getJacobianTranspose
 void ContactExistenceConditionConstraint::resize()
 {
     if(wrench_.robotPtr() != this->robotPtr() )
+    {
         wrench_.setRobotModel( this->robotPtr() );
+        constraintFunction().resize( 3 , wrench_.getJacobian().cols());
+    }
 }
