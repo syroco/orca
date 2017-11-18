@@ -2,33 +2,21 @@ version: 1.0.{build}
 
 clone_folder: c:\projects\orca
 
-environment:
-  Eigen3_DIR:          C:/Program Files (x86)/Eigen/lib/cmake/eigen3/
-
 os:
  - Visual Studio 2013
  - Visual Studio 2015
+ - Visual Studio 2017
 
 install:
 
 build:
 
 build_script:
-  # download and install eigen3
-  - cd c:\projects
-  - hg clone https://bitbucket.org/eigen/eigen
-  - cd eigen
-  - hg checkout 3.3.4
-  - md build
-  - cd build
-  - cmake ..
-  - cmake --build . --config Release --target INSTALL
   # compile orca
   - cd c:\projects\orca
   - md build
   - cd build
-  - cmake .. -DEIGEN3_INCLUDE_DIR="C:/Program Files (x86)/Eigen/include/eigen3"
-  - msbuild /m /p:Configuration=Release /p:Platform="Win32" iDynTree.sln
+  - msbuild /m /p:Configuration=Release /p:Platform="Win32" orca.sln
   - cmake --build . --config Release
   - ctest --output-on-failure --build-config Release
   - cmake --build . --config Release --target INSTALL
