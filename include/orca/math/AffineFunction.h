@@ -54,9 +54,9 @@ public:
     Size getSize() const;
     int cols() const;
     int rows() const;
-protected:
     void resize(int rows,int cols);
 
+protected:
     Eigen::MatrixXd A_;
     Eigen::VectorXd b_;
 };
