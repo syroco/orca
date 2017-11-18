@@ -1,0 +1,9 @@
+pre {
+    /*For the alabaster Theme*/
+    background: transparent;
+}
+
+.highlight * {
+    /*For the rtd Theme*/
+    background-color: #353131
+}

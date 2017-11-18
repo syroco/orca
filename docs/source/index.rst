@@ -9,10 +9,21 @@ ORCA is an optimisation-based library to solve robotics problems with tasks and 
     \min_{x} \frac{1}{2}x^tHx + x^tg
 
     & \text{subject to} &
-    
+
     & lb \leq  x \leq ub &
-    
+
     & lb_A \leq Ax \leq ub_A &
+
+
+.. code-block:: c++
+
+    auto robot = std::make_shared<RobotDynTree>();
+    if(!robot->loadModelFromFile(urdf_url))
+    {
+        return -1;
+    }
+    robot->setBaseFrame("link_0");
+    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
 
 
 Indices and tables

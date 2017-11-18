@@ -20,7 +20,6 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -82,7 +81,7 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'monokai'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -90,19 +89,19 @@ todo_include_todos = True
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
 
 html_favicon = '_static/favicon/favicon.ico'
 
@@ -122,11 +121,14 @@ html_show_copyright = True
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-    ]
+html_logo = '_static/orca-st.png'
+
+html_theme_options = {
+    #'logo_only': True,
+    #'display_version': False,
+    #'collapse_navigation': False,
+    #'display_version': False,
+    #'navigation_depth': 3,
 }
 
 
