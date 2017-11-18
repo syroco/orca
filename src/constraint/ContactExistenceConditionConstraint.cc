@@ -68,8 +68,7 @@ void ContactExistenceConditionConstraint::update()
     frame_vias_acc_ = - iDynTree::toEigen(wrench_.robot().kinDynComp.getFrameBiasAcc(wrench_.getControlFrame()));
 
     this->setConstraintMatrix( wrench_.getJacobian().topLeftCorner(3, wrench_.getJacobian().cols()) );
-    this->bound() = ( frame_vias_acc_.head(3) );
-    this->setLowerBound( this->getBound() );
+    this->setBound( frame_vias_acc_.head(3) );
 }
 
 const Eigen::MatrixXd& ContactExistenceConditionConstraint::getJacobianTranspose() const

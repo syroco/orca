@@ -3,7 +3,7 @@ using namespace orca::math;
 
 WeightedEuclidianNormFunction::WeightedEuclidianNormFunction()
 {
-    
+
 }
 
 void WeightedEuclidianNormFunction::QuadraticCost::resize(int A_or_b_rows)
@@ -56,7 +56,7 @@ const Eigen::MatrixXd& WeightedEuclidianNormFunction::QuadraticCost::getHessian(
     return Hessian_;
 }
 
-const Eigen::VectorXd& WeightedEuclidianNormFunction::QuadraticCost::getGradient() const 
+const Eigen::VectorXd& WeightedEuclidianNormFunction::QuadraticCost::getGradient() const
 {
     return Gradient_;
 }
@@ -83,7 +83,7 @@ void WeightedEuclidianNormFunction::setWeight(const Eigen::MatrixXd& weight)
     }
     else
     {
-        throw std::runtime_error("Size of weight matix do not match");
+        throw std::runtime_error(util::Formatter() << "Size of weight matix do not match, provided " << Size(weight) << ", but expected " << Size(Weight_));
     }
 }
 
@@ -98,7 +98,7 @@ void WeightedEuclidianNormFunction::computeQuadraticCost()
     quadCost_.computeQuadraticCost(SelectionVector_,Weight_,A_,b_);
 }
 
-const Eigen::VectorXd& WeightedEuclidianNormFunction::getSelectionVector() const 
+const Eigen::VectorXd& WeightedEuclidianNormFunction::getSelectionVector() const
 {
     return SelectionVector_;
 }
@@ -115,15 +115,16 @@ const WeightedEuclidianNormFunction::QuadraticCost& WeightedEuclidianNormFunctio
 
 void WeightedEuclidianNormFunction::resize(int rows,int cols)
 {
-    AffineFunction::resize(rows,cols);
-    quadCost_.resize(cols);
+    if(Size(rows,cols) != getSize())
+    {
+        AffineFunction::resize(rows,cols);
+        quadCost_.resize(cols);
 
-    SelectionVector_.conservativeResizeLike(Eigen::VectorXd::Ones(cols));
+        SelectionVector_.conservativeResizeLike(Eigen::VectorXd::Ones(cols));
 
-    Weight_.conservativeResizeLike(Eigen::MatrixXd::Identity(cols,cols));
-    //Weight_.conservativeResize(cols,cols);
-    //Weight_.setIdentity();
+        Weight_.conservativeResizeLike(Eigen::MatrixXd::Identity(cols,cols));
 
-    this->computeQuadraticCost();
+        this->computeQuadraticCost();
+    }
 }
 

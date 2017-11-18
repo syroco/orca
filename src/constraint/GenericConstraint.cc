@@ -7,6 +7,7 @@ using namespace orca::math;
 
 GenericConstraint::GenericConstraint(ControlVariable control_var)
 : TaskCommon(control_var)
+, is_activated_(false)
 {
     this->activate();
 }
@@ -40,15 +41,25 @@ GenericConstraint::~GenericConstraint()
 void GenericConstraint::activate()
 {
     if(is_activated_)
-        std::cerr << "Contact already activated " << std::endl;
-    is_activated_ = true;
+    {
+        LOG_ERROR << "Contact already activated ";
+    }
+    else
+    {
+        is_activated_ = true;
+    }
 }
 
 void GenericConstraint::desactivate()
 {
     if(!is_activated_)
-        std::cerr << "Contact already desactivated " << std::endl;
-    is_activated_ = false;
+    {
+        LOG_ERROR << "Contact already desactivated ";
+    }
+    else
+    {
+        is_activated_ = false;
+    }
 }
 
 bool GenericConstraint::isActivated() const
@@ -88,39 +99,32 @@ const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 
 void GenericConstraint::setConstraintMatrix(const Eigen::MatrixXd& newC)
 {
-    if(Size(newC) == Size(constraintMatrix()))
-        constraint_function_.constraintMatrix() = newC;
-    else
-        throw std::runtime_error(util::Formatter() << "Size do not match. Provided " << Size(newC) << ", expected " << getSize());
+    constraint_function_.setConstraintMatrix(newC);
 }
 
 void GenericConstraint::setLowerBound(const Eigen::VectorXd& low)
 {
-    if(low.size() == constraint_function_.rows())
-    {
-        constraint_function_.lowerBound() = low;
-    }
-    else
-    {
-        LOG_ERROR << "Vector size should be " << constraint_function_.rows() << ", but you provided " << low.size();
-    }
+    constraint_function_.setLowerBound( low );
 }
 
 void GenericConstraint::setUpperBound(const Eigen::VectorXd& up)
 {
-    if(up.size() == constraint_function_.rows())
-    {
-        constraint_function_.upperBound() = up;
-    }
-    else
-    {
-        LOG_ERROR << "Vector size should be " << constraint_function_.rows() << ", but you provided " << up.size();
-    }
+    constraint_function_.setUpperBound( up );
 }
 
 Eigen::MatrixXd& GenericConstraint::constraintMatrix()
 {
     return constraint_function_.constraintMatrix();
+}
+
+Eigen::VectorXd& GenericConstraint::upperBound()
+{
+    return constraint_function_.upperBound();
+}
+
+Eigen::VectorXd& GenericConstraint::lowerBound()
+{
+    return constraint_function_.lowerBound();
 }
 
 ConstraintFunction& GenericConstraint::constraintFunction()

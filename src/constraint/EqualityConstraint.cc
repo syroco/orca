@@ -20,10 +20,17 @@ const Eigen::VectorXd& EqualityConstraint::getUpperBound() const
 
 Eigen::VectorXd& EqualityConstraint::bound()
 {
-    return constraintFunction().upperBound();
+    return GenericConstraint::upperBound();
 }
 
 const Eigen::VectorXd& EqualityConstraint::getBound() const
 {
     return GenericConstraint::getUpperBound();
+}
+
+void EqualityConstraint::setBound(const Eigen::VectorXd& newBound)
+{
+
+    GenericConstraint::setUpperBound(newBound);
+    GenericConstraint::setLowerBound(newBound);
 }
