@@ -45,9 +45,9 @@ class EqualityConstraint : public constraint::GenericConstraint
 public:
     EqualityConstraint(optim::ControlVariable control_var);
 
-    const Eigen::VectorXd& getLowerBound() const;
+    const Eigen::VectorXd& getLowerBound() const override;
 
-    const Eigen::VectorXd& getUpperBound() const;
+    const Eigen::VectorXd& getUpperBound() const override;
 
     Eigen::VectorXd& bound();
 
