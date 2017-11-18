@@ -88,14 +88,14 @@ void ConstraintFunction::resize(int new_rows,int new_cols)
     bool rows_changed = ( old_rows != new_rows );
     bool cols_changed = ( old_cols != new_cols );
 
-    if(not rows_changed and not cols_changed)
+    if(! rows_changed && ! cols_changed)
     {
         // No Need to resize anything
         return;
     }
 
     // Add new rows only
-    if( rows_changed and not cols_changed )
+    if( rows_changed && ! cols_changed )
     {
         // Keep old data, and add zeros if matrix is growing
         C_.conservativeResize(new_rows,Eigen::NoChange);
@@ -117,7 +117,7 @@ void ConstraintFunction::resize(int new_rows,int new_cols)
     }
     // Add new cols only
     // Size of lower/upper band does not change
-    if( not rows_changed and cols_changed )
+    if( ! rows_changed && cols_changed )
     {
         C_.conservativeResize(Eigen::NoChange,new_cols);
         if(new_cols > old_cols)
@@ -128,28 +128,28 @@ void ConstraintFunction::resize(int new_rows,int new_cols)
     }
 
     // Add both
-    if( rows_changed and cols_changed )
+    if( rows_changed && cols_changed )
     {
         C_.conservativeResizeLike( Eigen::MatrixXd::Zero(new_rows,new_cols) );
         lower_bound_.conservativeResizeLike( Eigen::VectorXd::Constant(new_rows,   - math::Infinity) );
         upper_bound_.conservativeResizeLike( Eigen::VectorXd::Constant(new_rows,     math::Infinity) );
         // add rows and remove cols
-        // if(new_rows > old_rows and new_cols < old_cols)
+        // if(new_rows > old_rows && new_cols < old_cols)
         // {
         //
         // }
         // // remove rows and remove cols
-        // if(new_rows < old_rows and new_cols < old_cols)
+        // if(new_rows < old_rows && new_cols < old_cols)
         // {
         //
         // }
         // // remove rows and add cols
-        // if(new_rows < old_rows and new_cols > old_cols)
+        // if(new_rows < old_rows && new_cols > old_cols)
         // {
         //
         // }
         // // add rows and add cols
-        // if(new_rows > old_rows and new_cols > old_cols)
+        // if(new_rows > old_rows && new_cols > old_cols)
         // {
         //
         // }
