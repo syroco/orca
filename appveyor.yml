@@ -16,6 +16,7 @@ build_script:
   - cd c:\projects\orca
   - md build
   - cd build
+  - cmake ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" orca.sln
   - cmake --build . --config Release
   - ctest --output-on-failure --build-config Release
