@@ -64,8 +64,8 @@ namespace task
                 {
                     EuclidianNorm().A().block(old_cols,old_cols,sizeofvar - old_cols,sizeofvar - old_cols).setIdentity() * DefaultWeight;
                     EuclidianNorm().A().block(old_cols,old_cols,sizeofvar - old_cols,sizeofvar - old_cols) *= DefaultWeight;
+                    EuclidianNorm().computeQuadraticCost();
                 }
-                EuclidianNorm().computeQuadraticCost();
             }
         }
     };
