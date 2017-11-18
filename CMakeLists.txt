@@ -4,14 +4,14 @@ project(orca CXX)
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.cmake)
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 add_definitions(-std=c++11)
 
 #################### Eigen3 ###########################
 find_package(Eigen3 QUIET)
 if(NOT Eigen3_FOUND)
     message(WARNING "Using internal Eigen3, please consider installing it standalone.")
-    set(EIGEN3_ROOT external/eigen-3.3.4)
+    set(EIGEN3_ROOT ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
     find_package(Eigen3 REQUIRED)
 endif()
 
@@ -27,10 +27,10 @@ if(catkin_FOUND)
 endif()
 
 #################### Catkin ###########################
-include_directories(external/plog-1.1.3/include)
+include_directories(${PROJECT_SOURCE_DIR}/external/plog-1.1.3/include)
 
 #################### JSON Parser ###########################
-include_directories(external/json-2.1.1/include)
+include_directories(${PROJECT_SOURCE_DIR}/external/json-2.1.1/include)
 
 
 #################### qpOASES ##########################
@@ -38,8 +38,8 @@ find_package(qpOASES QUIET)
 # # idyntree
 if(NOT qpOASES_FOUND)
     message(WARNING "Using internal qpOASES, please consider installing it standalone.")
-    add_subdirectory(external/qpOASES-3.2)
-    set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2/include )
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/qpOASES-3.2)
+    set(qpOASES_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/external/qpOASES-3.2/include )
     set(qpOASES_LIBRARIES qpOASES)
 endif()
 
@@ -49,7 +49,7 @@ include_directories(${qpOASES_INCLUDE_DIRS})
 find_package(iDynTree QUIET)
 # # idyntree
 if(NOT iDynTree_FOUND)
-    set(iDynTree_DIR external/idyntree-0.8.1)
+    set(iDynTree_DIR ${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1)
     add_subdirectory(${iDynTree_DIR})
     set(iDynTree_INCLUDE_DIRS   ${iDynTree_DIR}/src/core/include
                                 ${iDynTree_DIR}/src/model/include
