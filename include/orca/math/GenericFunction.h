@@ -77,6 +77,8 @@ public:
     virtual void print() const = 0;
     virtual void resize(int rows, int cols) = 0;
     virtual Size getSize() const = 0;
+    virtual int cols() const = 0;
+    virtual int rows() const = 0;
 };
 
 
