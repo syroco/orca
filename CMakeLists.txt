@@ -11,7 +11,8 @@ add_definitions(-std=c++11)
 find_package(Eigen3 QUIET)
 if(NOT Eigen3_FOUND)
     message(WARNING "Using internal Eigen3, please consider installing it standalone.")
-    set(EIGEN3_INCLUDE_DIRS external/eigen-3.3.4)
+    set(EIGEN3_ROOT external/eigen-3.3.4)
+    find_package(Eigen3 REQUIRED)
 endif()
 
 include_directories(
