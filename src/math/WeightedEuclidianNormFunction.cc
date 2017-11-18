@@ -77,13 +77,13 @@ void WeightedEuclidianNormFunction::print() const
 
 void WeightedEuclidianNormFunction::setWeight(const Eigen::MatrixXd& weight)
 {
-    if(Weight_.rows() == weight.rows() && Weight_.cols() == weight.cols())
+    if(Size(weight) == Size(Weight_))
     {
         Weight_ = weight;
     }
     else
     {
-        std::cerr << "Size of weight matix do not match" << std::endl;
+        throw std::runtime_error("Size of weight matix do not match");
     }
 }
 
@@ -117,11 +117,13 @@ void WeightedEuclidianNormFunction::resize(int rows,int cols)
 {
     AffineFunction::resize(rows,cols);
     quadCost_.resize(cols);
-    
+
     SelectionVector_.conservativeResizeLike(Eigen::VectorXd::Ones(cols));
-    Weight_.conservativeResize(cols,cols);
-    Weight_.setIdentity();
-    
+
+    Weight_.conservativeResizeLike(Eigen::MatrixXd::Identity(cols,cols));
+    //Weight_.conservativeResize(cols,cols);
+    //Weight_.setIdentity();
+
     this->computeQuadraticCost();
 }
 
