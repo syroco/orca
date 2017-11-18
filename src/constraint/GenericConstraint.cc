@@ -88,7 +88,7 @@ const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 
 void GenericConstraint::setConstraintMatrix(const Eigen::MatrixXd& newC)
 {
-    if(newC.cols() == cols() && newC.rows() == rows())
+    if(Size(newC) == Size(constraintMatrix()))
         constraint_function_.constraintMatrix() = newC;
     else
         throw std::runtime_error(util::Formatter() << "Size do not match. Provided " << Size(newC) << ", expected " << getSize());
