@@ -14,6 +14,8 @@ GenericTask::GenericTask(ControlVariable control_var)
 
 void GenericTask::insertInProblem()
 {
+    MutexLock lock(mutex);
+
     if(!registered_)
     {
         OptimisationVector().addInRegister(this);
@@ -23,6 +25,8 @@ void GenericTask::insertInProblem()
 
 void GenericTask::removeFromProblem()
 {
+    MutexLock lock(mutex);
+
     if(registered_)
     {
         OptimisationVector().removeFromRegister(this);
@@ -32,39 +36,48 @@ void GenericTask::removeFromProblem()
 
 GenericTask::~GenericTask()
 {
-    if(registered_)
-    {
-        removeFromProblem();
-    }
+    removeFromProblem();
 }
 
 double GenericTask::getWeight() const
 {
+    MutexLock lock(mutex);
+
     return weight_;
 }
 
 void GenericTask::setWeight(double weight)
 {
+    MutexLock lock(mutex);
+
     weight_ = weight;
 }
 
 Size GenericTask::getSize() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.getSize();
 }
 
 int GenericTask::cols() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.cols();
 }
 
 int GenericTask::rows() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.rows();
 }
 
 const WeightedEuclidianNormFunction::QuadraticCost& GenericTask::getQuadraticCost() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.getQuadraticCost();
 }
 
@@ -80,11 +93,15 @@ const WeightedEuclidianNormFunction& GenericTask::getEuclidianNorm() const
 
 const Eigen::MatrixXd& GenericTask::getE() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.getA();
 }
 
 const Eigen::VectorXd& GenericTask::getf() const
 {
+    MutexLock lock(mutex);
+
     return euclidian_norm_.getb();
 }
 
@@ -100,6 +117,8 @@ Eigen::VectorXd& GenericTask::f()
 
 void GenericTask::update()
 {
+    MutexLock lock(mutex);
+
     this->updateAffineFunction();
     this->updateQuadraticCost();
 }

@@ -11,6 +11,8 @@ Wrench::Wrench()
 
 void Wrench::activate()
 {
+    MutexLock lock(mutex);
+
     if(is_activated_)
         std::cerr << "Contact already activated " << std::endl;
     is_activated_ = true;
@@ -18,6 +20,8 @@ void Wrench::activate()
 
 void Wrench::desactivate()
 {
+    MutexLock lock(mutex);
+
     if(!is_activated_)
         std::cerr << "Contact already desactivated " << std::endl;
     is_activated_ = false;
@@ -25,6 +29,8 @@ void Wrench::desactivate()
 
 bool Wrench::isActivated() const
 {
+    MutexLock lock(mutex);
+    
     return is_activated_;
 }
 

@@ -80,6 +80,13 @@ public:
     virtual bool isActivated() const;
 
     /**
+     * @brief Check if the constraint is inserted in the problem
+     *
+     * @return bool
+     */
+    virtual bool isInsertedInProblem() const;
+
+    /**
      * @brief Desactivates the constraint : in the solver it is seen as -inf < 0.x < inf
      *
      */

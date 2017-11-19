@@ -12,41 +12,57 @@ LinearizedCoulombConstraint::LinearizedCoulombConstraint()
 }
 double LinearizedCoulombConstraint::getFrictionCoeff() const
 {
+    MutexLock lock(mutex);
+
     return friction_coeff_;
 }
 
 double LinearizedCoulombConstraint::getMargin() const
 {
+    MutexLock lock(mutex);
+
     return margin_;
 }
 
 void LinearizedCoulombConstraint::setAngleOffset(double angle_offset)
 {
+    MutexLock lock(mutex);
+
     angle_offset_ = angle_offset;
 }
 
 void LinearizedCoulombConstraint::setFrictionCoeff(double coeff)
 {
+    MutexLock lock(mutex);
+
     friction_coeff_ = coeff;
 }
 
 void LinearizedCoulombConstraint::setMargin(double margin)
 {
+    MutexLock lock(mutex);
+
     margin_ = margin;
 }
 
 void LinearizedCoulombConstraint::setConeOrientation(const Eigen::Matrix3d& R)
 {
+    MutexLock lock(mutex);
+
     R_cone_ = R;
 }
 
 const Eigen::Matrix3d& LinearizedCoulombConstraint::getConeOrientation() const
 {
+    MutexLock lock(mutex);
+
     return R_cone_;
 }
 
 void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
 {
+    MutexLock lock(mutex);
+
     if (nfaces < 3)
     {
         LOG_ERROR << "[orca::LinearizedCoulombFunction] Number of faces is less than 3";
@@ -62,6 +78,8 @@ void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
 
 void LinearizedCoulombConstraint::resize()
 {
+    MutexLock lock(mutex);
+
     if(number_of_faces_ != constraintFunction().rows())
     {
         LOG_DEBUG << "Resizing to "<< number_of_faces_;
@@ -73,6 +91,8 @@ void LinearizedCoulombConstraint::resize()
 
 void LinearizedCoulombConstraint::update()
 {
+    MutexLock lock(mutex);
+    
     const double angleIncr = 2. * M_PI/(double)number_of_faces_;
 
     v1_[0] = friction_coeff_ * std::cos(angle_offset_);                 //ray of the discreatized cone

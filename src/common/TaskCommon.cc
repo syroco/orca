@@ -15,6 +15,8 @@ TaskCommon::TaskCommon(ControlVariable control_var)
 
 void TaskCommon::initializeRobotData()
 {
+    MutexLock lock(mutex);
+
     if(robot_->getNrOfDegreesOfFreedom() > 0)
     {
         robot_data_helper_.resize(robot_->kinDynComp.model());
@@ -31,11 +33,15 @@ void TaskCommon::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
+    MutexLock lock(mutex);
+
     robot_->setRobotState(world_H_base,jointPos,baseVel,jointVel,gravity);
 }
 
 void TaskCommon::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
+    MutexLock lock(mutex);
+
     if(robot)
     {
         if(robot->getNrOfDegreesOfFreedom() <= 0)
@@ -55,6 +61,8 @@ void TaskCommon::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 
 bool TaskCommon::loadRobotModel(const std::string& file_url)
 {
+    MutexLock lock(mutex);
+
     if(!robot_->loadModelFromFile(file_url))
     {
         throw std::runtime_error("Could not load robot model");
@@ -71,11 +79,15 @@ ControlVariable TaskCommon::getControlVariable() const
 
 void TaskCommon::setName(const std::string& name)
 {
+    MutexLock lock(mutex);
+
     name_ = name;
 }
 
 const std::string& TaskCommon::getName() const
 {
+    MutexLock lock(mutex);
+
     return name_;
 }
 

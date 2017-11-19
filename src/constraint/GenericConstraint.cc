@@ -14,6 +14,8 @@ GenericConstraint::GenericConstraint(ControlVariable control_var)
 
 void GenericConstraint::insertInProblem()
 {
+    MutexLock lock(mutex);
+
     if(!registered_)
     {
         OptimisationVector().addInRegister(this);
@@ -23,6 +25,8 @@ void GenericConstraint::insertInProblem()
 
 void GenericConstraint::removeFromProblem()
 {
+    MutexLock lock(mutex);
+
     if(registered_)
     {
         OptimisationVector().removeFromRegister(this);
@@ -32,14 +36,13 @@ void GenericConstraint::removeFromProblem()
 
 GenericConstraint::~GenericConstraint()
 {
-    if(registered_)
-    {
-        removeFromProblem();
-    }
+    removeFromProblem();
 }
 
 void GenericConstraint::activate()
 {
+    MutexLock lock(mutex);
+
     if(is_activated_)
     {
         LOG_ERROR << "Contact already activated ";
@@ -52,6 +55,8 @@ void GenericConstraint::activate()
 
 void GenericConstraint::desactivate()
 {
+    MutexLock lock(mutex);
+
     if(!is_activated_)
     {
         LOG_ERROR << "Contact already desactivated ";
@@ -64,36 +69,57 @@ void GenericConstraint::desactivate()
 
 bool GenericConstraint::isActivated() const
 {
+    MutexLock lock(mutex);
+
     return is_activated_;
+}
+
+bool GenericConstraint::isInsertedInProblem() const
+{
+    MutexLock lock(mutex);
+
+    return registered_;
 }
 
 Size GenericConstraint::getSize() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.getSize();
 }
 
 int GenericConstraint::rows() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.rows();
 }
 
 int GenericConstraint::cols() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.cols();
 }
 
 const Eigen::VectorXd& GenericConstraint::getLowerBound() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.getLowerBound();
 }
 
 const Eigen::VectorXd& GenericConstraint::getUpperBound() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.getUpperBound();
 }
 
 const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_.getConstraintMatrix();
 }
 
@@ -134,5 +160,7 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
+    MutexLock lock(mutex);
+
     return constraint_function_;
 }
