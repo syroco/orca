@@ -5,7 +5,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-add_definitions(-std=c++11)
+
+# Use C++11
+set(CMAKE_CXX_STANDARD 11)
 
 #################### Eigen3 ###########################
 find_package(Eigen3 QUIET)
