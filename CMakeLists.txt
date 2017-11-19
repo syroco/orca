@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(orca CXX)
+project(orca)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -11,8 +11,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 #################### Eigen3 ###########################
 find_package(Eigen3 3.2.92 QUIET)
+
 if(NOT Eigen3_FOUND)
-    message(WARNING "Using internal Eigen3 (>3.2.92), please consider installing it standalone.")
+    if(EIGEN3_INCLUDE_DIR)
+        unset(EIGEN3_INCLUDE_DIR CACHE)
+    endif()
+    message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
     find_package(Eigen3 3.2.92 REQUIRED)
 endif()
@@ -37,7 +41,7 @@ include_directories(external/json-2.1.1/include)
 
 #################### qpOASES ##########################
 find_package(qpOASES QUIET)
-# # idyntree
+
 if(NOT qpOASES_FOUND)
     message(WARNING "Using internal qpOASES (3.2), please consider installing it standalone.")
     add_subdirectory(external/qpOASES-3.2)
@@ -49,7 +53,7 @@ include_directories(${qpOASES_INCLUDE_DIRS})
 
 #################### iDynTree #########################
 find_package(iDynTree QUIET)
-# # idyntree
+
 if(NOT iDynTree_FOUND)
     set(iDynTree_DIR external/idyntree-0.8.1)
     add_subdirectory(${iDynTree_DIR})
