@@ -2,6 +2,7 @@
 
 #include <plog/Log.h>
 
+
 namespace orca
 {
     namespace util
@@ -25,3 +26,11 @@ namespace orca
         };
     }
 }
+
+#ifdef _WIN32
+#include <orca/optim/ControlVariable.h>
+namespace plog
+{
+    Record& operator<<(Record& record, const orca::optim::ControlVariable& t);
+}
+#endif

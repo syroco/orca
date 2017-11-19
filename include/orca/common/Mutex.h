@@ -59,19 +59,19 @@ protected:
 class MutexLock
 {
 public:
-    MutexLock( MutexInterface &mutex )
+    MutexLock( MutexInterface &mutex_ )
+    : m_(mutex_)
     {
-        m_ = &mutex;
-        m_->lock();
+        m_.lock();
     }
 
     ~MutexLock()
     {
-        m_->unlock();
+        m_.unlock();
     }
 
 protected:
-    MutexInterface *m_;
+    MutexInterface& m_;
 };
 
 

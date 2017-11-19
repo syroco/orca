@@ -8,9 +8,9 @@ using namespace orca::robot;
 
 TaskCommon::TaskCommon(ControlVariable control_var)
 : control_var_(control_var)
-, robot_(new RobotDynTree)
+, robot_(std::make_shared<RobotDynTree>())
 {
-    
+
 }
 
 void TaskCommon::initializeRobotData()

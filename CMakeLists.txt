@@ -127,11 +127,12 @@ if(OROCOS-RTT_FOUND)
 endif()
 
 
-
+if(Unix)
 add_custom_target(  orca-atom-files ALL
                     DEPENDS orca
                     COMMAND ${CMAKE_COMMAND} -E copy
                     ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-                    COMMENT "Copying 'compile_commands.json' to '${CMAKE_CURRENT_SOURCE_DIR}'"
+                    ${PROJECT_SOURCE_DIR}
+                    COMMENT "Copying 'compile_commands.json' to '${PROJECT_SOURCE_DIR}'"
                  )
+endif()

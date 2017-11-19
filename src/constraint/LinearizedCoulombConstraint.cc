@@ -1,6 +1,7 @@
 #include <orca/constraint/LinearizedCoulombConstraint.h>
-#define _USE_MATH_DEFINES
-#include <cmath>
+#ifndef M_PI
+#define M_PI       3.14159265358979323846
+#endif
 using namespace orca::constraint;
 
 LinearizedCoulombConstraint::LinearizedCoulombConstraint()
@@ -77,7 +78,7 @@ void LinearizedCoulombConstraint::update()
     v1_[0] = friction_coeff_ * std::cos(angle_offset_);                 //ray of the discreatized cone
     v1_[1] = friction_coeff_ * std::sin(angle_offset_);
     v1_[2] = 1;
-    
+
     for (int i=0; i < number_of_faces_; ++i)
     {
         angle_offset_ += angleIncr;

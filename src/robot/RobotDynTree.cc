@@ -40,16 +40,16 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
 void RobotDynTree::print()
 {
     std::cout << "Robot Model " << std::endl;
-    for(int i=0; i < kinDynComp.model().getNrOfJoints() ; i++)
+    for(unsigned int i=0; i < kinDynComp.model().getNrOfJoints() ; i++)
     {
         std::cout << "      Joint " << i << " " << kinDynComp.model().getJointName(i) << std::endl;
     }
 
-    for(int i=0; i < kinDynComp.model().getNrOfFrames() ; i++)
+    for(unsigned int i=0; i < kinDynComp.model().getNrOfFrames() ; i++)
     {
         std::cout << "      Frame " << i << " " << kinDynComp.model().getFrameName(i) << std::endl;
     }
-    for(int i=0; i < kinDynComp.model().getNrOfLinks() ; i++)
+    for(unsigned int i=0; i < kinDynComp.model().getNrOfLinks() ; i++)
     {
         std::cout << "      Link " << i << " " << kinDynComp.model().getLinkName(i) << std::endl;
     }

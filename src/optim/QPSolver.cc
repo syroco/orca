@@ -17,7 +17,7 @@ struct QPSolver::SolverImpl
             LOG_INFO << "[QPSolver] New qpOASES::SQProblem (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
             qpoases_.reset(new qpOASES::SQProblem(nvar,nconstr,qpOASES::HST_POSDEF));
             setDefaultOptions();
-            
+
             qpoases_initialized_ = false;
         }
         else if(nvar != qpoases_->getNV() || nconstr != qpoases_->getNC() )
@@ -60,10 +60,10 @@ struct QPSolver::SolverImpl
     int solve(QPSolverData& data )
     {
         if(!qpoases_) return qpOASES::RET_NOTHING_TO_DO;
-        
-        int nWSR = 1e6;
+
+        int nWSR = 1000000;
         qpOASES::returnValue ret;
-        
+
         if(!qpoases_initialized_)
         {
             // Initialise the problem, once it has found a solution, we can hotstart
@@ -122,12 +122,12 @@ struct QPSolver::SolverImpl
 QPSolver::QPSolver()
 : pimpl(new SolverImpl())
 {
-    
+
 }
 
 QPSolver::~QPSolver()
 {
-    
+
 }
 
 void QPSolver::print()

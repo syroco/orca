@@ -5,8 +5,8 @@ using namespace orca::optim;
 
 Contact::Contact()
 : TaskCommon(optim::ControlVariable::Composite)
-, friction_cone_(new LinearizedCoulombConstraint)
-, ex_condition_(new ContactExistenceConditionConstraint)
+, friction_cone_(std::make_shared<LinearizedCoulombConstraint>())
+, ex_condition_(std::make_shared<ContactExistenceConditionConstraint>())
 {
     this->desactivate();
 }

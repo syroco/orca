@@ -328,7 +328,9 @@ namespace plog
 
             friend class MutexLock;
 
+#ifndef _WIN32
         private:
+#endif
             void lock()
             {
 #ifdef _WIN32

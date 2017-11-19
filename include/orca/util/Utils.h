@@ -95,21 +95,6 @@ struct SharedPtr
     static std::shared_ptr<T> createPtr(){ return std::shared_ptr<T>(new T); }
 };
 
-
-inline void gen_random_str(char *s, const int len) {
-    std::srand(std::time(0));
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-    for (int i = 0; i < len; ++i) {
-        s[i] = alphanum[std::rand() % (sizeof(alphanum) - 1)];
-    }
-
-    s[len] = 0;
-}
-
 template <typename T>
 struct Counter
 {

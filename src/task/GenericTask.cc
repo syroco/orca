@@ -38,7 +38,7 @@ GenericTask::~GenericTask()
     }
 }
 
-int GenericTask::getWeight() const
+double GenericTask::getWeight() const
 {
     return weight_;
 }
@@ -108,4 +108,3 @@ void GenericTask::updateQuadraticCost()
 {
     euclidian_norm_.computeQuadraticCost();
 }
-

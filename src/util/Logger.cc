@@ -25,3 +25,13 @@ namespace orca
     }
 }
 
+#ifdef _WIN32
+namespace plog
+{
+    Record& operator<<(Record& record, const orca::optim::ControlVariable& t)
+    {
+      record << static_cast<int>(t);
+      return record;
+    }
+}
+#endif

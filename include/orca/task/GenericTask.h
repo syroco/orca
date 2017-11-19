@@ -52,7 +52,7 @@ public:
 
     virtual ~GenericTask();
 
-    int getWeight() const;
+    double getWeight() const;
 
     void setWeight(double weight);
 
