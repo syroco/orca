@@ -1,6 +1,6 @@
-.. image:: _static/orca-b.png
-    :scale: 50 %
-    :align: center
+.. image:: _static/orca-l.png
+    :width: 50px
+    :align: left
 
 ORCA is an optimisation-based library to solve robotics problems with tasks and constraints.
 
@@ -8,11 +8,11 @@ ORCA is an optimisation-based library to solve robotics problems with tasks and 
 
     \min_{x} \frac{1}{2}x^tHx + x^tg
 
-    & \text{subject to} &
+    \text{subject to}
 
-    & lb \leq  x \leq ub &
+    lb \leq  x \leq ub
 
-    & lb_A \leq Ax \leq ub_A &
+    lb_A \leq Ax \leq ub_A
 
 
 .. code-block:: c++

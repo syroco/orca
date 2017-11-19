@@ -121,14 +121,13 @@ html_show_copyright = True
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_logo = '_static/orca-st.png'
+html_logo = '_static/orca-b.png'
 
 html_theme_options = {
-    #'logo_only': True,
-    #'display_version': False,
-    #'collapse_navigation': False,
-    #'display_version': False,
-    #'navigation_depth': 3,
+    'logo_only': True,
+    'collapse_navigation': False,
+    'display_version': False,
+    'navigation_depth': 3,
 }
 
 
