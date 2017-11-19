@@ -18,7 +18,7 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
 void JointLimitConstraint::update()
 {
     MutexLock lock(mutex);
-    
+
     constraintFunction().lowerBound() = min_ ;
     constraintFunction().upperBound() = max_ ;
 }
@@ -26,10 +26,10 @@ void JointLimitConstraint::update()
 void JointLimitConstraint::resize()
 {
     MutexLock lock(mutex);
-    
+
     const int dim = OptimisationVector().getSize(getControlVariable());
 
-    if(min_.size() != dim or max_.size() != dim)
+    if(min_.size() != dim || max_.size() != dim)
     {
         constraintFunction().resize(dim,dim);
         constraintFunction().constraintMatrix().setIdentity();

@@ -12,7 +12,7 @@ JointPositionLimitConstraint::JointPositionLimitConstraint()
 void JointPositionLimitConstraint::setJointLimitsFromRobotModel()
 {
     MutexLock lock(mutex);
-    
+
     std::map<int, std::pair<double,double> > lim = robot().getJointPositionLimits();
 
     for(auto l : lim)
@@ -28,14 +28,14 @@ void JointPositionLimitConstraint::setJointLimitsFromRobotModel()
 void JointPositionLimitConstraint::setHorizon(double horizon)
 {
     MutexLock lock(mutex);
-    
+
     horizon_ = horizon;
 }
 
 void JointPositionLimitConstraint::update()
 {
     MutexLock lock(mutex);
-    
+
     const Eigen::VectorXd& min_jnt_pos(min_);
     const Eigen::VectorXd& max_jnt_pos(max_);
 
@@ -50,7 +50,7 @@ void JointPositionLimitConstraint::resize()
 {
     MutexLock lock(mutex);
     const int dof = robot().getNrOfDegreesOfFreedom();
-    if(min_.size() != dof or max_.size() != dof)
+    if(min_.size() != dof || max_.size() != dof)
     {
         JointLimitConstraint::resize();
         setJointLimitsFromRobotModel();
