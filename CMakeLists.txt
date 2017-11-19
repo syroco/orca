@@ -10,11 +10,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 11)
 
 #################### Eigen3 ###########################
-find_package(Eigen3 QUIET)
+find_package(Eigen3 3.2.92 QUIET)
 if(NOT Eigen3_FOUND)
-    message(WARNING "Using internal Eigen3, please consider installing it standalone.")
+    message(WARNING "Using internal Eigen3 (>3.2.92), please consider installing it standalone.")
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
-    find_package(Eigen3 REQUIRED)
+    find_package(Eigen3 3.2.92 REQUIRED)
 endif()
 
 include_directories(
@@ -39,7 +39,7 @@ include_directories(external/json-2.1.1/include)
 find_package(qpOASES QUIET)
 # # idyntree
 if(NOT qpOASES_FOUND)
-    message(WARNING "Using internal qpOASES, please consider installing it standalone.")
+    message(WARNING "Using internal qpOASES (3.2), please consider installing it standalone.")
     add_subdirectory(external/qpOASES-3.2)
     set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2/include )
     set(qpOASES_LIBRARIES qpOASES)
@@ -65,7 +65,7 @@ if(NOT iDynTree_FOUND)
                            idyntree-modelio-urdf
                            idyntree-regressors
                            idyntree-high-level)
-    message(WARNING "Using internal idyntree, please consider installing it standalone.")
+    message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
 
 endif()
 
