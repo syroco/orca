@@ -111,7 +111,7 @@ add_subdirectory(examples)
 
 #################### OROCOS Wrapper ########################
 find_package(OROCOS-RTT QUIET ${RTT_HINTS})
-if(FALSE OR OROCOS-RTT_FOUND)
+if(OROCOS-RTT_FOUND)
     include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake )
 
     add_definitions(-DUSE_OROCOS_MUTEXES)

@@ -185,6 +185,8 @@ struct RobotDataHelper
 {
     void resize(const iDynTree::Model & model)
     {
+        eigRobotState.resize(model.getNrOfDOFs());
+        idynRobotState.resize(model.getNrOfDOFs());
         eigRobotAcc.resize(model.getNrOfDOFs());
         idynRobotAcc.resize(model.getNrOfDOFs());
 
@@ -213,6 +215,8 @@ struct RobotDataHelper
     iDynTree::Position framePos;
     iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
     Eigen::VectorXd eigGeneralizedBiasForces;
+    EigenRobotState eigRobotState;
+    iDynTreeRobotState idynRobotState;
 };
 
 

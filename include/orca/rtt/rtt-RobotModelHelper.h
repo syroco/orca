@@ -53,10 +53,10 @@ namespace rttorca
 {
     struct RobotModelHelper
     {
-        RobotModelHelper(RTT::TaskContext *owner,orca::common::TaskCommon& comp,orca::robot::RobotDynTree& model)
-        : robot_(model)
+        RobotModelHelper(RTT::TaskContext *owner,orca::common::TaskCommon& comp,orca::robot::RobotDynTree& robot)
+        : robot_(robot)
         {
-            //static_cast<bool (orca::TaskCommon::*)(const std::string&)>(&orca::TaskCommon::loadRobotModel)
+            robot_data_helper_.resize(robot.getRobotModel());
             owner->provides("robot_model")->addOperation("loadModelFromFile",&orca::common::TaskCommon::loadRobotModel, &comp , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("print", &orca::robot::RobotDynTree::print, &robot_ , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("setBaseFrame", &orca::robot::RobotDynTree::setBaseFrame, &robot_ , RTT::OwnThread);
@@ -69,19 +69,19 @@ namespace rttorca
 
         void updateModel()
         {
-            port_jnt_pos_in_.readNewest(robot_.eigRobotState.jointPos);
-            port_jnt_vel_in_.readNewest(robot_.eigRobotState.jointVel);
-            port_world_to_base_in_.readNewest(robot_.eigRobotState.world_H_base);
-            port_base_vel_in_.readNewest(robot_.eigRobotState.baseVel);
-            port_gravity_in_.readNewest(robot_.eigRobotState.gravity);
+            port_jnt_pos_in_.readNewest(robot_data_helper_.eigRobotState.jointPos);
+            port_jnt_vel_in_.readNewest(robot_data_helper_.eigRobotState.jointVel);
+            port_world_to_base_in_.readNewest(robot_data_helper_.eigRobotState.world_H_base);
+            port_base_vel_in_.readNewest(robot_data_helper_.eigRobotState.baseVel);
+            port_gravity_in_.readNewest(robot_data_helper_.eigRobotState.gravity);
 
-            robot_.idynRobotState.fromEigen(robot_.eigRobotState);
+            robot_data_helper_.idynRobotState.fromEigen(robot_data_helper_.eigRobotState);
 
-            robot_.kinDynComp.setRobotState(robot_.idynRobotState.world_H_base
-                        ,robot_.idynRobotState.jointPos
-                        ,robot_.idynRobotState.baseVel
-                        ,robot_.idynRobotState.jointVel
-                        ,robot_.idynRobotState.gravity
+            robot_.setRobotState(robot_data_helper_.eigRobotState.world_H_base
+                        ,robot_data_helper_.eigRobotState.jointPos
+                        ,robot_data_helper_.eigRobotState.baseVel
+                        ,robot_data_helper_.eigRobotState.jointVel
+                        ,robot_data_helper_.eigRobotState.gravity
                                                 );
         }
 
@@ -91,6 +91,7 @@ namespace rttorca
         RTT::InputPort<Eigen::Matrix<double,6,1> > port_base_vel_in_;
         RTT::InputPort<Eigen::Vector3d> port_gravity_in_;
         orca::robot::RobotDynTree& robot_;
+        orca::robot::RobotDataHelper robot_data_helper_;
     };
 
 }
