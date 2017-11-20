@@ -49,7 +49,7 @@
 
 #include <orca/orca.h>
 
-namespace rttorca
+namespace rtt_orca
 {
     struct RobotModelHelper
     {
@@ -67,6 +67,14 @@ namespace rttorca
             owner->provides("robot_model")->addPort("Gravity-in",port_gravity_in_);
         }
 
+        void configureRobotPorts()
+        {
+            port_jnt_pos_in_.setDataSample(robot_data_helper_.eigRobotState.jointPos);
+            port_jnt_vel_in_.setDataSample(robot_data_helper_.eigRobotState.jointVel);
+            port_world_to_base_in_.setDataSample(robot_data_helper_.eigRobotState.world_H_base);
+            port_base_vel_in_.setDataSample(robot_data_helper_.eigRobotState.baseVel);
+        }
+
         void updateRobotModel()
         {
             port_jnt_pos_in_.readNewest(robot_data_helper_.eigRobotState.jointPos);
@@ -74,8 +82,6 @@ namespace rttorca
             port_world_to_base_in_.readNewest(robot_data_helper_.eigRobotState.world_H_base);
             port_base_vel_in_.readNewest(robot_data_helper_.eigRobotState.baseVel);
             port_gravity_in_.readNewest(robot_data_helper_.eigRobotState.gravity);
-
-            robot_data_helper_.idynRobotState.fromEigen(robot_data_helper_.eigRobotState);
 
             robot_.setRobotState(robot_data_helper_.eigRobotState.world_H_base
                         ,robot_data_helper_.eigRobotState.jointPos
