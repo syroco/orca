@@ -12,18 +12,18 @@ JointVelocityLimitConstraint::JointVelocityLimitConstraint()
 void JointVelocityLimitConstraint::setHorizon(double horizon)
 {
     MutexLock lock(mutex);
-    
+
     horizon_ = horizon;
 }
 
 void JointVelocityLimitConstraint::update()
 {
     MutexLock lock(mutex);
-    
+
     const Eigen::VectorXd& min_jnt_vel_(min_);
     const Eigen::VectorXd& max_jnt_vel_(max_);
 
-    const Eigen::VectorXd& current_jnt_vel = robot().eigRobotState.jointVel;
+    const Eigen::VectorXd& current_jnt_vel = robot().getJointVel();
 
     constraintFunction().lowerBound().noalias() = ( min_jnt_vel_ - current_jnt_vel ) / horizon_ ;
     constraintFunction().upperBound().noalias() = ( max_jnt_vel_ - current_jnt_vel ) / horizon_ ;
@@ -32,6 +32,6 @@ void JointVelocityLimitConstraint::update()
 void JointVelocityLimitConstraint::resize()
 {
     MutexLock lock(mutex);
-    
+
     JointLimitConstraint::resize();
 }

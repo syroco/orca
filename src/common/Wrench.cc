@@ -30,7 +30,7 @@ void Wrench::desactivate()
 bool Wrench::isActivated() const
 {
     MutexLock lock(mutex);
-    
+
     return is_activated_;
 }
 
@@ -104,16 +104,12 @@ void Wrench::update()
 
     if(base_ref_frame_ == robot().getBaseFrame())
     {
-        robot().kinDynComp.getFrameFreeFloatingJacobian(control_frame_,robotData().idynJacobianFb);
-        jacobian_ = iDynTree::toEigen(robotData().idynJacobianFb);
+        jacobian_ = robot().getFrameFreeFloatingJacobian(control_frame_);
     }
     else
     {
         const int dof = robot().getNrOfDegreesOfFreedom();
-        robot().kinDynComp.getRelativeJacobian(robot().kinDynComp.getFrameIndex(base_ref_frame_)
-                                            ,robot().kinDynComp.getFrameIndex(control_frame_)
-                                            ,robotData().idynJacobian);
-        jacobian_.block(0,6,6,dof) = iDynTree::toEigen(robotData().idynJacobian);
+        jacobian_.block(0,6,6,dof) = robot().getRelativeJacobian(base_ref_frame_,control_frame_);
     }
     jacobian_transpose_ = jacobian_.transpose();
 }

@@ -54,9 +54,7 @@ void DynamicsEquationConstraint::update()
     const int acc_size = OptimisationVector().getSize(ControlVariable::GeneralisedAcceleration);
 
     // A = [-M St Jt]
-    robot().kinDynComp.getFreeFloatingMassMatrix(robotData().idynMassMatrix);
-
-    this->constraintMatrix().block(0, acc_idx, acc_size, acc_size) = - iDynTree::toEigen(robotData().idynMassMatrix);
+    this->constraintMatrix().block(0, acc_idx, acc_size, acc_size) = - robot().getFreeFloatingMassMatrix();
 
     const int fb_wrench_idx = OptimisationVector().getIndex(ControlVariable::FloatingBaseWrench);
     const int jnt_trq_idx = OptimisationVector().getIndex(ControlVariable::JointSpaceTorque);
@@ -78,8 +76,5 @@ void DynamicsEquationConstraint::update()
 
     // b = n(q,qdot)
     // The output is a set of generalized torques (joint torques + base wrenches)
-    robot().kinDynComp.inverseDynamics(robotData().idynRobotAcc.baseAcc,robotData().idynRobotAcc.jointAcc,robotData().extForces,robotData().generalizedBiasForces);
-
-    this->bound().segment(0,6) = iDynTree::toEigen(robotData().generalizedBiasForces.baseWrench());
-    this->bound().segment(6,ndof) = iDynTree::toEigen(robotData().generalizedBiasForces.jointTorques());
+    this->bound() = robot().generalizedBiasForces();
 }
