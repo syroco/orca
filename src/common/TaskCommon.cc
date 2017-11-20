@@ -13,20 +13,6 @@ TaskCommon::TaskCommon(ControlVariable control_var)
 
 }
 
-void TaskCommon::initializeRobotData()
-{
-    MutexLock lock(mutex);
-
-    if(robot_->getNrOfDegreesOfFreedom() > 0)
-    {
-        robot_data_helper_.resize(robot_->kinDynComp.model());
-    }
-    else
-    {
-        throw std::runtime_error("Could not read any DOFs");
-    }
-}
-
 void TaskCommon::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
@@ -50,7 +36,6 @@ void TaskCommon::setRobotModel(std::shared_ptr<RobotDynTree> robot)
         }
 
         robot_ = robot;
-        this->initializeRobotData();
         this->resize();
     }
     else
@@ -67,7 +52,6 @@ bool TaskCommon::loadRobotModel(const std::string& file_url)
     {
         throw std::runtime_error("Could not load robot model");
     }
-    this->initializeRobotData();
     this->resize();
     return true;
 }
@@ -89,12 +73,6 @@ const std::string& TaskCommon::getName() const
     MutexLock lock(mutex);
 
     return name_;
-}
-
-
-RobotDataHelper& TaskCommon::robotData()
-{
-    return robot_data_helper_;
 }
 
 RobotDynTree& TaskCommon::robot()

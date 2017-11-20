@@ -73,12 +73,9 @@ namespace common
     protected:
         optim::ControlVariable control_var_;
         std::shared_ptr<robot::RobotDynTree> robot_;
-        robot::RobotDataHelper robot_data_helper_;
         bool registered_ = false;
     private:
         std::string name_;
-        void initializeRobotData();
-
     };
 }
 }

@@ -34,6 +34,7 @@
 #pragma once
 
 #include <orca/util/Utils.h>
+#include <orca/math/Utils.h>
 #include <map>
 #include <cstdlib>
 
@@ -191,6 +192,7 @@ struct RobotDataHelper
         idynJacobian.resize(6,model.getNrOfDOFs());
         idynJacobianFb.resize(model);
         generalizedBiasForces.resize(model);
+        eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
         extForces.resize(model);
 
         eigRobotAcc.setZero();
@@ -210,6 +212,7 @@ struct RobotDataHelper
     iDynTree::Twist frameVel;
     iDynTree::Position framePos;
     iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
+    Eigen::VectorXd eigGeneralizedBiasForces;
 };
 
 
@@ -230,46 +233,35 @@ public:
                 , const Eigen::VectorXd& jointVel);
     void print();
     void setBaseFrame(const std::string& fixed_base_or_free_floating_frame);
-    const std::string& getBaseFrame() const { return baseFrame; }
+    const std::string& getBaseFrame() const;
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
-    const std::string& getFileURL() const { return urdf_url; }
-    int getNrOfDegreesOfFreedom() const
-    {
-        return kinDynComp.getNrOfDegreesOfFreedom();
-    }
-    bool frameExists(const std::string& frame_name)
-    {
-        if(kinDynComp.getFrameIndex(frame_name) < 0)
-        {
-            return false;
-        }
-        return true;
-    }
+    const std::string& getFileURL() const;
+    unsigned int getNrOfDegreesOfFreedom() const;
+    bool frameExists(const std::string& frame_name);
+    const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 
-    std::map<int, std::pair<double,double> > getJointPositionLimits()
-    {
-        std::map<int, std::pair<double,double> > lim;
-        for(unsigned int i = 0 ; i < kinDynComp.getNrOfDegreesOfFreedom() ; i++)
-        {
-            double min = 0,max = 0;
-            if(kinDynComp.model().getJoint(i)->hasPosLimits())
-            {
-                min = kinDynComp.model().getJoint(i)->getMinPosLimit(0);
-                max = kinDynComp.model().getJoint(i)->getMaxPosLimit(0);
-                lim[i] = {min,max};
-            }
-        }
-        return lim;
-    }
-
-
-    iDynTree::KinDynComputations kinDynComp;
-    EigenRobotState eigRobotState;
-    iDynTreeRobotState idynRobotState;
-    bool is_initialized = false;
-    std::string baseFrame;
-    std::string urdf_url;
-    Eigen::Vector3d global_gravity_vector;
+    Eigen::Map< const Eigen::Matrix<double,4,4,Eigen::RowMajor> > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    const Eigen::Matrix<double,6,1> getFrameVel(const std::string& frameName);
+    Eigen::Map< const Eigen::Matrix<double,6,1> > getFrameBiasAcc(const std::string& frameName);
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFreeFloatingMassMatrix();
+    const Eigen::VectorXd& getJointPos();
+    const Eigen::VectorXd& getJointVel();
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFrameFreeFloatingJacobian(const std::string& frameName);
+    const Eigen::VectorXd& generalizedBiasForces();
+    const iDynTree::Model& getRobotModel();
+    unsigned int getNrOfJoints();
+    std::string getJointName(unsigned int idx);
+protected:
+    RobotDataHelper robotData_;
+    iDynTree::KinDynComputations kinDynComp_;
+    EigenRobotState eigRobotState_;
+    iDynTreeRobotState idynRobotState_;
+    bool is_initialized_ = false;
+    std::string base_frame_;
+    std::string urdf_url_;
+    Eigen::Vector3d global_gravity_vector_;
+    std::map<unsigned int, std::pair<double,double> > joint_pos_limits_;
 
 };
 
