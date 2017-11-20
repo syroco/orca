@@ -18,7 +18,7 @@ using namespace orca::common;
 int main(int argc, char** argv)
 {
     orca::util::Logger::setLogLevel( orca::util::LogLevel::debug  );
-    
+
     if(argc < 2)
     {
         LOG_ERROR << "Usage : ./orca-demo1-gazebo /path/to/lwr.urdf" << "\n";
@@ -94,18 +94,18 @@ int main(int argc, char** argv)
 
     // Build the same with Gazebo joints
     std::vector<std::string> joint_idx;
-    for(int i=0 ; i < robot->kinDynComp.getRobotModel().getNrOfJoints() ; ++i)
+    for(int i=0 ; i < robot->getNrOfJoints() ; ++i)
     {
-        auto joint = gz_model->GetJoint( robot->kinDynComp.getRobotModel().getJointName(i) );
+        auto joint = gz_model->GetJoint( robot->getJointName(i) );
 
         if(joint)
         {
-            std::cout << "iDynTree adding joint " << i << " name " << robot->kinDynComp.getRobotModel().getJointName(i) << '\n';
-            joint_idx.push_back(robot->kinDynComp.getRobotModel().getJointName(i) );
+            std::cout << "iDynTree adding joint " << i << " name " << robot->getJointName(i) << '\n';
+            joint_idx.push_back(robot->getJointName(i) );
         }
         else
         {
-            std::cout << "Not adding joint " << robot->kinDynComp.getRobotModel().getJointName(i) << '\n';
+            std::cout << "Not adding joint " << robot->getJointName(i) << '\n';
         }
 
     }
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
     robot->setRobotState(robot_state.jointPos,robot_state.jointVel);
 
     LOG_INFO << "===== Cartesian Acceleration PID " << '\n';
-    
+
     CartesianAccelerationPID cart_acc_pid;
     cart_acc_pid.setRobotModel(robot);
 
@@ -352,7 +352,7 @@ int main(int argc, char** argv)
             auto joint = gz_model->GetJoint(joint_idx[i]);
             joint->SetForce(0,torque[i]);
         }
-        
+
         if(!solution_found)
         {
             LOG_ERROR << "No Solution found";

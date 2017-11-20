@@ -192,6 +192,7 @@ struct RobotDataHelper
         idynJacobian.resize(6,model.getNrOfDOFs());
         idynJacobianFb.resize(model);
         generalizedBiasForces.resize(model);
+        eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
         extForces.resize(model);
 
         eigRobotAcc.setZero();
@@ -211,6 +212,7 @@ struct RobotDataHelper
     iDynTree::Twist frameVel;
     iDynTree::Position framePos;
     iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
+    Eigen::VectorXd eigGeneralizedBiasForces;
 };
 
 
@@ -234,20 +236,22 @@ public:
     const std::string& getBaseFrame() const;
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
     const std::string& getFileURL() const;
-    int getNrOfDegreesOfFreedom() const;
+    unsigned int getNrOfDegreesOfFreedom() const;
     bool frameExists(const std::string& frame_name);
-
     const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 
-    const Eigen::Matrix4d& getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
-    const Eigen::Matrix<double,6,1>& getFrameVel(const std::string& frameName);
-    const Eigen::Matrix<double,6,1>& getFrameBiasAcc(const std::string& frameName);
-    const Eigen::MatrixXd& getFreeFloatingMassMatrix();
+    Eigen::Map< const Eigen::Matrix<double,4,4,Eigen::RowMajor> > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    const Eigen::Matrix<double,6,1> getFrameVel(const std::string& frameName);
+    Eigen::Map< const Eigen::Matrix<double,6,1> > getFrameBiasAcc(const std::string& frameName);
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFreeFloatingMassMatrix();
     const Eigen::VectorXd& getJointPos();
     const Eigen::VectorXd& getJointVel();
-    const Eigen::MatrixXd& getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
-    const Eigen::MatrixXd& getFrameFreeFloatingJacobian(const std::string& frameName);
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
+    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFrameFreeFloatingJacobian(const std::string& frameName);
     const Eigen::VectorXd& generalizedBiasForces();
+    const iDynTree::Model& getRobotModel();
+    unsigned int getNrOfJoints();
+    std::string getJointName(unsigned int idx);
 protected:
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;

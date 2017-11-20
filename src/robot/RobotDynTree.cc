@@ -134,9 +134,14 @@ const std::string& RobotDynTree::getFileURL() const
     return urdf_url_;
 }
 
-int RobotDynTree::getNrOfDegreesOfFreedom() const
+unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
 {
     return kinDynComp_.getNrOfDegreesOfFreedom();
+}
+
+const iDynTree::Model& RobotDynTree::getRobotModel()
+{
+    return kinDynComp_.getRobotModel();
 }
 
 const std::map<unsigned int, std::pair<double,double> >& RobotDynTree::getJointPositionLimits()
@@ -153,34 +158,44 @@ bool RobotDynTree::frameExists(const std::string& frame_name)
     return true;
 }
 
-const Eigen::Matrix4d& RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
+std::string RobotDynTree::getJointName(unsigned int idx)
+{
+    return kinDynComp_.model().getJointName(idx);
+}
+
+unsigned int RobotDynTree::getNrOfJoints()
+{
+    return kinDynComp_.model().getNrOfJoints();
+}
+
+Eigen::Map< const Eigen::Matrix<double,4,4,Eigen::RowMajor> > RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
 {
     return iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
 }
 
-const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameVel(const std::string& frameName)
+const Eigen::Matrix<double,6,1> RobotDynTree::getFrameVel(const std::string& frameName)
 {
     return iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
 }
 
-const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string& frameName)
+Eigen::Map< const Eigen::Matrix<double,6,1> > RobotDynTree::getFrameBiasAcc(const std::string& frameName)
 {
     return iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
 }
 
-const Eigen::MatrixXd& RobotDynTree::getFreeFloatingMassMatrix()
+Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getFreeFloatingMassMatrix()
 {
     kinDynComp_.getFreeFloatingMassMatrix(robotData_.idynMassMatrix);
     return iDynTree::toEigen(robotData_.idynMassMatrix);
 }
 
-const Eigen::MatrixXd& RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
+Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
 {
     kinDynComp_.getFrameFreeFloatingJacobian(frameName,robotData_.idynJacobianFb);
     return iDynTree::toEigen(robotData_.idynJacobianFb);
 }
 
-const Eigen::MatrixXd& RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
+Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
 {
     kinDynComp_.getRelativeJacobian(kinDynComp_.getFrameIndex(refFrameName)
                                 ,kinDynComp_.getFrameIndex(frameName)
@@ -201,5 +216,7 @@ const Eigen::VectorXd& RobotDynTree::getJointVel()
 const Eigen::VectorXd& RobotDynTree::generalizedBiasForces()
 {
     kinDynComp_.generalizedBiasForces(robotData_.generalizedBiasForces);
-    return iDynTree::toEigen(robotData_.generalizedBiasForces);
+    robotData_.eigGeneralizedBiasForces.head(6) = iDynTree::toEigen(robotData_.generalizedBiasForces.baseWrench());
+    robotData_.eigGeneralizedBiasForces.tail(kinDynComp_.getNrOfDegreesOfFreedom()) = iDynTree::toEigen(robotData_.generalizedBiasForces.jointTorques());
+    return robotData_.eigGeneralizedBiasForces;
 }
