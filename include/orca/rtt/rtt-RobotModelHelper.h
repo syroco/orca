@@ -67,7 +67,7 @@ namespace rttorca
             owner->provides("robot_model")->addPort("Gravity-in",port_gravity_in_);
         }
 
-        void updateModel()
+        void updateRobotModel()
         {
             port_jnt_pos_in_.readNewest(robot_data_helper_.eigRobotState.jointPos);
             port_jnt_vel_in_.readNewest(robot_data_helper_.eigRobotState.jointVel);

@@ -44,7 +44,7 @@ namespace rttorca
 
         void updateHook()
         {
-            robotHelper_.updateModel();
+            robotHelper_.updateRobotModel();
             if(mutex_.trylock())
             {
                 contact_.update();

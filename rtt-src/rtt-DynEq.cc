@@ -42,7 +42,7 @@ namespace rttorca
 
         void updateHook()
         {
-            robotHelper_.updateModel();
+            robotHelper_.updateRobotModel();
             checkConn_.call();
             if(checkConn_.ready())
             {
