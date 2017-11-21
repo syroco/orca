@@ -140,6 +140,9 @@ if(OROCOS-RTT_FOUND)
     orocos_component(RttDynamicsEquationConstraint rtt_src/RttDynamicsEquationConstraint.cc)
     target_link_libraries(RttDynamicsEquationConstraint orca)
     
+    orocos_component(RttQPSolver rtt_src/RttQPSolver.cc)
+    target_link_libraries(RttQPSolver orca)
+    
     orocos_generate_package()
 endif()
 
