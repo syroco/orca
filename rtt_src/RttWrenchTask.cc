@@ -1,34 +1,19 @@
-#include <rtt/RTT.hpp>
-#include <rtt/TaskContext.hpp>
-#include <rtt/Component.hpp>
-#include <rtt/OperationCaller.hpp>
-#include <rtt/Operation.hpp>
-#include <rtt/InputPort.hpp>
-#include <rtt/OutputPort.hpp>
-#include <rtt/Property.hpp>
-#include <rtt/Service.hpp>
-#include <rtt/plugin/ServicePlugin.hpp>
-#include <rtt/scripting/Scripting.hpp>
-#include <rtt/os/TimeService.hpp>
-#include <rtt/Time.hpp>
-
-#include <orca/orca.h>
-#include <orca/rtt_orca/robot/RobotModelHelper.h>
+#include <orca/rtt_orca/task/RttGenericTask.h>
 
 namespace rtt_orca
 {
 namespace task
 {
-    class RttWrenchTask: public orca::task::WrenchTask, public RTT::TaskContext
+    class RttWrenchTask: public orca::task::WrenchTask, public task::RttGenericTask
     {
     public:
         RttWrenchTask(const std::string& name)
-        : RTT::TaskContext(name)
-        , robotHelper_(this,this,this->robot())
+        : task::RttGenericTask(this,this,name)
         {
-            orca::task::WrenchTask::setName(name);
             this->addOperation("insertInProblem",&orca::task::GenericTask::insertInProblem,this,RTT::OwnThread);
             this->addOperation("removeFromProblem",&orca::task::GenericTask::removeFromProblem,this,RTT::OwnThread);
+            this->addOperation("setWeight",&orca::task::GenericTask::setWeight,this,RTT::OwnThread);
+            this->addOperation("getWeight",&orca::task::GenericTask::getWeight,this,RTT::OwnThread);
             
             this->addOperation("setBaseFrame",&orca::task::WrenchTask::setBaseFrame,this,RTT::OwnThread);
             this->addOperation("setControlFrame",&orca::task::WrenchTask::setControlFrame,this,RTT::OwnThread);
@@ -42,22 +27,15 @@ namespace task
             this->addOperation("setDesired",&orca::task::WrenchTask::setDesired,this,RTT::OwnThread);
         }
 
-        bool configureHook()
-        {
-            robotHelper_.configureRobotPorts();
-            return true;
-        }
-
         void updateHook()
         {
-            robotHelper_.updateRobotModel();
+            this->updateRobotModel();
             port_wrench_des_.readNewest(this->wrench_des_);
             port_current_wrench_.readNewest(this->current_wrench_);
             orca::task::WrenchTask::update();
         }
 
     protected:
-        robot::RobotModelHelper robotHelper_;
         RTT::InputPort<Eigen::Matrix<double,6,1> > port_wrench_des_;
         RTT::InputPort<Eigen::Matrix<double,6,1> > port_current_wrench_;
     };

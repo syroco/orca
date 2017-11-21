@@ -1,32 +1,15 @@
-#include <rtt/RTT.hpp>
-#include <rtt/TaskContext.hpp>
-#include <rtt/Component.hpp>
-#include <rtt/OperationCaller.hpp>
-#include <rtt/Operation.hpp>
-#include <rtt/InputPort.hpp>
-#include <rtt/OutputPort.hpp>
-#include <rtt/Property.hpp>
-#include <rtt/Service.hpp>
-#include <rtt/plugin/ServicePlugin.hpp>
-#include <rtt/scripting/Scripting.hpp>
-#include <rtt/os/TimeService.hpp>
-#include <rtt/Time.hpp>
-
-#include <orca/orca.h>
-#include <orca/rtt_orca/robot/RobotModelHelper.h>
+#include <orca/rtt_orca/common/RttTaskCommon.h>
 
 namespace rtt_orca
 {
 namespace constraint
 {
-    class RttContact: public orca::constraint::Contact, public RTT::TaskContext
+    class RttContact: public orca::constraint::Contact, public common::RttTaskCommon
     {
     public:
         RttContact(const std::string& name)
-        : RTT::TaskContext(name)
-        , robotHelper_(this,this,this->robot())
+        : common::RttTaskCommon(this,this,name)
         {
-            orca::constraint::Contact::setName(name);
             this->addOperation("insertInProblem",&orca::constraint::Contact::insertInProblem,this,RTT::OwnThread);
             this->addOperation("removeFromProblem",&orca::constraint::Contact::removeFromProblem,this,RTT::OwnThread);
             this->addOperation("desactivate",&orca::constraint::Contact::desactivate,this,RTT::OwnThread);
@@ -47,17 +30,14 @@ namespace constraint
 
         bool configureHook()
         {
-            robotHelper_.configureRobotPorts();
             return true;
         }
 
         void updateHook()
         {
-            robotHelper_.updateRobotModel();
+            this->updateRobotModel();
             orca::constraint::Contact::update();
         }
-    private:
-        robot::RobotModelHelper robotHelper_;
     };
 
 }
