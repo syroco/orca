@@ -139,6 +139,7 @@ class SQProblemSchur : public SQProblem
 		 *	\return SUCCESSFUL_RETURN \n
 		 *			RET_MATRIX_FACTORISATION_FAILED \n
 		 * 			RET_NO_HESSIAN_SPECIFIED */
+		using SQProblem::setupAuxiliaryQP;
 		virtual returnValue setupAuxiliaryQP(	SymmetricMatrix *H_new,		/**< New Hessian matrix. \n
 																				 If Hessian matrix is trivial, a NULL pointer can be passed. */
 												Matrix *A_new,				/**< New constraint matrix. \n
