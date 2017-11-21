@@ -10,12 +10,7 @@ namespace task
     public:
         RttRegularisationTask(const std::string& name)
         : task::RttGenericTask(this,this,name)
-        {
-            this->addOperation("insertInProblem",&orca::task::GenericTask::insertInProblem,this,RTT::OwnThread);
-            this->addOperation("removeFromProblem",&orca::task::GenericTask::removeFromProblem,this,RTT::OwnThread);
-            this->addOperation("setWeight",&orca::task::GenericTask::setWeight,this,RTT::OwnThread);
-            this->addOperation("getWeight",&orca::task::GenericTask::getWeight,this,RTT::OwnThread);
-        }
+        {}
 
         void updateHook()
         {
