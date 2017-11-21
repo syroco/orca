@@ -1,3 +1,5 @@
+<img src="docs/source/_static/orca-b.png?raw=true" alt="ORCA Logo" width="200">
+
 Optimisation-based framework for Robotic Control Applications
 -------------------------------------------------------------
 
