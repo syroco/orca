@@ -51,15 +51,18 @@
 
 namespace rtt_orca
 {
+namespace robot
+{
     struct RobotModelHelper
     {
-        RobotModelHelper(RTT::TaskContext *owner,orca::common::TaskCommon& comp,orca::robot::RobotDynTree& robot)
+        RobotModelHelper(RTT::TaskContext* owner,orca::common::TaskCommon* comm,orca::robot::RobotDynTree& robot)
         : robot_(robot)
         {
             robot_data_helper_.resize(robot.getRobotModel());
-            owner->provides("robot_model")->addOperation("loadModelFromFile",&orca::common::TaskCommon::loadRobotModel, &comp , RTT::OwnThread);
+            owner->provides("robot_model")->addOperation("loadModelFromFile",&orca::common::TaskCommon::loadRobotModel, comm , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("print", &orca::robot::RobotDynTree::print, &robot_ , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("setBaseFrame", &orca::robot::RobotDynTree::setBaseFrame, &robot_ , RTT::OwnThread);
+            owner->provides("robot_model")->addOperation("setGravity", &orca::robot::RobotDynTree::setGravity, &robot_ , RTT::OwnThread);
             owner->provides("robot_model")->addPort("JointPosition-in",port_jnt_pos_in_);
             owner->provides("robot_model")->addPort("JointVelocity-in",port_jnt_vel_in_);
             owner->provides("robot_model")->addPort("WorldToBase-in",port_world_to_base_in_);
@@ -69,10 +72,7 @@ namespace rtt_orca
 
         void configureRobotPorts()
         {
-            port_jnt_pos_in_.setDataSample(robot_data_helper_.eigRobotState.jointPos);
-            port_jnt_vel_in_.setDataSample(robot_data_helper_.eigRobotState.jointVel);
-            port_world_to_base_in_.setDataSample(robot_data_helper_.eigRobotState.world_H_base);
-            port_base_vel_in_.setDataSample(robot_data_helper_.eigRobotState.baseVel);
+
         }
 
         void updateRobotModel()
@@ -99,7 +99,7 @@ namespace rtt_orca
         orca::robot::RobotDynTree& robot_;
         orca::robot::RobotDataHelper robot_data_helper_;
     };
-
+}
 }
 
 

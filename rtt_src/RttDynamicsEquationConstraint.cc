@@ -11,23 +11,22 @@
 #include <rtt/scripting/Scripting.hpp>
 #include <rtt/os/TimeService.hpp>
 #include <rtt/Time.hpp>
-#include <rtt/os/Mutex.hpp>
+
 #include <orca/orca.h>
-#include <orca/rtt_orca/RobotModelHelper.h>
+#include <orca/rtt_orca/robot/RobotModelHelper.h>
 
 namespace rtt_orca
 {
 namespace constraint
 {
-    class RttContact: public orca::constraint::Contact, public RTT::TaskContext
+    class RttDynamicsEquationConstraint: public orca::constraint::DynamicsEquationConstraint, public RTT::TaskContext
     {
     public:
-        RttContact(const std::string& name)
+        RttDynamicsEquationConstraint(const std::string& name)
         : RTT::TaskContext(name)
-        , robotHelper_(this,contact_,contact_.robot())
+        , robotHelper_(this,this,this->robot())
         {
-            orca::constraint::Contact::setName(name);
-            this->addOperation("setContactFrame",&orca::constraint::Contact::setContactFrame,&this,RTT::OwnThread);
+            orca::constraint::DynamicsEquationConstraint::setName(name);
         }
 
         bool configureHook()
@@ -38,12 +37,14 @@ namespace constraint
 
         void updateHook()
         {
-            contact_.update();
+            robotHelper_.updateRobotModel();
+            orca::constraint::DynamicsEquationConstraint::update();
         }
-    private:
-        RobotModelHelper robotHelper_;
-    };
 
+    protected:
+        robot::RobotModelHelper robotHelper_;
+    };
+}
 }
 
-ORO_CREATE_COMPONENT(rttorca::constraint::RttContact)
+ORO_CREATE_COMPONENT(rtt_orca::constraint::RttDynamicsEquationConstraint)

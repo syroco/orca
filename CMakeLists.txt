@@ -121,12 +121,25 @@ if(OROCOS-RTT_FOUND)
     orocos_use_package(ocl-taskbrowser)
     orocos_use_package(ocl-deployment)
     include_directories(${OROCOS-RTT_INCLUDE_DIRS})
-    orocos_component(rtt-contact rtt-src/rtt-Contact.cc)
-    orocos_component(rtt-dyneq rtt-src/rtt-DynEq.cc)
-    orocos_component(rtt-reset-test rtt-src/rtt-reset-test.cc)
-    orocos_plugin(rtt-signals-tests rtt-src/rtt-signals-tests.cc)
-    target_link_libraries(rtt-contact orca)
-    target_link_libraries(rtt-dyneq orca)
+    
+    orocos_component(RttContact rtt_src/RttContact.cc)
+    target_link_libraries(RttContact orca)
+    
+    orocos_component(RttCartesianTask rtt_src/RttCartesianTask.cc)
+    target_link_libraries(RttCartesianTask orca)
+    
+    orocos_component(RttRegularisationTask rtt_src/RttRegularisationTask.cc)
+    target_link_libraries(RttRegularisationTask orca)
+    
+    orocos_component(RttJointAccelerationTask rtt_src/RttJointAccelerationTask.cc)
+    target_link_libraries(RttJointAccelerationTask orca)
+    
+    orocos_component(RttWrenchTask rtt_src/RttWrenchTask.cc)
+    target_link_libraries(RttWrenchTask orca)
+    
+    orocos_component(RttDynamicsEquationConstraint rtt_src/RttDynamicsEquationConstraint.cc)
+    target_link_libraries(RttDynamicsEquationConstraint orca)
+    
     orocos_generate_package()
 endif()
 

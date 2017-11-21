@@ -6,7 +6,7 @@ import("eigen_typekit")
 var string urdf = "/home/hoarau/isir/orca_ws/src/orca/examples/lwr/lwr.urdf"
 var string base_frame = "link_0"
 
-loadComponent("contact1","rttorca::Contact")
+loadComponent("contact1","rtt_orca::constraint::RttContact")
 setActivity("contact1",1.0,10,ORO_SCHED_RT)
 contact1.robot_model.loadModelFromFile(urdf)
 contact1.robot_model.setBaseFrame(base_frame)
@@ -15,7 +15,7 @@ contact1.robot_model.print()
 contact1.configure()
 contact1.start()
 
-loadComponent("contact2","rttorca::Contact")
+loadComponent("contact2","rtt_orca::constraint::RttContact")
 setActivity("contact2",0.5,10,ORO_SCHED_RT)
 contact2.robot_model.loadModelFromFile(urdf)
 contact2.robot_model.setBaseFrame(base_frame)
@@ -24,7 +24,7 @@ contact2.robot_model.print()
 contact2.configure()
 contact2.start()
 
-loadComponent("dyneq","rttorca::DynEq")
+loadComponent("dyneq","rtt_orca::constraint::RttDynamicsEquationConstraint")
 setActivity("dyneq",0.01,10,ORO_SCHED_RT)
 dyneq.robot_model.loadModelFromFile(urdf)
 dyneq.robot_model.setBaseFrame(base_frame)
