@@ -48,7 +48,7 @@ namespace constraint
      * u = upperBound, and C the constraint matrix.
      *
      */
-    class GenericConstraint : public common::TaskCommon
+    class GenericConstraint : public common::TaskCommon, public std::enable_shared_from_this<GenericConstraint>
 {
 public:
     /**

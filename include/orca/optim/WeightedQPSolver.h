@@ -44,7 +44,7 @@ namespace orca
 namespace optim
 {
 
-class WeightedQPSolver : public QPSolver
+class WeightedQPSolver : public QPSolver, public std::enable_shared_from_this<WeightedQPSolver>
 {
 public:
     WeightedQPSolver();

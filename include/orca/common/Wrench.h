@@ -40,21 +40,21 @@ namespace orca
 namespace common
 {
 
-class Wrench final: public TaskCommon
+class Wrench final: public TaskCommon, public std::enable_shared_from_this<Wrench>
 {
 public:
     Wrench();
 
     void activate();
-    
+
     bool isActivated() const;
 
     void desactivate();
-    
+
     void insertInProblem();
-    
+
     void removeFromProblem();
-    
+
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
@@ -70,7 +70,7 @@ public:
     void resize();
 
     void update();
-    
+
 protected:
     bool is_activated_ = false;
     std::string base_ref_frame_,control_frame_;

@@ -36,12 +36,12 @@ bool Wrench::isActivated() const
 
 void Wrench::insertInProblem()
 {
-    OptimisationVector().addInRegister(this);
+    OptimisationVector().addInRegister(shared_from_this());
 }
 
 void Wrench::removeFromProblem()
 {
-    OptimisationVector().removeFromRegister(this);
+    OptimisationVector().removeFromRegister(shared_from_this());
 }
 
 void Wrench::setBaseFrame(const std::string& base_ref_frame)

@@ -119,6 +119,8 @@ int main(int argc, char** argv)
 
     const int ndof = robot->getNrOfDegreesOfFreedom();
 
+    std::cout << "===== Joint Torque Limit Constraint" << '\n';
+
     JointTorqueLimitConstraint jnt_trq_cstr;
     Eigen::VectorXd jntTrqMax;
     jntTrqMax.resize(ndof);
@@ -127,9 +129,13 @@ int main(int argc, char** argv)
     jnt_trq_cstr.setLimits(-jntTrqMax,jntTrqMax);
     jnt_trq_cstr.update();
 
+    std::cout << "===== Joint Position Limit Constraint" << '\n';
+
     JointPositionLimitConstraint jnt_pos_cstr;
     jnt_pos_cstr.setRobotModel(robot);
     jnt_pos_cstr.update();
+
+    std::cout << "===== Joint Velocity Limit Constraint" << '\n';
 
     JointVelocityLimitConstraint jnt_vel_cstr;
     Eigen::VectorXd jntVelMax;
@@ -139,6 +145,8 @@ int main(int argc, char** argv)
     jnt_vel_cstr.setLimits(-jntVelMax,jntVelMax);
     jnt_vel_cstr.update();
 
+    std::cout << "===== Joint Acceleration Limit Constraint" << '\n';
+
     JointAccelerationLimitConstraint jnt_acc_cstr;
     Eigen::VectorXd jntAccMax;
     jntAccMax.resize(ndof);
@@ -147,6 +155,8 @@ int main(int argc, char** argv)
     jnt_acc_cstr.setLimits(-jntAccMax,jntAccMax);
     jnt_acc_cstr.update();
 
+
+    std::cout << "===== Acceleration Regularisation task" << '\n';
 
     AccelerationRegularisationTask acc_reg_task;
     RegularisationTask<ControlVariable::X> reg_task;
@@ -221,7 +231,7 @@ int main(int argc, char** argv)
         contact2.insertInProblem();
         contact3.insertInProblem();
         contact4.insertInProblem();
-        
+
         dynConstr.update();
 
         qp.buildOptimisationProblem();

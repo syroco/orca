@@ -18,7 +18,7 @@ void GenericTask::insertInProblem()
 
     if(!registered_)
     {
-        OptimisationVector().addInRegister(this);
+        OptimisationVector().addInRegister(shared_from_this());
         registered_ = true;
     }
 }
@@ -29,7 +29,7 @@ void GenericTask::removeFromProblem()
 
     if(registered_)
     {
-        OptimisationVector().removeFromRegister(this);
+        OptimisationVector().removeFromRegister(shared_from_this());
         registered_ = false;
     }
 }

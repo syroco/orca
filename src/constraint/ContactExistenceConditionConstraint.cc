@@ -17,7 +17,7 @@ void ContactExistenceConditionConstraint::insertInProblem()
     {
         MutexLock lock(mutex);
 
-        OptimisationVector().addInRegister(this);
+        OptimisationVector().addInRegister(shared_from_this());
         wrench_.insertInProblem();
         registered_ = true;
     }
@@ -29,7 +29,7 @@ void ContactExistenceConditionConstraint::removeFromProblem()
     {
         MutexLock lock(mutex);
 
-        OptimisationVector().removeFromRegister(this);
+        OptimisationVector().removeFromRegister(shared_from_this());
         wrench_.removeFromProblem();
         registered_ = false;
     }

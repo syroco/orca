@@ -6,12 +6,12 @@ using namespace orca::task;
 using namespace orca::constraint;
 WeightedQPSolver::WeightedQPSolver()
 {
-    OptimisationVector().addInRegister(this);
+    OptimisationVector().addInRegister(shared_from_this());
 }
 
 WeightedQPSolver::~WeightedQPSolver()
 {
-    OptimisationVector().removeFromRegister(this);
+    OptimisationVector().removeFromRegister(shared_from_this());
 }
 
 void WeightedQPSolver::resize()

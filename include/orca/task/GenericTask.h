@@ -44,7 +44,7 @@ namespace orca
 namespace task
 {
 
-class GenericTask : public common::TaskCommon
+class GenericTask : public common::TaskCommon, public std::enable_shared_from_this<GenericTask>
 {
 
 public:
