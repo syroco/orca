@@ -43,7 +43,7 @@ namespace orca
     namespace common
     {
 
-        template<unsigned int Dimension>
+        template<int Dimension>
         class PIDController
         {
         public:
@@ -71,14 +71,21 @@ namespace orca
             {
                 MutexLock lock(mutex);
                 
-                p_gain_.setZero(dim);
-                i_gain_.setZero(dim);
-                d_gain_.setZero(dim);
-                i_error_.setZero(dim);
-                d_error_.setZero(dim);
-                cmd_.setZero(dim);
-                windup_limit_.resize(dim);
-                windup_limit_.setConstant(dim, math::Infinity );
+                if(dim > 0)
+                {
+                    p_gain_.setZero(dim);
+                    i_gain_.setZero(dim);
+                    d_gain_.setZero(dim);
+                    i_error_.setZero(dim);
+                    d_error_.setZero(dim);
+                    cmd_.setZero(dim);
+                    windup_limit_.resize(dim);
+                    windup_limit_.setConstant(dim, math::Infinity );
+                }
+                else
+                {
+                    LOG_ERROR << "Dimension as to be > 0";
+                }
             }
 
             void setProportionalGain(const Eigen::Matrix<double,Dimension,1>& P_gain)
