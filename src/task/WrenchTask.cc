@@ -2,12 +2,13 @@
 #include <orca/optim/OptimisationVector.h>
 using namespace orca::task;
 using namespace orca::optim;
+using namespace orca::common;
 
 WrenchTask::WrenchTask()
 : GenericTask(ControlVariable::ExternalWrench)
+, pid_(this->mutex)
 {
     wrench_des_.setZero();
-    dt_ = 0;
 }
 
 void WrenchTask::setBaseFrame(const std::string& base_ref_frame)
@@ -37,24 +38,26 @@ void WrenchTask::setDesired(const Vector6d& wrench_des)
     wrench_des_ = wrench_des;
 }
 
-void WrenchTask::setIntegralDt(double dt)
+void WrenchTask::setCurrent(const Vector6d& wrench_curr)
 {
     MutexLock lock(mutex);
     
-    if(dt>0)
-        dt_ = dt;
-    else
-        LOG_ERROR << "dt has to be >=0";
+    wrench_.setCurrent(wrench_curr);
+}
+
+PIDController<6>& WrenchTask::pid()
+{
+    return pid_;
+}
+
+void WrenchTask::setDt(double dt)
+{
+    pid_.setDt(dt);
 }
 
 void WrenchTask::updateAffineFunction()
 {
-    integral_error_ += dt_ * ( current_wrench_ - wrench_des_ );
-    // saturate integral_term
-    integral_error_.cwiseMin(   WindupLimit() );
-    integral_error_.cwiseMax( - WindupLimit() );
-
-    f() = ( - (P().asDiagonal() * ( current_wrench_ - wrench_des_ ) +  I().asDiagonal() * integral_error_) );
+    f() = - pid_.computeCommand( wrench_.getCurrent() - wrench_des_ );
 }
 
 void WrenchTask::resize()

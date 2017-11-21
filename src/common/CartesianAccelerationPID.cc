@@ -5,6 +5,7 @@ using namespace orca::optim;
 
 CartesianAccelerationPID::CartesianAccelerationPID()
 : TaskCommon(ControlVariable::None)
+, pid_(this->mutex)
 {
 
 }
@@ -21,6 +22,7 @@ void CartesianAccelerationPID::setBaseFrame(const std::string& base_ref_frame)
     if(robot().frameExists(base_ref_frame))
         base_ref_frame_ = base_ref_frame;
 }
+
 void CartesianAccelerationPID::setControlFrame(const std::string& control_frame)
 {
     MutexLock lock(mutex);
@@ -28,6 +30,7 @@ void CartesianAccelerationPID::setControlFrame(const std::string& control_frame)
     if(robot().frameExists(control_frame))
         control_frame_ = control_frame;
 }
+
 void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_position_traj
                                         , const Vector6d& cartesian_velocity_traj
                                         , const Vector6d& cartesian_acceleration_traj)
@@ -38,18 +41,26 @@ void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_posit
     cart_vel_des_ = cartesian_velocity_traj;
     cart_acc_des_ = cartesian_acceleration_traj;
 }
-const std::string & CartesianAccelerationPID::getBaseFrame() const
+
+const std::string& CartesianAccelerationPID::getBaseFrame() const
 {
     MutexLock lock(mutex);
 
     return base_ref_frame_;
 }
-const std::string & CartesianAccelerationPID::getControlFrame() const
+
+const std::string& CartesianAccelerationPID::getControlFrame() const
 {
     MutexLock lock(mutex);
 
     return control_frame_;
 }
+
+PIDController<6>& CartesianAccelerationPID::pid()
+{
+    return pid_;
+}
+
 void CartesianAccelerationPID::update()
 {
     MutexLock lock(mutex);
@@ -69,8 +80,9 @@ void CartesianAccelerationPID::update()
     cart_vel_err_ = cart_vel_des_ - cart_vel_curr_;
 
     // Compute Cartesian Acceleration Command
-    cart_acc_cmd_ = cart_acc_des_ + P().asDiagonal() * cart_pos_err_ + D().asDiagonal() * cart_vel_err_;
+    cart_acc_cmd_ = cart_acc_des_ + pid_.computeCommand( cart_pos_err_ , cart_vel_err_ );
 }
+
 const Vector6d& CartesianAccelerationPID::getCommand() const
 {
     MutexLock lock(mutex);

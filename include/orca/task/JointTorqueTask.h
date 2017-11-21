@@ -34,6 +34,7 @@
 #pragma once
 
 #include <orca/task/GenericTask.h>
+#include <orca/common/PIDController.h>
 
 namespace orca
 {
@@ -47,19 +48,17 @@ public:
 
     void setDesired(const Eigen::VectorXd& jnt_trq_des);
 
-    void setProportionalGain(const Eigen::VectorXd& p_gain);
-
-    void setDerivativeGain(const Eigen::VectorXd& d_gain);
-
     void updateAffineFunction();
 
-    void setRobotState(const Eigen::VectorXd& jointTorque);
+    void setCurrent(const Eigen::VectorXd& jointTorque);
 
     void resize();
+    
+    common::PIDController<Eigen::Dynamic>& pid();
+    
 protected:
-
     Eigen::VectorXd jnt_trq_des_,current_jnt_trq_;
-    Eigen::VectorXd P_gain_,D_gain_;
+    common::PIDController<Eigen::Dynamic> pid_;
 };
 
 }

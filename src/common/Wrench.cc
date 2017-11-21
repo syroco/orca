@@ -34,6 +34,20 @@ bool Wrench::isActivated() const
     return is_activated_;
 }
 
+void Wrench::setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
+{
+    MutexLock lock(mutex);
+    
+    current_wrench_ = current_wrench_from_ft_sensor;
+}
+
+const Eigen::Matrix<double,6,1>& Wrench::getCurrent()
+{
+    MutexLock lock(mutex);
+    
+    return current_wrench_;
+}
+
 void Wrench::insertInProblem()
 {
     OptimisationVector().addInRegister(this);
@@ -108,7 +122,7 @@ void Wrench::update()
     }
     else
     {
-        const int dof = robot().getNrOfDegreesOfFreedom();
+        const unsigned int dof = robot().getNrOfDegreesOfFreedom();
         jacobian_.block(0,6,6,dof) = robot().getRelativeJacobian(base_ref_frame_,control_frame_);
     }
     jacobian_transpose_ = jacobian_.transpose();
@@ -122,6 +136,7 @@ void Wrench::resize()
 
     if(jacobian_transpose_.rows() != fulldim || jacobian_transpose_.cols() != 6)
     {
+        current_wrench_.setZero();
         jacobian_transpose_.setZero(fulldim,6);
         zero_.setZero(fulldim,6);
         jacobian_.setZero(6,fulldim);

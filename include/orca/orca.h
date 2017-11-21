@@ -39,7 +39,7 @@
 #include <orca/util/Utils.h>
 
 #include <orca/common/CartesianAccelerationPID.h>
-#include <orca/common/PIDFunctions.h>
+#include <orca/common/PIDController.h>
 #include <orca/common/Wrench.h>
 
 #include <orca/constraint/DynamicsEquationConstraint.h>

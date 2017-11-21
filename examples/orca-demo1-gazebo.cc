@@ -164,8 +164,8 @@ int main(int argc, char** argv)
     Vector6d D_gain;
     D_gain << 10, 10, 10, 1, 1, 1;
 
-    cart_acc_pid.setProportionalGain(P_gain);
-    cart_acc_pid.setDerivativeGain(D_gain);
+    cart_acc_pid.pid().setProportionalGain(P_gain);
+    cart_acc_pid.pid().setDerivativeGain(D_gain);
     cart_acc_pid.setControlFrame("link_7");
     cart_acc_pid.setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     cart_acc_pid.update();

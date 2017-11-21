@@ -47,7 +47,7 @@ void JointPositionLimitConstraint::update()
 void JointPositionLimitConstraint::resize()
 {
     MutexLock lock(mutex);
-    const int dof = robot().getNrOfDegreesOfFreedom();
+    const unsigned int dof = robot().getNrOfDegreesOfFreedom();
     if(min_.size() != dof || max_.size() != dof)
     {
         JointLimitConstraint::resize();

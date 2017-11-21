@@ -42,13 +42,13 @@ namespace orca
 namespace constraint
 {
 
-    /**
-     * @brief Builds a double bounded function : l < C.x < u
-     * With x the control variable, l = lowerBound,
-     * u = upperBound, and C the constraint matrix.
-     *
-     */
-    class GenericConstraint : public common::TaskCommon
+/**
+ * @brief Builds a double bounded function : l < C.x < u
+ * With x the control variable, l = lowerBound,
+ * u = upperBound, and C the constraint matrix.
+ *
+ */
+class GenericConstraint : public common::TaskCommon
 {
 public:
     /**

@@ -34,7 +34,7 @@
 #pragma once
 
 #include <orca/common/Wrench.h>
-#include <orca/common/PIDFunctions.h>
+#include <orca/common/PIDController.h>
 #include <orca/task/GenericTask.h>
 
 namespace orca
@@ -44,7 +44,7 @@ namespace task
 
 using math::Vector6d;
 
-class WrenchTask : public GenericTask, public common::PIDFunctions<6>
+class WrenchTask : public GenericTask
 {
 public:
     WrenchTask();
@@ -61,18 +61,20 @@ public:
     
     void setDesired(const Vector6d& wrench_at_control_frame);
 
-    void setIntegralDt(double dt);
+    void setDt(double dt);
 
     void updateAffineFunction();
 
     void resize();
+    
+    common::PIDController<6>& pid();
+    
 protected:
     Vector6d wrench_des_;
     Vector6d current_wrench_;
-    Vector6d integral_error_;
-    double dt_ = 0;
     Eigen::MatrixXd jacobian_transpose_;
     common::Wrench wrench_;
+    common::PIDController<6> pid_;
 
 };
 
