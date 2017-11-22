@@ -105,8 +105,8 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
 {
     if(getNrOfDegreesOfFreedom() == 0)
         throw std::runtime_error("Robot model is not loaded");
-    
-    
+
+
     if( base_frame_.empty())
         throw std::runtime_error("Base/FreeFloating frame is empty. Please use setBaseFrame before setting the robot state");
 
@@ -121,6 +121,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
 
     if(!is_initialized_)
     {
+        LOG_DEBUG << "Robot is now initialized";
         is_initialized_ = true;
     }
 

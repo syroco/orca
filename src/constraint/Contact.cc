@@ -2,23 +2,25 @@
 #include <orca/optim/OptimisationVector.h>
 using namespace orca::constraint;
 using namespace orca::optim;
+using namespace orca::common;
 
 Contact::Contact()
 : TaskCommon(optim::ControlVariable::Composite)
 , friction_cone_(std::make_shared<LinearizedCoulombConstraint>())
 , ex_condition_(std::make_shared<ContactExistenceConditionConstraint>())
+, wrench_(std::make_shared<Wrench>())
 {
-    this->desactivate();
+
 }
 
 void Contact::addInRegister()
 {
-    
+    wrench_->addInRegister();
 }
 
 void Contact::removeFromRegister()
 {
-    
+    wrench_->removeFromRegister();
 }
 
 bool Contact::insertInProblem()
@@ -34,12 +36,12 @@ bool Contact::removeFromProblem()
 bool Contact::desactivate()
 {
     // TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0
-    return friction_cone_->desactivate() && ex_condition_->desactivate();
+    return friction_cone_->desactivate() && ex_condition_->desactivate() && wrench_->desactivate();
 }
 
 bool Contact::activate()
 {
-    return friction_cone_->activate() && ex_condition_->activate();
+    return friction_cone_->activate() && ex_condition_->activate() && wrench_->activate();
 }
 
 void Contact::update()
@@ -88,28 +90,39 @@ void Contact::setNumberOfFaces(int nfaces)
     friction_cone_->setNumberOfFaces(nfaces);
 }
 
-const Eigen::MatrixXd& Contact::getJacobianTranspose() const
+const std::string& Contact::getBaseFrame() const
 {
-    return ex_condition_->getJacobianTranspose();
+    return wrench_->getBaseFrame();
 }
 
-void Contact::setContactFrame(const std::string& contact_frame)
+const std::string& Contact::getControlFrame() const
 {
-    ex_condition_->setContactFrame(contact_frame);
+    return wrench_->getControlFrame();
 }
 
-std::shared_ptr<LinearizedCoulombConstraint> Contact::getLinearizedCoulombConstraint() const
+void Contact::setBaseFrame(const std::string& base_ref_frame)
 {
-    return friction_cone_;
+    ex_condition_->setBaseFrame(base_ref_frame);
+    wrench_->setBaseFrame(base_ref_frame);
 }
 
-std::shared_ptr<ContactExistenceConditionConstraint> Contact::getContactExistenceConditionConstraint() const
+void Contact::setControlFrame(const std::string& control_frame)
 {
-    return ex_condition_;
+    ex_condition_->setControlFrame(control_frame);
+    wrench_->setControlFrame(control_frame);
+}
+
+void Contact::setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
+{
+    wrench_->setCurrent(current_wrench_from_ft_sensor);
 }
 
 void Contact::resize()
 {
     if( ex_condition_->robotPtr() != this->robotPtr() )
+    {
         ex_condition_->setRobotModel( this->robotPtr() );
+        friction_cone_->setRobotModel( this->robotPtr() );
+        wrench_->setRobotModel( this->robotPtr() );
+    }
 }

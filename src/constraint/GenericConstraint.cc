@@ -8,19 +8,19 @@ using namespace orca::math;
 GenericConstraint::GenericConstraint(ControlVariable control_var)
 : TaskCommon(control_var)
 {
-    
+
 }
 
 void GenericConstraint::print() const
 {
     MutexLock lock(mutex);
-    
+
     std::cout << "[" << TaskCommon::getName() << "]" << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
-    
+
     getConstraintFunction().print();
-    
+
     std::cout << " - isInitialized        " << isInitialized() << '\n';
     std::cout << " - isActivated          " << isActivated() << '\n';
     std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
@@ -111,7 +111,7 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
     MutexLock lock(mutex);
-    
+
     return constraint_function_;
 }
 
@@ -128,21 +128,21 @@ void GenericConstraint::removeFromRegister()
 void GenericConstraint::update()
 {
     setInitialized(robot().isInitialized());
-    
+
     MutexTryLock lock(mutex);
-    
+
     if(!lock.isSuccessful())
     {
         LOG_DEBUG << "Mutex locked, not updating";
         return;
     }
-    
+
     if(!isActivated())
     {
         constraint_function_.reset();
     }
-    
-    if(robot().isInitialized())
+
+    if(isInitialized())
     {
         updateConstraintFunction();
     }

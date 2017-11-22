@@ -13,14 +13,14 @@ Wrench::Wrench()
 void Wrench::setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
 {
     MutexLock lock(mutex);
-    
+
     current_wrench_ = current_wrench_from_ft_sensor;
 }
 
 const Eigen::Matrix<double,6,1>& Wrench::getCurrent()
 {
     MutexLock lock(mutex);
-    
+
     return current_wrench_;
 }
 
@@ -41,7 +41,7 @@ void Wrench::setBaseFrame(const std::string& base_ref_frame)
     if(robot().frameExists(base_ref_frame))
         base_ref_frame_ = base_ref_frame;
     else
-        std::cerr << "Could not set base frame to " << base_ref_frame;
+        LOG_ERROR << "Could not set base frame to " << base_ref_frame;
 }
 
 void Wrench::setControlFrame(const std::string& control_frame)
@@ -51,7 +51,7 @@ void Wrench::setControlFrame(const std::string& control_frame)
     if(robot().frameExists(control_frame))
         control_frame_ = control_frame;
     else
-        std::cerr << "Could not set control frame to " << control_frame;
+        LOG_ERROR << "Could not set control frame to " << control_frame;
 }
 
 const std::string& Wrench::getBaseFrame() const
@@ -71,7 +71,7 @@ const std::string& Wrench::getControlFrame() const
 const Eigen::MatrixXd& Wrench::getJacobianTranspose() const
 {
     MutexLock lock(mutex);
-    if(!is_activated_)
+    if(!isActivated())
         return zero_;
     return jacobian_transpose_;
 }
@@ -87,7 +87,7 @@ void Wrench::update()
 {
     MutexLock lock(mutex);
 
-    if(!robot().isInitialized())
+    if(!isInitialized())
     {
         return;
     }

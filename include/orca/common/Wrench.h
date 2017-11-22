@@ -48,13 +48,13 @@ public:
     void addInRegister();
 
     void removeFromRegister();
-    
+
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
-    
+
     void setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
-    
+
     const Eigen::Matrix<double,6,1>& getCurrent();
 
     const std::string& getBaseFrame() const;
@@ -68,9 +68,8 @@ public:
     void resize();
 
     void update();
-    
+
 protected:
-    bool is_activated_ = false;
     std::string base_ref_frame_,control_frame_;
     Eigen::MatrixXd jacobian_transpose_;
     Eigen::MatrixXd jacobian_;

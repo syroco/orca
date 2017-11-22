@@ -95,10 +95,10 @@ int main(int argc, char** argv)
     contact3.setRobotModel(robot);
     contact4.setRobotModel(robot);
 
-    contact1.setContactFrame("link_7");
-    contact2.setContactFrame("link_2");
-    contact3.setContactFrame("link_6");
-    contact4.setContactFrame("link_5");
+    contact1.setControlFrame("link_7");
+    contact2.setControlFrame("link_2");
+    contact3.setControlFrame("link_6");
+    contact4.setControlFrame("link_5");
 
     contact1.update();
     contact2.update();

@@ -33,6 +33,7 @@
 
 #pragma once
 
+#include <orca/common/Wrench.h>
 #include <orca/optim/OptimisationVector.h>
 #include <orca/constraint/LinearizedCoulombConstraint.h>
 #include <orca/constraint/ContactExistenceConditionConstraint.h>
@@ -47,15 +48,25 @@ class Contact : public common::TaskCommon
 
 public:
     Contact();
-    
+
     void addInRegister();
 
     void removeFromRegister();
-    
+
     bool insertInProblem();
-    
+
+    const std::string& getBaseFrame() const;
+
+    const std::string& getControlFrame() const;
+
+    void setBaseFrame(const std::string& base_ref_frame);
+
+    void setControlFrame(const std::string& control_frame);
+
+    void setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
+
     bool removeFromProblem();
-    
+
     bool desactivate();
 
     bool activate();
@@ -78,18 +89,11 @@ public:
 
     void setNumberOfFaces(int nfaces);
 
-    const Eigen::MatrixXd& getJacobianTranspose() const;
-
-    void setContactFrame(const std::string& contact_frame);
-
-    std::shared_ptr<LinearizedCoulombConstraint> getLinearizedCoulombConstraint() const;
-
-    std::shared_ptr<ContactExistenceConditionConstraint> getContactExistenceConditionConstraint() const;
-
     void resize();
 private:
     std::shared_ptr<LinearizedCoulombConstraint> friction_cone_;
     std::shared_ptr<ContactExistenceConditionConstraint> ex_condition_;
+    std::shared_ptr<common::Wrench> wrench_;
 };
 
 }

@@ -10,75 +10,59 @@ ContactExistenceConditionConstraint::ContactExistenceConditionConstraint()
 {
 
 }
-
-bool ContactExistenceConditionConstraint::insertInProblem()
-{
-    bool ok = TaskCommon::insertInProblem();
-    ok &= wrench_.insertInProblem();
-    return ok;
-}
-
-bool ContactExistenceConditionConstraint::removeFromProblem()
-{
-    bool ok = TaskCommon::removeFromProblem();
-    ok &= wrench_.removeFromProblem();
-    return ok;
-}
-
-ContactExistenceConditionConstraint::~ContactExistenceConditionConstraint()
-{
-    this->removeFromProblem();
-}
-
-void ContactExistenceConditionConstraint::setContactFrame(const std::string& contact_frame)
-{
-    wrench_.setControlFrame(contact_frame);
-}
-
-const std::string& ContactExistenceConditionConstraint::getContactFrame() const
-{
-    return wrench_.getControlFrame();
-}
-
 void ContactExistenceConditionConstraint::setBaseFrame(const std::string& base_ref_frame)
-{
-    wrench_.setBaseFrame(base_ref_frame);
-}
-
-const std::string& ContactExistenceConditionConstraint::getBaseFrame() const
-{
-    return wrench_.getBaseFrame();
-}
-
-const Wrench& ContactExistenceConditionConstraint::getWrench() const
-{
-    return wrench_;
-}
-
-void ContactExistenceConditionConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
 
-    wrench_.update();
-
-    frame_vias_acc_ = - robot().getFrameBiasAcc(wrench_.getControlFrame());
-
-    this->setConstraintMatrix( wrench_.getJacobian().topLeftCorner(3, wrench_.getJacobian().cols()) );
-    this->setBound( frame_vias_acc_.head(3) );
+    if(robot().frameExists(base_ref_frame))
+        base_ref_frame_ = base_ref_frame;
+    else
+        LOG_ERROR << "Could not set base frame to " << base_ref_frame;
 }
 
-const Eigen::MatrixXd& ContactExistenceConditionConstraint::getJacobianTranspose() const
+void ContactExistenceConditionConstraint::setControlFrame(const std::string& control_frame)
 {
-    return wrench_.getJacobianTranspose();
+    MutexLock lock(mutex);
+
+    if(robot().frameExists(control_frame))
+        control_frame_ = control_frame;
+    else
+        LOG_ERROR << "Could not set control frame to " << control_frame;
+}
+
+
+void ContactExistenceConditionConstraint::updateConstraintFunction()
+{
+    if(base_ref_frame_.empty())
+    {
+        base_ref_frame_ = robot().getBaseFrame();
+    }
+
+    frame_bias_acc_ = - robot().getFrameBiasAcc(control_frame_);
+
+    if(base_ref_frame_ == robot().getBaseFrame())
+    {
+        jacobian_ = robot().getFrameFreeFloatingJacobian(control_frame_);
+    }
+    else
+    {
+        const unsigned int dof = robot().getNrOfDegreesOfFreedom();
+        jacobian_.block(0,6,6,dof) = robot().getRelativeJacobian(base_ref_frame_,control_frame_);
+    }
+
+    this->setConstraintMatrix( jacobian_.topLeftCorner(3, jacobian_.cols()) );
+    this->setBound( frame_bias_acc_.head(3) );
 }
 
 void ContactExistenceConditionConstraint::resize()
 {
     MutexLock lock(mutex);
 
-    if(wrench_.robotPtr() != this->robotPtr() )
+    const int fulldim = OptimisationVector().configurationSpaceDimension();
+
+    if(constraintFunction().cols() != fulldim)
     {
-        wrench_.setRobotModel( this->robotPtr() );
-        constraintFunction().resize( 3 , wrench_.getJacobian().cols());
+        constraintFunction().resize( 3 , fulldim);
+        jacobian_.setZero(6,fulldim);
     }
 }

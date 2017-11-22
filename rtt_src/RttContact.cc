@@ -15,7 +15,7 @@ namespace constraint
             this->addOperation("desactivate",&orca::constraint::Contact::desactivate,this,RTT::OwnThread);
             this->addOperation("activate",&orca::constraint::Contact::activate,this,RTT::OwnThread);
             
-            this->addOperation("setContactFrame",&orca::constraint::Contact::setContactFrame,this,RTT::OwnThread);
+            this->addOperation("setControlFrame",&orca::constraint::Contact::setControlFrame,this,RTT::OwnThread);
             this->addOperation("getFrictionCoeff",&orca::constraint::Contact::getFrictionCoeff,this,RTT::OwnThread);
             this->addOperation("getMargin",&orca::constraint::Contact::getMargin,this,RTT::OwnThread);
             this->addOperation("setAngleOffset",&orca::constraint::Contact::setAngleOffset,this,RTT::OwnThread);
@@ -25,7 +25,7 @@ namespace constraint
             this->addOperation("getConeOrientation",&orca::constraint::Contact::getConeOrientation,this,RTT::OwnThread);
             this->addOperation("setNumberOfFaces",&orca::constraint::Contact::setNumberOfFaces,this,RTT::OwnThread);
             this->provides("wrench")->addOperation("getJacobianTranspose",&orca::constraint::Contact::getJacobianTranspose,this,RTT::OwnThread);
-            this->addOperation("setContactFrame",&orca::constraint::Contact::setContactFrame,this,RTT::OwnThread);
+            this->addOperation("setControlFrame",&orca::constraint::Contact::setControlFrame,this,RTT::OwnThread);
         }
 
         bool configureHook()
