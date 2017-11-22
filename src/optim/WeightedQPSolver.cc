@@ -69,9 +69,7 @@ void WeightedQPSolver::buildOptimisationProblem()
 
     int iwrench = 0;
     for(auto task : tasks_)
-    {
-        MutexLock lock(task->mutex);
-        
+    {        
         int start_idx = idx_map_[task->getControlVariable()];
 
         int nrows = task->getQuadraticCost().rows();
@@ -86,12 +84,8 @@ void WeightedQPSolver::buildOptimisationProblem()
 
         if(start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
         {
-            // TODO: move isActivated in the task update
-            if(task->isActivated())
-            {
-                data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
-                data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
-            }
+            data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
+            data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
         }
         else
         {
@@ -122,17 +116,8 @@ void WeightedQPSolver::buildOptimisationProblem()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                // TODO: move isActivated in the constraints
-                if(constr->isActivated())
-                {
-                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
-                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
-                }
-                else
-                {
-                    // No nothing
-                }
-
+                data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
+                data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
             }
             else
             {

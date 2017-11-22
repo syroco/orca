@@ -244,16 +244,16 @@ const std::map<ControlVariable, unsigned int >& OptimVector::getSizeMap() const
 int OptimVector::getIndex(ControlVariable var) const
 {
     MutexLock lock(mutex);
-    if(ndof_ == 0)
-        throw std::runtime_error("OptimVector is not initialized");
+    // if(ndof_ == 0)
+    //     throw std::runtime_error("OptimVector is not initialized");
     return idx_map_.at(var);
 }
 
 int OptimVector::getSize(ControlVariable var) const
 {
     MutexLock lock(mutex);
-    if(ndof_ == 0)
-        throw std::runtime_error("OptimVector is not initialized");
+    // if(ndof_ == 0)
+    //     throw std::runtime_error("OptimVector is not initialized");
     return size_map_.at(var);
 }
 
@@ -265,24 +265,24 @@ int OptimVector::getTotalSize() const
 bool OptimVector::hasFloatingBaseVars() const
 {
     MutexLock lock(mutex);
-    if(ndof_ == 0)
-        throw std::runtime_error("OptimVector is not initialized");
+    // if(ndof_ == 0)
+    //     throw std::runtime_error("OptimVector is not initialized");
     return is_floating_base_;
 }
 
 int OptimVector::getNrOfDegreesOfFreedom() const
 {
     MutexLock lock(mutex);
-    if(ndof_ == 0)
-        throw std::runtime_error("OptimVector is not initialized");
+    // if(ndof_ == 0)
+    //     throw std::runtime_error("OptimVector is not initialized");
     return ndof_;
 }
 
 int OptimVector::configurationSpaceDimension() const
 {
     MutexLock lock(mutex);
-    if(ndof_ == 0)
-        throw std::runtime_error("OptimVector is not initialized");
+    // if(ndof_ == 0)
+    //     throw std::runtime_error("OptimVector is not initialized");
     return ndof_ + (is_floating_base_ ? 6 : 0);
 }
 
