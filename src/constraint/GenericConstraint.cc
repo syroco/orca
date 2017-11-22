@@ -11,6 +11,21 @@ GenericConstraint::GenericConstraint(ControlVariable control_var)
     
 }
 
+void GenericConstraint::print() const
+{
+    MutexLock lock(mutex);
+    
+    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << " - Size " << getSize() << '\n';
+    std::cout << " - Variable  " << getControlVariable() << '\n';
+    
+    getConstraintFunction().print();
+    
+    std::cout << " - isInitialized        " << isInitialized() << '\n';
+    std::cout << " - isActivated          " << isActivated() << '\n';
+    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
+}
+
 GenericConstraint::~GenericConstraint()
 {
     removeFromProblem();

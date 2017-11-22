@@ -68,6 +68,7 @@ public:
 
     virtual void update();
     virtual void updateConstraintFunction() = 0;
+    virtual void print() const override;
 
     /**
      * @brief Get the size of the constraint matrix (rows,cols)
