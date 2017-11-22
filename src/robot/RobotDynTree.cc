@@ -46,25 +46,24 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
 
     OptimisationVector().buildControlVariablesMapping(model.getNrOfDOFs());
 
-    is_initialized_ = ok;
     return ok;
 }
 
-void RobotDynTree::print()
+void RobotDynTree::print() const
 {
     std::cout << "Robot Model " << std::endl;
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfJoints() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfJoints() ; i++)
     {
-        std::cout << "      Joint " << i << " " << kinDynComp_.model().getJointName(i) << std::endl;
+        std::cout << "      Joint " << i << " " << kinDynComp_.getRobotModel().getJointName(i) << std::endl;
     }
 
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfFrames() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
     {
-        std::cout << "      Frame " << i << " " << kinDynComp_.model().getFrameName(i) << std::endl;
+        std::cout << "      Frame " << i << " " << kinDynComp_.getRobotModel().getFrameName(i) << std::endl;
     }
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfLinks() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfLinks() ; i++)
     {
-        std::cout << "      Link " << i << " " << kinDynComp_.model().getLinkName(i) << std::endl;
+        std::cout << "      Link " << i << " " << kinDynComp_.getRobotModel().getLinkName(i) << std::endl;
     }
 }
 
@@ -120,6 +119,10 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
     if(jointVel.size() != getNrOfDegreesOfFreedom())
         throw std::runtime_error(util::Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
 
+    if(!is_initialized_)
+    {
+        is_initialized_ = true;
+    }
 
     eigRobotState_.world_H_base = world_H_base;
     eigRobotState_.jointPos = jointPos;

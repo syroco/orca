@@ -235,7 +235,7 @@ public:
                 , const Eigen::Vector3d& global_gravity_vector);
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel);
-    void print();
+    void print() const;
     void setBaseFrame(const std::string& fixed_base_or_free_floating_frame);
     const std::string& getBaseFrame() const;
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
