@@ -34,11 +34,11 @@ namespace common
             owner->provides("robot_model")->addOperation("print", &orca::robot::RobotDynTree::print, &robot_ , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("setBaseFrame", &orca::robot::RobotDynTree::setBaseFrame, &robot_ , RTT::OwnThread);
             owner->provides("robot_model")->addOperation("setGravity", &orca::robot::RobotDynTree::setGravity, &robot_ , RTT::OwnThread);
-            owner->provides("robot_model")->addPort("input.JointPosition",port_jnt_pos_in_);
-            owner->provides("robot_model")->addPort("input.JointVelocity",port_jnt_vel_in_);
-            owner->provides("robot_model")->addPort("input.WorldToBase",port_world_to_base_in_);
-            owner->provides("robot_model")->addPort("input.BaseVelocity",port_base_vel_in_);
-            owner->provides("robot_model")->addPort("input.Gravity",port_gravity_in_);
+            owner->provides("robot_model")->provides("input")->addPort("JointPosition",port_jnt_pos_in_);
+            owner->provides("robot_model")->provides("input")->addPort("JointVelocity",port_jnt_vel_in_);
+            owner->provides("robot_model")->provides("input")->addPort("WorldToBase",port_world_to_base_in_);
+            owner->provides("robot_model")->provides("input")->addPort("BaseVelocity",port_base_vel_in_);
+            owner->provides("robot_model")->provides("input")->addPort("Gravity",port_gravity_in_);
             
             owner->addOperation("desactivate",&orca::common::TaskCommon::desactivate,comm,RTT::OwnThread);
             owner->addOperation("activate",&orca::common::TaskCommon::activate,comm,RTT::OwnThread);
