@@ -51,13 +51,13 @@ namespace orca
 namespace util
 {
 
-class Timer
+class PosixTimer
 {
     typedef std::chrono::high_resolution_clock high_resolution_clock;
     typedef std::chrono::nanoseconds nanoseconds;
 
 public:
-    explicit Timer(bool run = false)
+    explicit PosixTimer(bool run = false)
     {
         if (run)
             Reset();
@@ -71,7 +71,7 @@ public:
         return std::chrono::duration_cast<nanoseconds>(high_resolution_clock::now() - _start);
     }
     template <typename T, typename Traits>
-    friend std::basic_ostream<T, Traits>& operator<<(std::basic_ostream<T, Traits>& out, const Timer& timer)
+    friend std::basic_ostream<T, Traits>& operator<<(std::basic_ostream<T, Traits>& out, const PosixTimer& timer)
     {
         return out << timer.Elapsed().count();
     }

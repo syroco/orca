@@ -18,7 +18,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    Timer timer(false);
+    PosixTimer timer(false);
 
     std::string urdf_url(argv[1]);
 

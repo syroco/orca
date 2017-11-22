@@ -124,9 +124,6 @@ target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES})
 
 
-#################### ORCA Examples #########################
-add_subdirectory(examples)
-
 #################### OROCOS Wrapper ########################
 find_package(OROCOS-RTT QUIET ${RTT_HINTS})
 if(OROCOS-RTT_FOUND)
@@ -170,6 +167,8 @@ if(OROCOS-RTT_FOUND)
     orocos_generate_package()
 endif()
 
+#################### ORCA Examples #########################
+add_subdirectory(examples)
 
 if(Unix)
 add_custom_target(  orca-atom-files ALL

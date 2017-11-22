@@ -86,7 +86,7 @@ int main(int argc, char** argv)
         std::cout << "   - " << j->GetName() << '\n';
     }
 
-    Timer timer(false);
+    PosixTimer timer(false);
 
     LOG_INFO << "===== Robot" << '\n';
     std::shared_ptr<RobotDynTree> robot(new RobotDynTree(urdf_url));
