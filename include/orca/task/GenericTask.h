@@ -76,8 +76,8 @@ public:
     virtual void updateAffineFunction() = 0;
     virtual void updateQuadraticCost();
 protected:
-    void addInRegister();
-    void removeFromRegister();
+    virtual void addInRegister() override;
+    virtual void removeFromRegister() override;
 
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();

@@ -66,7 +66,7 @@ public:
      */
     virtual ~GenericConstraint();
 
-    virtual void update();
+    virtual void update() override;
     virtual void updateConstraintFunction() = 0;
     virtual void print() const override;
 
@@ -121,8 +121,8 @@ public:
 
 
 protected:
-    void addInRegister();
-    void removeFromRegister();
+    virtual void addInRegister() override;
+    virtual void removeFromRegister() override;
     /**
      * @brief Replace the constraint matrix with a new one
      *
