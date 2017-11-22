@@ -37,7 +37,6 @@ void TaskCommon::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 
         robot_ = robot;
         this->resize();
-        this->activate();
     }
     else
     {
@@ -97,7 +96,7 @@ bool TaskCommon::activate()
     }
     else
     {
-        if(robot_->isInitialized())
+        if(isInitialized())
         {
             is_activated_ = true;
             return true;
@@ -139,11 +138,16 @@ bool TaskCommon::isInsertedInProblem() const
     return is_inserted_;
 }
 
+void TaskCommon::setInitialized(bool isinit)
+{
+    is_initialized_ = isinit;
+}
+
 bool TaskCommon::isInitialized() const
 {
     MutexLock lock(mutex);
     
-    return robot_->isInitialized();
+    return is_initialized_;
 }
 
 bool TaskCommon::insertInProblem()
@@ -152,7 +156,7 @@ bool TaskCommon::insertInProblem()
 
     if(!is_inserted_)
     {
-        if(robot_->isInitialized())
+        if(isInitialized())
         {
             addInRegister();
             

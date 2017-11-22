@@ -108,6 +108,7 @@ namespace common
         robot::RobotDynTree& robot();
         std::shared_ptr<robot::RobotDynTree> robotPtr();
     protected:
+        void setInitialized(bool isinit);
         virtual void addInRegister() = 0;
         virtual void removeFromRegister() = 0;
         optim::ControlVariable control_var_;
@@ -115,6 +116,7 @@ namespace common
     private:
         bool is_activated_ = false;
         bool is_inserted_ = false;
+        bool is_initialized_ = false;
         std::string name_;
     };
 }

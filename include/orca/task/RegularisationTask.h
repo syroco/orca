@@ -49,7 +49,11 @@ namespace task
         : GenericTask(C)
         {}
         
-        void updateAffineFunction(){}
+        void updateAffineFunction()
+        {
+            setInitialized(true);
+        }
+        
         void resize()
         {
             MutexLock lock(mutex);

@@ -121,6 +121,8 @@ Eigen::VectorXd& GenericTask::f()
 
 void GenericTask::update()
 {
+    setInitialized(robot().isInitialized());
+    
     MutexTryLock lock(mutex);
     
     if(!lock.isSuccessful())
