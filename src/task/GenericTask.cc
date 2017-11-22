@@ -19,7 +19,12 @@ void GenericTask::print() const
     std::cout << " - Weight " << getWeight() << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
+    
     getEuclidianNorm().print();
+    
+    std::cout << " - isInitialized        " << isInitialized() << '\n';
+    std::cout << " - isActivated          " << isActivated() << '\n';
+    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
 
