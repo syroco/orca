@@ -7,78 +7,13 @@ using namespace orca::math;
 
 GenericConstraint::GenericConstraint(ControlVariable control_var)
 : TaskCommon(control_var)
-, is_activated_(false)
 {
     this->activate();
-}
-
-void GenericConstraint::insertInProblem()
-{
-    MutexLock lock(mutex);
-
-    if(!registered_)
-    {
-        OptimisationVector().addInRegister(this);
-        registered_ = true;
-    }
-}
-
-void GenericConstraint::removeFromProblem()
-{
-    MutexLock lock(mutex);
-
-    if(registered_)
-    {
-        OptimisationVector().removeFromRegister(this);
-        registered_ = false;
-    }
 }
 
 GenericConstraint::~GenericConstraint()
 {
     removeFromProblem();
-}
-
-void GenericConstraint::activate()
-{
-    MutexLock lock(mutex);
-
-    if(is_activated_)
-    {
-        LOG_ERROR << "Contact already activated ";
-    }
-    else
-    {
-        is_activated_ = true;
-    }
-}
-
-void GenericConstraint::desactivate()
-{
-    MutexLock lock(mutex);
-
-    if(!is_activated_)
-    {
-        LOG_ERROR << "Contact already desactivated ";
-    }
-    else
-    {
-        is_activated_ = false;
-    }
-}
-
-bool GenericConstraint::isActivated() const
-{
-    MutexLock lock(mutex);
-
-    return is_activated_;
-}
-
-bool GenericConstraint::isInsertedInProblem() const
-{
-    MutexLock lock(mutex);
-
-    return registered_;
 }
 
 Size GenericConstraint::getSize() const
@@ -163,4 +98,28 @@ const ConstraintFunction& GenericConstraint::getConstraintFunction() const
     MutexLock lock(mutex);
 
     return constraint_function_;
+}
+
+void GenericConstraint::addInRegister()
+{
+    OptimisationVector().addInRegister(this);
+}
+
+void GenericConstraint::removeFromRegister()
+{
+    OptimisationVector().removeFromRegister(this);
+}
+
+void GenericConstraint::update()
+{
+    MutexLock lock(mutex);
+    
+    if(robot().isInitialized())
+    {
+        updateConstraintFunction();
+    }
+    else
+    {
+        LOG_ERROR << "Calling update(), but robot is not initialized";
+    }
 }

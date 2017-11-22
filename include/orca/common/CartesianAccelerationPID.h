@@ -59,6 +59,8 @@ namespace orca
             const std::string& getControlFrame() const;
             PIDController<6>& pid();
         protected:
+            void addInRegister(){}
+            void removeFromRegister(){}
             void resize();
             std::string base_ref_frame_,control_frame_;
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;

@@ -9,29 +9,16 @@ GenericTask::GenericTask(ControlVariable control_var)
 : TaskCommon(control_var)
 {
     weight_ = 1.0;
-    registered_ = false;
 }
 
-void GenericTask::insertInProblem()
+void GenericTask::addInRegister()
 {
-    MutexLock lock(mutex);
-
-    if(!registered_)
-    {
-        OptimisationVector().addInRegister(this);
-        registered_ = true;
-    }
+    OptimisationVector().addInRegister(this);
 }
 
-void GenericTask::removeFromProblem()
+void GenericTask::removeFromRegister()
 {
-    MutexLock lock(mutex);
-
-    if(registered_)
-    {
-        OptimisationVector().removeFromRegister(this);
-        registered_ = false;
-    }
+    OptimisationVector().removeFromRegister(this);
 }
 
 GenericTask::~GenericTask()

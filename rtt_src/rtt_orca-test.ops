@@ -3,9 +3,11 @@
 import("orca")
 import("eigen_typekit")
 
-var string urdf = "/home/hoarau/isir/orca_ws/src/orca/examples/lwr/lwr.urdf"
+this.require("orca_logger")
+
+var string urdf = "/home/hoarau/isir/orca_ws/src/orca/examples/lwr.urdf"
 var string base_frame = "link_0"
-var eigen_vector gravity = array(0.0, 0.0, -9.81)
+var eigen_vector3 gravity = array(0.0, 0.0, -9.81)
 
 loadComponent("regx","rtt_orca::task::RttRegularisationTask<orca::optim::ControlVariable::X>")
 setActivity("regx",1.0,10,ORO_SCHED_RT)
@@ -39,7 +41,7 @@ setActivity("dyneq",0.01,10,ORO_SCHED_RT)
 dyneq.robot_model.loadModelFromFile(urdf)
 dyneq.robot_model.setBaseFrame(base_frame)
 dyneq.robot_model.setBaseFrame(base_frame)
-regx.robot_model.setGravity(gravity)
+dyneq.robot_model.setGravity(gravity)
 dyneq.robot_model.print()
 dyneq.configure()
 dyneq.insertInProblem()
@@ -47,5 +49,6 @@ dyneq.start()
 
 loadComponent("qp","rtt_orca::optim::RttQPSolver<orca::optim::WeightedQPSolver>")
 setActivity("qp",0.5,10,ORO_SCHED_RT)
+qp.setPrintLevel(0)
 qp.configure()
 qp.start()

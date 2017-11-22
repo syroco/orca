@@ -13,7 +13,7 @@ void CartesianTask::resize()
 {
     MutexLock lock(mutex);
 
-    const int fulldim = OptimisationVector().ConfigurationSpaceDimension();
+    const int fulldim = OptimisationVector().configurationSpaceDimension();
 
     LOG_DEBUG << "[" << getName() << "] " << "Resizing to 6x" << fulldim;
 

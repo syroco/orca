@@ -25,10 +25,14 @@ void OptimVector::addInRegister(QPSolver* qp)
     MutexLock lock(mutex);
     if (std::find(std::begin(qps_), std::end(qps_), qp) == std::end(qps_))
     {
-        LOG_DEBUG << "[OptimisationVector] Adding QPSolver " << qp << '\n';
+        LOG_DEBUG << "[OptimisationVector] Adding QPSolver " << qp;
         qps_.push_back(qp);
-        LOG_DEBUG << "----------> Resizing QP " << '\n';
+        LOG_DEBUG << "----------> Resizing QP ";
         qp->resize();
+    }
+    else
+    {
+        LOG_DEBUG << "[OptimisationVector] QPSolver " << qp << " is already present";
     }
 }
 
@@ -38,24 +42,24 @@ void OptimVector::addInRegister(TaskCommon* t)
 
     if (std::find(std::begin(all_tasks_), std::end(all_tasks_), t) == std::end(all_tasks_))
     {
-        LOG_DEBUG << "[OptimisationVector] Adding TaskCommon " << t << " var " << t->getControlVariable() << '\n';
+        LOG_DEBUG << "[OptimisationVector] Adding TaskCommon " << t << " var " << t->getControlVariable();
         all_tasks_.push_back(t);
         
         if(dynamic_cast<GenericTask*>(t))
         {
-            LOG_DEBUG << "----------> Adding GenericTask " << t << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Adding GenericTask " << t << " var " << t->getControlVariable();
             tasks_.push_back(dynamic_cast<GenericTask*>(t));
         }
 
         if(dynamic_cast<GenericConstraint*>(t))
         {
-            LOG_DEBUG << "----------> Adding GenericConstraint " << t << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Adding GenericConstraint " << t << " var " << t->getControlVariable();
             constraints_.push_back(dynamic_cast<GenericConstraint*>(t));
         }
         
         if(dynamic_cast<Wrench*>(t))
         {
-            LOG_DEBUG << "----------> Adding Wrench " << t << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Adding Wrench " << t << " var " << t->getControlVariable();
             wrenches_.push_back(dynamic_cast<Wrench*>(t));
             this->buildControlVariablesMapping(getNrOfDegreesOfFreedom());
             this->resizeTasks();
@@ -67,6 +71,7 @@ void OptimVector::addInRegister(TaskCommon* t)
             qp->resize();
         }
     }
+    LOG_ERROR << "[OptimisationVector] Task " << t << " already exists in register";
 }
 
 
@@ -76,7 +81,7 @@ void OptimVector::resizeTasks()
     {
         if(task->getControlVariable() == ControlVariable::X)
         {
-            LOG_DEBUG << "----------> Resizing task " << task << " var " << task->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Resizing task " << task << " var " << task->getControlVariable();
             task->resize();
         }
     }
@@ -88,7 +93,7 @@ void OptimVector::resizeConstraints()
     {
         if(constr->getControlVariable() == ControlVariable::X)
         {
-            LOG_DEBUG << "----------> Resizing constraint " << constr << " var " << constr->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Resizing constraint " << constr << " var " << constr->getControlVariable();
             constr->resize();
         }
     }
@@ -104,20 +109,20 @@ void OptimVector::removeFromRegister(TaskCommon* t)
         
         if(dynamic_cast<GenericTask*>(t))
         {
-            LOG_DEBUG << "[OptimisationVector] Removing GenericTask " << dynamic_cast<GenericTask*>(t) << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "[OptimisationVector] Removing GenericTask " << dynamic_cast<GenericTask*>(t) << " var " << t->getControlVariable();
 
             tasks_.erase( std::find(std::begin(tasks_), std::end(tasks_), dynamic_cast<GenericTask*>(t)) );
         }
 
         if(dynamic_cast<GenericConstraint*>(t))
         {
-            LOG_DEBUG << "[OptimisationVector] Removing GenericConstraint " << dynamic_cast<GenericConstraint*>(t) << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "[OptimisationVector] Removing GenericConstraint " << dynamic_cast<GenericConstraint*>(t) << " var " << t->getControlVariable();
             constraints_.erase( std::find(std::begin(constraints_), std::end(constraints_), dynamic_cast<GenericConstraint*>(t)) );
         }
         
         if(dynamic_cast<Wrench*>(t))
         {
-            LOG_DEBUG << "----------> Removing Wrench " << t << " var " << t->getControlVariable() << '\n';
+            LOG_DEBUG << "----------> Removing Wrench " << t << " var " << t->getControlVariable();
             wrenches_.erase( std::find(std::begin(wrenches_), std::end(wrenches_), dynamic_cast<Wrench*>(t)) );
             
             this->buildControlVariablesMapping(getNrOfDegreesOfFreedom());
@@ -129,7 +134,9 @@ void OptimVector::removeFromRegister(TaskCommon* t)
         {
             qp->resize();
         }
+        return;
     }
+    LOG_ERROR << "[OptimisationVector] Task " << t << " was not inserted";
 }
 
 void OptimVector::removeFromRegister(QPSolver* qp)
@@ -138,9 +145,12 @@ void OptimVector::removeFromRegister(QPSolver* qp)
     auto elem_it = std::find(std::begin(qps_), std::end(qps_), qp);
     if(elem_it != std::end(qps_))
     {
-        LOG_DEBUG << "[OptimisationVector] Removing QP " << qp << '\n';
+        LOG_DEBUG << "[OptimisationVector] Removing QP " << qp;
         qps_.erase(elem_it);
+        return;
     }
+    LOG_ERROR << "[OptimisationVector] QP was not inserted" << qp;
+    return;
 }
 
 void OptimVector::buildControlVariablesMapping(int ndof)
@@ -243,7 +253,7 @@ int OptimVector::getNrOfDegreesOfFreedom() const
     return ndof_;
 }
 
-int OptimVector::ConfigurationSpaceDimension() const
+int OptimVector::configurationSpaceDimension() const
 {
     MutexLock lock(mutex);
     if(ndof_ == 0)

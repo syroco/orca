@@ -81,7 +81,7 @@ namespace optim
 
         int getNrOfDegreesOfFreedom() const;
 
-        int ConfigurationSpaceDimension() const;
+        int configurationSpaceDimension() const;
 
     private:
         mutable MutexRecursive mutex;

@@ -15,7 +15,7 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
     max_ = max;
 }
 
-void JointLimitConstraint::update()
+void JointLimitConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
 

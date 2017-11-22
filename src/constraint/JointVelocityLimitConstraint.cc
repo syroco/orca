@@ -16,7 +16,7 @@ void JointVelocityLimitConstraint::setHorizon(double horizon)
     horizon_ = horizon;
 }
 
-void JointVelocityLimitConstraint::update()
+void JointVelocityLimitConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
 

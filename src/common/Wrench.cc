@@ -9,30 +9,6 @@ Wrench::Wrench()
 
 }
 
-void Wrench::activate()
-{
-    MutexLock lock(mutex);
-
-    if(is_activated_)
-        std::cerr << "Contact already activated " << std::endl;
-    is_activated_ = true;
-}
-
-void Wrench::desactivate()
-{
-    MutexLock lock(mutex);
-
-    if(!is_activated_)
-        std::cerr << "Contact already desactivated " << std::endl;
-    is_activated_ = false;
-}
-
-bool Wrench::isActivated() const
-{
-    MutexLock lock(mutex);
-
-    return is_activated_;
-}
 
 void Wrench::setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
 {
@@ -48,12 +24,12 @@ const Eigen::Matrix<double,6,1>& Wrench::getCurrent()
     return current_wrench_;
 }
 
-void Wrench::insertInProblem()
+void Wrench::addInRegister()
 {
     OptimisationVector().addInRegister(this);
 }
 
-void Wrench::removeFromProblem()
+void Wrench::removeFromRegister()
 {
     OptimisationVector().removeFromRegister(this);
 }
@@ -111,6 +87,11 @@ void Wrench::update()
 {
     MutexLock lock(mutex);
 
+    if(!robot().isInitialized())
+    {
+        return;
+    }
+
     if(base_ref_frame_.empty())
     {
         base_ref_frame_ = robot().getBaseFrame();
@@ -132,7 +113,7 @@ void Wrench::resize()
 {
     MutexLock lock(mutex);
 
-    int fulldim = OptimisationVector().ConfigurationSpaceDimension(); // ndof + 6
+    int fulldim = OptimisationVector().configurationSpaceDimension(); // ndof + 6
 
     if(jacobian_transpose_.rows() != fulldim || jacobian_transpose_.cols() != 6)
     {

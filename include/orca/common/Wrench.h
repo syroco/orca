@@ -45,15 +45,9 @@ class Wrench final: public TaskCommon
 public:
     Wrench();
 
-    void activate();
-    
-    bool isActivated() const;
+    void addInRegister();
 
-    void desactivate();
-    
-    void insertInProblem();
-    
-    void removeFromProblem();
+    void removeFromRegister();
     
     void setBaseFrame(const std::string& base_ref_frame);
 

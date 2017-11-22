@@ -122,6 +122,9 @@ if(OROCOS-RTT_FOUND)
     orocos_use_package(ocl-deployment)
     include_directories(${OROCOS-RTT_INCLUDE_DIRS})
     
+    orocos_service(RttOrcaLoggerService rtt_src/RttOrcaLoggerService.cc)
+    target_link_libraries(RttOrcaLoggerService orca)
+    
     orocos_component(RttContact rtt_src/RttContact.cc)
     target_link_libraries(RttContact orca)
     

@@ -15,7 +15,7 @@ void DynamicsEquationConstraint::resize()
     MutexLock lock(mutex);
 
     const int optim_vector_size = OptimisationVector().getSize(ControlVariable::X);
-    const int fulldim = OptimisationVector().ConfigurationSpaceDimension();
+    const int fulldim = OptimisationVector().configurationSpaceDimension();
 
 
 
@@ -27,26 +27,11 @@ void DynamicsEquationConstraint::resize()
     }
 }
 
-void DynamicsEquationConstraint::computeJacobianTranspose()
-{
-    return;
-    MutexLock lock(mutex);
-
-    const int wrench_idx = OptimisationVector().getIndex(ControlVariable::ExternalWrench);
-    const int fulldim = OptimisationVector().ConfigurationSpaceDimension();
-
-    // Jt [ sum(wrenches jacobians T) ]
-    int i=0;
-    for(auto w : OptimisationVector().getWrenches())
-    {
-        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim, 6) = w->getJacobianTranspose();
-        i++;
-    }
-}
-
-void DynamicsEquationConstraint::update()
+void DynamicsEquationConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
+
+    constraintFunction().constraintMatrix().setZero();
 
     const int ndof = robot().getNrOfDegreesOfFreedom();
 
@@ -60,17 +45,19 @@ void DynamicsEquationConstraint::update()
     const int jnt_trq_idx = OptimisationVector().getIndex(ControlVariable::JointSpaceTorque);
 
     // St
-    this->constraintMatrix().block(0, fb_wrench_idx, 6,6).setZero();
     this->constraintMatrix().block(6, jnt_trq_idx, ndof, ndof).setIdentity();
 
     const int wrench_idx = OptimisationVector().getIndex(ControlVariable::ExternalWrench);
-    const int fulldim = OptimisationVector().ConfigurationSpaceDimension();
+    const int fulldim = OptimisationVector().configurationSpaceDimension();
 
     // Jt [ sum(wrenches jacobians T) ]
     int i=0;
     for(auto w : OptimisationVector().getWrenches())
     {
-        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim, 6) = w->getJacobianTranspose();
+        if(w->isActivated() && w->isInitialized())
+        {
+            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim, 6) = w->getJacobianTranspose();
+        }
         i++;
     }
 

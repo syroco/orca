@@ -48,13 +48,17 @@ class Contact : public common::TaskCommon
 public:
     Contact();
     
-    void insertInProblem();
-    
-    void removeFromProblem();
-    
-    void desactivate();
+    void addInRegister();
 
-    void activate();
+    void removeFromRegister();
+    
+    bool insertInProblem();
+    
+    bool removeFromProblem();
+    
+    bool desactivate();
+
+    bool activate();
 
     void update();
 

@@ -256,6 +256,7 @@ public:
     const iDynTree::Model& getRobotModel();
     unsigned int getNrOfJoints();
     std::string getJointName(unsigned int idx);
+    bool isInitialized() const;
 protected:
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;

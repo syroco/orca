@@ -64,7 +64,7 @@ void WrenchTask::resize()
 {
     MutexLock lock(mutex);
     
-    int fulldim = OptimisationVector().ConfigurationSpaceDimension(); // ndof + 6
+    int fulldim = OptimisationVector().configurationSpaceDimension(); // ndof + 6
     EuclidianNorm().resize(6,fulldim);
     E().setIdentity();
 }

@@ -65,7 +65,7 @@ public:
     void setConeOrientation(const Eigen::Matrix3d& R);
     const Eigen::Matrix3d& getConeOrientation() const;
     void setNumberOfFaces(int nfaces);
-    void update();
+    void updateConstraintFunction();
     void resize();
 private:
     double friction_coeff_ = 1;                                          ///< the friction coefficient

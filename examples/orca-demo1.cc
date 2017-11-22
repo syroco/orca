@@ -109,10 +109,6 @@ int main(int argc, char** argv)
     DynamicsEquationConstraint dynConstr;
 
     dynConstr.setRobotModel(robot);
-
-
-    dynConstr.computeJacobianTranspose();
-    std::cout << "Updating Dyn eq" << "\n";
     dynConstr.update();
 
     std::cout << "===== Regularisation" << '\n';

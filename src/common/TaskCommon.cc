@@ -84,3 +84,102 @@ std::shared_ptr<RobotDynTree> TaskCommon::robotPtr()
 {
     return robot_;
 }
+
+bool TaskCommon::activate()
+{
+    MutexLock lock(mutex);
+
+    if(is_activated_)
+    {
+        LOG_ERROR << "Contact already activated ";
+        return true;
+    }
+    else
+    {
+        if(robot_->isInitialized())
+        {
+            is_activated_ = true;
+            return true;
+        }
+        else
+        {
+            LOG_WARNING << "Cannot activate constraint, as robot model is not initialized";
+        }
+    }
+    return false;
+}
+
+bool TaskCommon::desactivate()
+{
+    MutexLock lock(mutex);
+
+    if(!is_activated_)
+    {
+        LOG_ERROR << "Contact already desactivated ";
+    }
+    else
+    {
+        is_activated_ = false;
+    }
+    return true;
+}
+
+bool TaskCommon::isActivated() const
+{
+    MutexLock lock(mutex);
+
+    return is_activated_;
+}
+
+bool TaskCommon::isInsertedInProblem() const
+{
+    MutexLock lock(mutex);
+
+    return is_inserted_;
+}
+
+bool TaskCommon::isInitialized() const
+{
+    MutexLock lock(mutex);
+    
+    return robot_->isInitialized();
+}
+
+bool TaskCommon::insertInProblem()
+{
+    MutexLock lock(mutex);
+
+    if(!is_inserted_)
+    {
+        if(robot_->isInitialized())
+        {
+            addInRegister();
+            
+            is_inserted_ = true;
+            return true;
+        }
+        else
+        {
+            LOG_WARNING << "Could not insert in problem as robot is not initialized";
+            return false;
+        }
+    }
+    else
+    {
+        LOG_WARNING << "Already inserted";        
+    }
+    return true;
+}
+
+bool TaskCommon::removeFromProblem()
+{
+    MutexLock lock(mutex);
+
+    if(is_inserted_)
+    {
+        removeFromRegister();
+        
+        is_inserted_ = false;
+    }
+    return true;
+}

@@ -47,10 +47,8 @@ public:
     DynamicsEquationConstraint();
 
     void resize();
-
-    void computeJacobianTranspose();
-
-    void update();
+    
+    void updateConstraintFunction();
 };
 
 }

@@ -13,8 +13,6 @@ namespace task
         {
             owner->addOperation("setWeight",&orca::task::GenericTask::setWeight,comm,RTT::OwnThread);
             owner->addOperation("getWeight",&orca::task::GenericTask::getWeight,comm,RTT::OwnThread);
-            owner->addOperation("insertInProblem",&orca::task::GenericTask::insertInProblem,comm,RTT::OwnThread);
-            owner->addOperation("removeFromProblem",&orca::task::GenericTask::removeFromProblem,comm,RTT::OwnThread);
         }
     };
 } // namespace task
