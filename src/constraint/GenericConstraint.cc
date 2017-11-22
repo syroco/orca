@@ -8,7 +8,7 @@ using namespace orca::math;
 GenericConstraint::GenericConstraint(ControlVariable control_var)
 : TaskCommon(control_var)
 {
-    this->activate();
+    
 }
 
 GenericConstraint::~GenericConstraint()
@@ -112,7 +112,11 @@ void GenericConstraint::removeFromRegister()
 
 void GenericConstraint::update()
 {
-    MutexLock lock(mutex);
+    if(!mutex.trylock())
+    {
+        LOG_DEBUG << "Mutex locked, not updating";
+        return;
+    }
     
     if(robot().isInitialized())
     {

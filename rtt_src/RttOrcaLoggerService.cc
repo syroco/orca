@@ -18,13 +18,13 @@ namespace util
         RttOrcaLoggerService(RTT::TaskContext* owner)
         : RTT::Service("orca_logger",owner)
         {
-            this->addConstant("none",orca::util::LogLevel::none);
-            this->addConstant("fatal",orca::util::LogLevel::fatal);
-            this->addConstant("error",orca::util::LogLevel::error);
-            this->addConstant("warning",orca::util::LogLevel::warning);
-            this->addConstant("info",orca::util::LogLevel::info);
-            this->addConstant("debug",orca::util::LogLevel::debug);
-            this->addConstant("verbose",orca::util::LogLevel::verbose);
+            this->addConstant("none",static_cast<int>(orca::util::LogLevel::none));
+            this->addConstant("fatal",static_cast<int>(orca::util::LogLevel::fatal));
+            this->addConstant("error",static_cast<int>(orca::util::LogLevel::error));
+            this->addConstant("warning",static_cast<int>(orca::util::LogLevel::warning));
+            this->addConstant("info",static_cast<int>(orca::util::LogLevel::info));
+            this->addConstant("debug",static_cast<int>(orca::util::LogLevel::debug));
+            this->addConstant("verbose",static_cast<int>(orca::util::LogLevel::verbose));
             this->addOperation("setLogLevel", &RttOrcaLoggerService::setLogLevel, this);
             this->setLogLevel(orca::util::LogLevel::debug);
         }

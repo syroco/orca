@@ -32,7 +32,7 @@ void OptimVector::addInRegister(QPSolver* qp)
     }
     else
     {
-        LOG_DEBUG << "[OptimisationVector] QPSolver " << qp << " is already present";
+        LOG_WARNING << "[OptimisationVector] QPSolver " << qp << " is already present";
     }
 }
 
@@ -71,7 +71,10 @@ void OptimVector::addInRegister(TaskCommon* t)
             qp->resize();
         }
     }
-    LOG_ERROR << "[OptimisationVector] Task " << t << " already exists in register";
+    else
+    {
+        LOG_WARNING << "[OptimisationVector] Task " << t << " already exists in register";
+    }
 }
 
 
@@ -136,7 +139,10 @@ void OptimVector::removeFromRegister(TaskCommon* t)
         }
         return;
     }
-    LOG_ERROR << "[OptimisationVector] Task " << t << " was not inserted";
+    else
+    {
+        LOG_ERROR << "[OptimisationVector] Task " << t << " was not inserted";
+    }
 }
 
 void OptimVector::removeFromRegister(QPSolver* qp)
@@ -147,10 +153,11 @@ void OptimVector::removeFromRegister(QPSolver* qp)
     {
         LOG_DEBUG << "[OptimisationVector] Removing QP " << qp;
         qps_.erase(elem_it);
-        return;
     }
-    LOG_ERROR << "[OptimisationVector] QP was not inserted" << qp;
-    return;
+    else
+    {
+        LOG_ERROR << "[OptimisationVector] QP was not inserted" << qp;
+    }
 }
 
 void OptimVector::buildControlVariablesMapping(int ndof)

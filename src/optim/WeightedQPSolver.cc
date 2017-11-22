@@ -16,16 +16,17 @@ WeightedQPSolver::~WeightedQPSolver()
 
 void WeightedQPSolver::resize()
 {
+    LOG_DEBUG << "WeightedQPSolver::resize()";
     MutexLock lock(mutex);
-
+    LOG_DEBUG << "WeightedQPSolver::resize() Mutex lock, resizing";
     const int nvars = OptimisationVector().getSize(ControlVariable::X);
-
+    LOG_DEBUG << "WeightedQPSolver::resize() nvars " << nvars;
     int number_of_constraints_rows = 0;
     for(auto constr : OptimisationVector().getConstraints())
     {
-
+        LOG_DEBUG << "WeightedQPSolver::resize() for constr " << constr;
         int nrows = constr->rows();
-
+        LOG_DEBUG << "WeightedQPSolver::resize() for constr " << constr << " nrows " << nrows;
         if(constr->getConstraintMatrix().isIdentity())
         {
             // Detecting lb < x < ub constraint
@@ -36,7 +37,7 @@ void WeightedQPSolver::resize()
             number_of_constraints_rows += nrows;
         }
     }
-
+    LOG_DEBUG << "WeightedQPSolver::resize() resizeinternal " << nvars << "x" << number_of_constraints_rows;
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
 

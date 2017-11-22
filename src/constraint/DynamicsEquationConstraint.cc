@@ -29,8 +29,6 @@ void DynamicsEquationConstraint::resize()
 
 void DynamicsEquationConstraint::updateConstraintFunction()
 {
-    MutexLock lock(mutex);
-
     constraintFunction().constraintMatrix().setZero();
 
     const int ndof = robot().getNrOfDegreesOfFreedom();

@@ -37,6 +37,7 @@ void TaskCommon::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 
         robot_ = robot;
         this->resize();
+        this->activate();
     }
     else
     {
