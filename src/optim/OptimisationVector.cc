@@ -39,6 +39,8 @@ void OptimVector::addInRegister(QPSolver* qp)
 void OptimVector::addInRegister(TaskCommon* t)
 {
     MutexLock lock(mutex);
+    LOG_DEBUG << "[OptimisationVector] Locking TaskCommon " << t << " var " << t->getControlVariable();
+    t->mutex.lock();
 
     if (std::find(std::begin(all_tasks_), std::end(all_tasks_), t) == std::end(all_tasks_))
     {
@@ -66,6 +68,7 @@ void OptimVector::addInRegister(TaskCommon* t)
             this->resizeConstraints();
         }
 
+        LOG_DEBUG << "----------> Resizing QP ";
         for(auto qp : qps_)
         {
             qp->resize();
@@ -75,6 +78,8 @@ void OptimVector::addInRegister(TaskCommon* t)
     {
         LOG_WARNING << "[OptimisationVector] Task " << t << " already exists in register";
     }
+    LOG_DEBUG << "[OptimisationVector] Unlocking TaskCommon " << t << " var " << t->getControlVariable();
+    t->mutex.unlock();
 }
 
 
@@ -133,6 +138,7 @@ void OptimVector::removeFromRegister(TaskCommon* t)
             this->resizeConstraints();
         }
         
+        LOG_DEBUG << "----------> Resizing QP ";
         for(auto qp : qps_)
         {
             qp->resize();
@@ -205,23 +211,35 @@ int OptimVector::getNrOfWrenches() const
     return wrenches_.size();
 }
 
-const std::list<Wrench*> OptimVector::getWrenches() const
+const std::list<Wrench*>& OptimVector::getWrenches() const
 {
     MutexLock lock(mutex);
     return wrenches_;
 }
 
-const std::list<GenericTask *> OptimVector::getTasks() const
+const std::list<GenericTask *>& OptimVector::getTasks() const
 {
     MutexLock lock(mutex);
     return tasks_;
 }
 
-const std::list<GenericConstraint *> OptimVector::getConstraints() const
+const std::list<GenericConstraint *>& OptimVector::getConstraints() const
 {
     MutexLock lock(mutex);
     return constraints_;
 }
+
+const std::map<ControlVariable, unsigned int >& OptimVector::getIndexMap() const
+{
+    MutexLock lock(mutex);
+    return idx_map_;
+}
+const std::map<ControlVariable, unsigned int >& OptimVector::getSizeMap() const
+{
+    MutexLock lock(mutex);
+    return size_map_;
+}
+
 
 int OptimVector::getIndex(ControlVariable var) const
 {

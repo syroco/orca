@@ -96,7 +96,7 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
     MutexLock lock(mutex);
-
+    
     return constraint_function_;
 }
 
@@ -112,10 +112,17 @@ void GenericConstraint::removeFromRegister()
 
 void GenericConstraint::update()
 {
-    if(!mutex.trylock())
+    MutexTryLock lock(mutex);
+    
+    if(!lock.isSuccessful())
     {
         LOG_DEBUG << "Mutex locked, not updating";
         return;
+    }
+    
+    if(!isActivated())
+    {
+        constraint_function_.reset();
     }
     
     if(robot().isInitialized())

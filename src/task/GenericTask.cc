@@ -11,6 +11,18 @@ GenericTask::GenericTask(ControlVariable control_var)
     weight_ = 1.0;
 }
 
+void GenericTask::print() const
+{
+    MutexLock lock(mutex);
+    
+    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << " - Weight " << getWeight() << '\n';
+    std::cout << " - Size " << getSize() << '\n';
+    std::cout << " - Variable  " << getControlVariable() << '\n';
+    getEuclidianNorm().print();
+}
+
+
 void GenericTask::addInRegister()
 {
     OptimisationVector().addInRegister(this);
@@ -104,7 +116,13 @@ Eigen::VectorXd& GenericTask::f()
 
 void GenericTask::update()
 {
-    MutexLock lock(mutex);
+    MutexTryLock lock(mutex);
+    
+    if(!lock.isSuccessful())
+    {
+        LOG_DEBUG << "Mutex locked, not updating";
+        return;
+    }
 
     this->updateAffineFunction();
     this->updateQuadraticCost();

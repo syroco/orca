@@ -1,5 +1,6 @@
 #!/usr/bin/env deployer
 
+require("print")
 import("orca")
 import("eigen_typekit")
 

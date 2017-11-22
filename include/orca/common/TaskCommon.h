@@ -64,6 +64,7 @@ namespace common
 
         virtual void update() = 0;
         virtual void resize() = 0;
+        virtual void print() const {};
 
         /**
          * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf

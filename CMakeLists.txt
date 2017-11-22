@@ -125,6 +125,9 @@ if(OROCOS-RTT_FOUND)
     orocos_service(RttOrcaLoggerService rtt_src/RttOrcaLoggerService.cc)
     target_link_libraries(RttOrcaLoggerService orca)
     
+    orocos_service(RttOrcaRegisterService rtt_src/RttOrcaRegisterService.cc)
+    target_link_libraries(RttOrcaRegisterService orca)
+    
     orocos_component(RttContact rtt_src/RttContact.cc)
     target_link_libraries(RttContact orca)
     

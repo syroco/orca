@@ -155,6 +155,11 @@ unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
     return kinDynComp_.getNrOfDegreesOfFreedom();
 }
 
+unsigned int RobotDynTree::configurationSpaceDimension() const
+{
+    return 6 + kinDynComp_.getNrOfDegreesOfFreedom();
+}
+
 const iDynTree::Model& RobotDynTree::getRobotModel()
 {
     return kinDynComp_.getRobotModel();

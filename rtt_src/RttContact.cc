@@ -24,7 +24,7 @@ namespace constraint
             this->addOperation("setConeOrientation",&orca::constraint::Contact::setConeOrientation,this,RTT::OwnThread);
             this->addOperation("getConeOrientation",&orca::constraint::Contact::getConeOrientation,this,RTT::OwnThread);
             this->addOperation("setNumberOfFaces",&orca::constraint::Contact::setNumberOfFaces,this,RTT::OwnThread);
-            this->addOperation("getJacobianTranspose",&orca::constraint::Contact::getJacobianTranspose,this,RTT::OwnThread);
+            this->provides("wrench")->addOperation("getJacobianTranspose",&orca::constraint::Contact::getJacobianTranspose,this,RTT::OwnThread);
             this->addOperation("setContactFrame",&orca::constraint::Contact::setContactFrame,this,RTT::OwnThread);
         }
 

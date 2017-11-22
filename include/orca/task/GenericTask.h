@@ -72,6 +72,7 @@ public:
     const Eigen::VectorXd& getf() const;
 
     void update() final;
+    void print() const override;
     virtual void updateAffineFunction() = 0;
     virtual void updateQuadraticCost();
 protected:

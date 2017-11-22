@@ -13,49 +13,43 @@ DynamicsEquationConstraint::DynamicsEquationConstraint()
 void DynamicsEquationConstraint::resize()
 {
     MutexLock lock(mutex);
+    
+    wrenches_ = OptimisationVector().getWrenches();
+    idx_map_ = OptimisationVector().getIndexMap();
+    size_map_ = OptimisationVector().getSizeMap();
+    
+    ndof_ = robot().getNrOfDegreesOfFreedom();
+    fulldim_ = OptimisationVector().configurationSpaceDimension();
+    
+    int optim_vector_size = size_map_[ControlVariable::X];
 
-    const int optim_vector_size = OptimisationVector().getSize(ControlVariable::X);
-    const int fulldim = OptimisationVector().configurationSpaceDimension();
-
-
-
-    if(optim_vector_size != this->cols())
-    {
-        LOG_DEBUG << "[DynamicsEquationConstraint] Resize constraint matrix to " << fulldim << "x" << optim_vector_size;
-
-        constraintFunction().resize(fulldim,optim_vector_size);
-    }
+    
+    LOG_DEBUG << "[DynamicsEquationConstraint] Resize constraint matrix to " << fulldim_ << "x" << optim_vector_size;
+    constraintFunction().resize(fulldim_,optim_vector_size);
+    LOG_DEBUG << "[DynamicsEquationConstraint] Done resizing to " << fulldim_ << "x" << optim_vector_size;
 }
 
 void DynamicsEquationConstraint::updateConstraintFunction()
 {
+    int acc_idx = idx_map_[ControlVariable::GeneralisedAcceleration];
+    int acc_size = size_map_[ControlVariable::GeneralisedAcceleration];
+    int fb_wrench_idx = idx_map_[ControlVariable::FloatingBaseWrench];
+    int jnt_trq_idx = idx_map_[ControlVariable::JointSpaceTorque];
+    int wrench_idx = idx_map_[ControlVariable::ExternalWrench];
+    
     constraintFunction().constraintMatrix().setZero();
-
-    const int ndof = robot().getNrOfDegreesOfFreedom();
-
-    const int acc_idx = OptimisationVector().getIndex(ControlVariable::GeneralisedAcceleration);
-    const int acc_size = OptimisationVector().getSize(ControlVariable::GeneralisedAcceleration);
 
     // A = [-M St Jt]
     this->constraintMatrix().block(0, acc_idx, acc_size, acc_size) = - robot().getFreeFloatingMassMatrix();
 
-    const int fb_wrench_idx = OptimisationVector().getIndex(ControlVariable::FloatingBaseWrench);
-    const int jnt_trq_idx = OptimisationVector().getIndex(ControlVariable::JointSpaceTorque);
-
     // St
-    this->constraintMatrix().block(6, jnt_trq_idx, ndof, ndof).setIdentity();
-
-    const int wrench_idx = OptimisationVector().getIndex(ControlVariable::ExternalWrench);
-    const int fulldim = OptimisationVector().configurationSpaceDimension();
+    this->constraintMatrix().block(6, jnt_trq_idx, ndof_, ndof_).setIdentity();
 
     // Jt [ sum(wrenches jacobians T) ]
     int i=0;
-    for(auto w : OptimisationVector().getWrenches())
+    for(auto w : wrenches_)
     {
-        if(w->isActivated() && w->isInitialized())
-        {
-            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim, 6) = w->getJacobianTranspose();
-        }
+        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
         i++;
     }
 

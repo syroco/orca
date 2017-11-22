@@ -63,6 +63,8 @@ public:
     Eigen::MatrixXd& constraintMatrix();
 
     void resize(int rows,int cols);
+    
+    void reset();
 
     Size getSize() const;
 

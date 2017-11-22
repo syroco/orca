@@ -80,6 +80,13 @@ Eigen::MatrixXd& ConstraintFunction::constraintMatrix()
     return C_;
 }
 
+void ConstraintFunction::reset()
+{
+    C_.setZero();
+    math::setToHighest(upper_bound_);
+    math::setToLowest(lower_bound_);
+}
+
 void ConstraintFunction::resize(int new_rows,int new_cols)
 {
     const int old_rows = C_.rows();

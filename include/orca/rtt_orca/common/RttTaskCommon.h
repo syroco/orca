@@ -47,16 +47,23 @@ namespace common
             owner->addOperation("removeFromProblem",&orca::common::TaskCommon::removeFromProblem,comm,RTT::OwnThread);
             owner->addOperation("isInsertedInProblem",&orca::common::TaskCommon::isInsertedInProblem,comm,RTT::OwnThread);
             owner->addOperation("isInitialized",&orca::common::TaskCommon::isInitialized,comm,RTT::OwnThread);
+            
+            owner->addOperation("print",&orca::common::TaskCommon::print,comm,RTT::OwnThread);
         }
         
-        void updateRobotModel()
+        bool updateRobotModel()
         {
-            port_jnt_pos_in_.readNewest(robot_data_helper_.eigRobotState.jointPos);
-            port_jnt_vel_in_.readNewest(robot_data_helper_.eigRobotState.jointVel);
-            port_world_to_base_in_.readNewest(robot_data_helper_.eigRobotState.world_H_base);
-            port_base_vel_in_.readNewest(robot_data_helper_.eigRobotState.baseVel);
-            port_gravity_in_.readNewest(robot_data_helper_.eigRobotState.gravity);
-
+            RTT::FlowStatus fspos = port_jnt_pos_in_.readNewest(robot_data_helper_.eigRobotState.jointPos);
+            RTT::FlowStatus fsvel = port_jnt_vel_in_.readNewest(robot_data_helper_.eigRobotState.jointVel);
+            RTT::FlowStatus fswtb = port_world_to_base_in_.readNewest(robot_data_helper_.eigRobotState.world_H_base);
+            RTT::FlowStatus fsbve = port_base_vel_in_.readNewest(robot_data_helper_.eigRobotState.baseVel);
+            RTT::FlowStatus fsgra = port_gravity_in_.readNewest(robot_data_helper_.eigRobotState.gravity);
+            
+            if(fspos == RTT::NoData || fsvel == RTT::NoData)
+            {
+                return false;
+            }
+            
             robot_.setRobotState(robot_data_helper_.eigRobotState.world_H_base
                         ,robot_data_helper_.eigRobotState.jointPos
                         ,robot_data_helper_.eigRobotState.baseVel
