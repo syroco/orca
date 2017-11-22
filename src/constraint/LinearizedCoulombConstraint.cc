@@ -89,7 +89,7 @@ void LinearizedCoulombConstraint::resize()
     }
 }
 
-void LinearizedCoulombConstraint::update()
+void LinearizedCoulombConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
     

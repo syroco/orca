@@ -45,19 +45,17 @@ class Wrench final: public TaskCommon
 public:
     Wrench();
 
-    void activate();
-    
-    bool isActivated() const;
+    void addInRegister();
 
-    void desactivate();
-    
-    void insertInProblem();
-    
-    void removeFromProblem();
+    void removeFromRegister();
     
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
+    
+    void setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
+    
+    const Eigen::Matrix<double,6,1>& getCurrent();
 
     const std::string& getBaseFrame() const;
 
@@ -77,6 +75,7 @@ protected:
     Eigen::MatrixXd jacobian_transpose_;
     Eigen::MatrixXd jacobian_;
     Eigen::MatrixXd zero_;
+    Eigen::Matrix<double,6,1> current_wrench_;
 };
 
 }

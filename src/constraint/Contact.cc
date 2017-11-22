@@ -11,29 +11,35 @@ Contact::Contact()
     this->desactivate();
 }
 
-void Contact::insertInProblem()
+void Contact::addInRegister()
 {
-    friction_cone_->insertInProblem();
-    ex_condition_->insertInProblem();
+    
 }
 
-void Contact::removeFromProblem()
+void Contact::removeFromRegister()
 {
-    friction_cone_->removeFromProblem();
-    ex_condition_->removeFromProblem();
+    
 }
 
-void Contact::desactivate()
+bool Contact::insertInProblem()
+{
+    return friction_cone_->insertInProblem() && ex_condition_->insertInProblem();
+}
+
+bool Contact::removeFromProblem()
+{
+    return friction_cone_->removeFromProblem() && ex_condition_->removeFromProblem();
+}
+
+bool Contact::desactivate()
 {
     // TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0
-    friction_cone_->desactivate();
-    ex_condition_->desactivate();
+    return friction_cone_->desactivate() && ex_condition_->desactivate();
 }
 
-void Contact::activate()
+bool Contact::activate()
 {
-    friction_cone_->activate();
-    ex_condition_->activate();
+    return friction_cone_->activate() && ex_condition_->activate();
 }
 
 void Contact::update()

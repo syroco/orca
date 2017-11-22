@@ -72,12 +72,12 @@ public:
     const Eigen::VectorXd& getf() const;
 
     void update() final;
+    void print() const override;
     virtual void updateAffineFunction() = 0;
     virtual void updateQuadraticCost();
-
-    virtual void insertInProblem();
-    virtual void removeFromProblem();
 protected:
+    void addInRegister();
+    void removeFromRegister();
 
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();
@@ -85,6 +85,7 @@ protected:
 private:
     math::WeightedEuclidianNormFunction euclidian_norm_;
     double weight_ = 1.0;
+    double weight_cache_ = 1.0;
 };
 
 }

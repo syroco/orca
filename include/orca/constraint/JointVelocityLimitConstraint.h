@@ -45,7 +45,7 @@ public:
 
     void setHorizon(double horizon);
 
-    void update();
+    void updateConstraintFunction();
 
     void resize();
 

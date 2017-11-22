@@ -17,40 +17,60 @@ WeightedQPSolver::~WeightedQPSolver()
 void WeightedQPSolver::resize()
 {
     MutexLock lock(mutex);
-
-    const int nvars = OptimisationVector().getSize(ControlVariable::X);
-
+    
+    LOG_DEBUG << "WeightedQPSolver::resize()";
+    
+    constraints_ =  OptimisationVector().getConstraints();
+    tasks_ = OptimisationVector().getTasks();
+    idx_map_ = OptimisationVector().getIndexMap();
+    size_map_ = OptimisationVector().getSizeMap();
+    
+    //MutexLock lock(mutex);
+    //LOG_DEBUG << "WeightedQPSolver::resize() Mutex lock, resizing";
+    const int nvars = size_map_[ControlVariable::X];
+    LOG_DEBUG << "WeightedQPSolver::resize() nvars " << nvars;
     int number_of_constraints_rows = 0;
-    for(auto constr : OptimisationVector().getConstraints())
+    
+    LOG_DEBUG << "WeightedQPSolver::resize() getConstraints " << nvars;
+    LOG_DEBUG << "WeightedQPSolver::resize() got constraints " << nvars;
+    
+    for(auto constr : constraints_)
     {
-
-        int nrows = constr->rows();
-
+        LOG_DEBUG << "WeightedQPSolver::resize() for constr " << constr ;
         if(constr->getConstraintMatrix().isIdentity())
         {
+            LOG_DEBUG << "WeightedQPSolver::resize() Detecting lb < x < ub constraint " << constr;
             // Detecting lb < x < ub constraint
             //std::cout << "Detecting lb < x < ub constraint" << std::endl;
         }
         else
         {
-            number_of_constraints_rows += nrows;
+            LOG_DEBUG << "WeightedQPSolver::resize() qdding constrqint rows ";
+            number_of_constraints_rows += constr->rows();
+            LOG_DEBUG << "WeightedQPSolver::resize()number of rows is now  " << number_of_constraints_rows ;
         }
     }
-
+    LOG_DEBUG << "WeightedQPSolver::resize() resizeinternal " << nvars << "x" << number_of_constraints_rows;
+    
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
 
 void WeightedQPSolver::buildOptimisationProblem()
 {
-    MutexLock lock(mutex);
-
+    MutexTryLock lock(mutex);
+    
+    if(!lock.isSuccessful())
+    {
+        LOG_DEBUG << "Mutex locked, not updating";
+        return;
+    }
     // Reset H and g
     data_.reset();
 
     int iwrench = 0;
-    for(auto task : OptimisationVector().getTasks())
-    {
-        int start_idx = OptimisationVector().getIndex(task->getControlVariable());
+    for(auto task : tasks_)
+    {        
+        int start_idx = idx_map_[task->getControlVariable()];
 
         int nrows = task->getQuadraticCost().rows();
         int ncols = task->getQuadraticCost().cols();
@@ -62,9 +82,8 @@ void WeightedQPSolver::buildOptimisationProblem()
         }
 
 
-        if( start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
+        if(start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
         {
-
             data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
             data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
         }
@@ -78,9 +97,11 @@ void WeightedQPSolver::buildOptimisationProblem()
     int iAwrench = 0;
     iwrench = 0;
     int row_idx = 0;
-    for(auto constr : OptimisationVector().getConstraints())
+    for(auto constr : constraints_)
     {
-        int start_idx = OptimisationVector().getIndex(constr->getControlVariable());
+        MutexLock lock(constr->mutex);
+        
+        int start_idx = idx_map_[constr->getControlVariable()];
 
         int nrows = constr->rows();
         int ncols = constr->cols();
@@ -95,16 +116,8 @@ void WeightedQPSolver::buildOptimisationProblem()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constr->isActivated())
-                {
-                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
-                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
-                }
-                else
-                {
-                    // No nothing
-                }
-
+                data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
+                data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
             }
             else
             {

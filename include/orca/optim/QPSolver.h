@@ -94,12 +94,12 @@ public:
     const Eigen::VectorXd& getPrimalSolution();
     virtual void buildOptimisationProblem() = 0;
     virtual void resize() = 0;
-    void print();
+    void print() const;
     int solve();
 protected:
     QPSolverData data_;
     void resizeInternal(int nvar, int nconstr);
-    MutexRecursive mutex;
+    mutable MutexRecursive mutex;
 private:
     struct SolverImpl; std::shared_ptr<SolverImpl> pimpl;
 };

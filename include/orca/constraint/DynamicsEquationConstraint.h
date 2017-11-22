@@ -34,7 +34,7 @@
 #pragma once
 #include <orca/constraint/Contact.h>
 #include <orca/constraint/EqualityConstraint.h>
-#include <orca/task/WrenchTask.h>
+#include <orca/common/Wrench.h>
 
 namespace orca
 {
@@ -47,10 +47,14 @@ public:
     DynamicsEquationConstraint();
 
     void resize();
-
-    void computeJacobianTranspose();
-
-    void update();
+    
+    void updateConstraintFunction();
+protected:
+    std::list<common::Wrench*> wrenches_;
+    std::map<optim::ControlVariable, unsigned int > idx_map_;
+    std::map<optim::ControlVariable, unsigned int > size_map_;
+    int ndof_,fulldim_;
+    
 };
 
 }

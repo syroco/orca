@@ -47,7 +47,7 @@ public:
 
     virtual void setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max);
 
-    virtual void update();
+    virtual void updateConstraintFunction();
 
     void resize();
 protected:

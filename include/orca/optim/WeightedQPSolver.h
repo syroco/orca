@@ -54,6 +54,11 @@ public:
     void buildOptimisationProblem();
 
     void resize();
+protected:
+    std::list<constraint::GenericConstraint*> constraints_;
+    std::list<task::GenericTask*> tasks_;
+    std::map<ControlVariable, unsigned int > idx_map_;
+    std::map<ControlVariable, unsigned int > size_map_;
 };
 
 }

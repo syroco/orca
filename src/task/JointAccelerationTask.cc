@@ -3,9 +3,11 @@
 
 using namespace orca::task;
 using namespace orca::optim;
+using namespace orca::common;
 
 JointAccelerationTask::JointAccelerationTask()
 : GenericTask(ControlVariable::JointSpaceAcceleration)
+, pid_(this->mutex)
 {
 
 }
@@ -21,18 +23,9 @@ void JointAccelerationTask::setDesired(const Eigen::VectorXd& jnt_pos_des
     jnt_acc_des_ = jnt_acc_des;
 }
 
-void JointAccelerationTask::setProportionalGain(const Eigen::VectorXd& p_gain)
+PIDController<Eigen::Dynamic>& JointAccelerationTask::pid()
 {
-    MutexLock lock(mutex);
-
-    P_gain_ = p_gain;
-}
-
-void JointAccelerationTask::setDerivativeGain(const Eigen::VectorXd& d_gain)
-{
-    MutexLock lock(mutex);
-
-    D_gain_ = d_gain;
+    return pid_;
 }
 
 void JointAccelerationTask::updateAffineFunction()
@@ -40,24 +33,23 @@ void JointAccelerationTask::updateAffineFunction()
     const Eigen::VectorXd& current_jnt_pos = robot().getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot().getJointVel();
 
-    f() = ( - (jnt_acc_des_ + P_gain_.asDiagonal() * ( current_jnt_pos - jnt_pos_des_ ) + D_gain_.asDiagonal() * ( current_jnt_vel - jnt_vel_des_ ) ) );
+    f() = - (jnt_acc_des_ + pid_.computeCommand( current_jnt_pos - jnt_pos_des_ , current_jnt_vel - jnt_vel_des_ ) );
 }
 
 void JointAccelerationTask::resize()
 {
     MutexLock lock(mutex);
 
-    const int fulldim = OptimisationVector().ConfigurationSpaceDimension();
-    const int dof = robot().getNrOfDegreesOfFreedom();
+    const unsigned int dof = robot().getNrOfDegreesOfFreedom();
 
-    EuclidianNorm().resize(fulldim,fulldim);
+    if(this->cols() != dof)
+    {
+        EuclidianNorm().resize(dof,dof);
 
-    jnt_pos_des_.setZero(dof);
-    jnt_vel_des_.setZero(dof);
-    jnt_acc_des_.setZero(dof);
+        pid_.resize(dof);
 
-    P_gain_.setZero(dof);
-    D_gain_.setZero(dof);
-
-    E().setIdentity();
+        jnt_pos_des_.setZero( dof );
+        jnt_vel_des_.setZero( dof );
+        jnt_acc_des_.setZero( dof );
+    }
 }

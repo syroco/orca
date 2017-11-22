@@ -130,7 +130,7 @@ QPSolver::~QPSolver()
 
 }
 
-void QPSolver::print()
+void QPSolver::print() const
 {
     std::cout << "=========================================================================================================================================" << std::endl;
     std::cout << "H" << std::endl;

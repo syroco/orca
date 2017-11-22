@@ -65,9 +65,9 @@ namespace optim
 
         void print() const;
 
-        const std::list<common::Wrench *> getWrenches() const;
-        const std::list<task::GenericTask *> getTasks() const;
-        const std::list<constraint::GenericConstraint *> getConstraints() const;
+        const std::list<common::Wrench *>& getWrenches() const;
+        const std::list<task::GenericTask *>& getTasks() const;
+        const std::list<constraint::GenericConstraint *>& getConstraints() const;
 
         int getNrOfWrenches() const;
 
@@ -81,7 +81,10 @@ namespace optim
 
         int getNrOfDegreesOfFreedom() const;
 
-        int ConfigurationSpaceDimension() const;
+        int configurationSpaceDimension() const;
+
+        const std::map<ControlVariable, unsigned int >& getIndexMap() const;
+        const std::map<ControlVariable, unsigned int >& getSizeMap() const;
 
     private:
         mutable MutexRecursive mutex;

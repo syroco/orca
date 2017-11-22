@@ -235,12 +235,13 @@ public:
                 , const Eigen::Vector3d& global_gravity_vector);
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel);
-    void print();
+    void print() const;
     void setBaseFrame(const std::string& fixed_base_or_free_floating_frame);
     const std::string& getBaseFrame() const;
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
     const std::string& getFileURL() const;
     unsigned int getNrOfDegreesOfFreedom() const;
+    unsigned int configurationSpaceDimension() const;
     bool frameExists(const std::string& frame_name);
     const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 
@@ -256,6 +257,7 @@ public:
     const iDynTree::Model& getRobotModel();
     unsigned int getNrOfJoints();
     std::string getJointName(unsigned int idx);
+    bool isInitialized() const;
 protected:
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;

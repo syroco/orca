@@ -11,28 +11,18 @@ ContactExistenceConditionConstraint::ContactExistenceConditionConstraint()
 
 }
 
-void ContactExistenceConditionConstraint::insertInProblem()
+bool ContactExistenceConditionConstraint::insertInProblem()
 {
-    if(!registered_)
-    {
-        MutexLock lock(mutex);
-
-        OptimisationVector().addInRegister(this);
-        wrench_.insertInProblem();
-        registered_ = true;
-    }
+    bool ok = TaskCommon::insertInProblem();
+    ok &= wrench_.insertInProblem();
+    return ok;
 }
 
-void ContactExistenceConditionConstraint::removeFromProblem()
+bool ContactExistenceConditionConstraint::removeFromProblem()
 {
-    if(registered_)
-    {
-        MutexLock lock(mutex);
-
-        OptimisationVector().removeFromRegister(this);
-        wrench_.removeFromProblem();
-        registered_ = false;
-    }
+    bool ok = TaskCommon::removeFromProblem();
+    ok &= wrench_.removeFromProblem();
+    return ok;
 }
 
 ContactExistenceConditionConstraint::~ContactExistenceConditionConstraint()
@@ -65,7 +55,7 @@ const Wrench& ContactExistenceConditionConstraint::getWrench() const
     return wrench_;
 }
 
-void ContactExistenceConditionConstraint::update()
+void ContactExistenceConditionConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
 

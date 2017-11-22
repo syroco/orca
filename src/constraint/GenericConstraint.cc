@@ -7,78 +7,28 @@ using namespace orca::math;
 
 GenericConstraint::GenericConstraint(ControlVariable control_var)
 : TaskCommon(control_var)
-, is_activated_(false)
 {
-    this->activate();
+    
 }
 
-void GenericConstraint::insertInProblem()
+void GenericConstraint::print() const
 {
     MutexLock lock(mutex);
-
-    if(!registered_)
-    {
-        OptimisationVector().addInRegister(this);
-        registered_ = true;
-    }
-}
-
-void GenericConstraint::removeFromProblem()
-{
-    MutexLock lock(mutex);
-
-    if(registered_)
-    {
-        OptimisationVector().removeFromRegister(this);
-        registered_ = false;
-    }
+    
+    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << " - Size " << getSize() << '\n';
+    std::cout << " - Variable  " << getControlVariable() << '\n';
+    
+    getConstraintFunction().print();
+    
+    std::cout << " - isInitialized        " << isInitialized() << '\n';
+    std::cout << " - isActivated          " << isActivated() << '\n';
+    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
 GenericConstraint::~GenericConstraint()
 {
     removeFromProblem();
-}
-
-void GenericConstraint::activate()
-{
-    MutexLock lock(mutex);
-
-    if(is_activated_)
-    {
-        LOG_ERROR << "Contact already activated ";
-    }
-    else
-    {
-        is_activated_ = true;
-    }
-}
-
-void GenericConstraint::desactivate()
-{
-    MutexLock lock(mutex);
-
-    if(!is_activated_)
-    {
-        LOG_ERROR << "Contact already desactivated ";
-    }
-    else
-    {
-        is_activated_ = false;
-    }
-}
-
-bool GenericConstraint::isActivated() const
-{
-    MutexLock lock(mutex);
-
-    return is_activated_;
-}
-
-bool GenericConstraint::isInsertedInProblem() const
-{
-    MutexLock lock(mutex);
-
-    return registered_;
 }
 
 Size GenericConstraint::getSize() const
@@ -161,6 +111,43 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
     MutexLock lock(mutex);
-
+    
     return constraint_function_;
+}
+
+void GenericConstraint::addInRegister()
+{
+    OptimisationVector().addInRegister(this);
+}
+
+void GenericConstraint::removeFromRegister()
+{
+    OptimisationVector().removeFromRegister(this);
+}
+
+void GenericConstraint::update()
+{
+    setInitialized(robot().isInitialized());
+    
+    MutexTryLock lock(mutex);
+    
+    if(!lock.isSuccessful())
+    {
+        LOG_DEBUG << "Mutex locked, not updating";
+        return;
+    }
+    
+    if(!isActivated())
+    {
+        constraint_function_.reset();
+    }
+    
+    if(robot().isInitialized())
+    {
+        updateConstraintFunction();
+    }
+    else
+    {
+        LOG_ERROR << "Calling update(), but robot is not initialized";
+    }
 }

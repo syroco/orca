@@ -47,9 +47,9 @@ public:
     
     ~ContactExistenceConditionConstraint();
     
-    void insertInProblem();
+    bool insertInProblem();
     
-    void removeFromProblem();
+    bool removeFromProblem();
     
     void setBaseFrame(const std::string& base_ref_frame);
     
@@ -61,7 +61,7 @@ public:
     
     const common::Wrench& getWrench() const;
 
-    void update();
+    void updateConstraintFunction();
 
     const Eigen::MatrixXd& getJacobianTranspose() const;
 

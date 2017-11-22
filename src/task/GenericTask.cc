@@ -9,29 +9,33 @@ GenericTask::GenericTask(ControlVariable control_var)
 : TaskCommon(control_var)
 {
     weight_ = 1.0;
-    registered_ = false;
 }
 
-void GenericTask::insertInProblem()
+void GenericTask::print() const
 {
     MutexLock lock(mutex);
-
-    if(!registered_)
-    {
-        OptimisationVector().addInRegister(this);
-        registered_ = true;
-    }
+    
+    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << " - Weight " << getWeight() << '\n';
+    std::cout << " - Size " << getSize() << '\n';
+    std::cout << " - Variable  " << getControlVariable() << '\n';
+    
+    getEuclidianNorm().print();
+    
+    std::cout << " - isInitialized        " << isInitialized() << '\n';
+    std::cout << " - isActivated          " << isActivated() << '\n';
+    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
-void GenericTask::removeFromProblem()
-{
-    MutexLock lock(mutex);
 
-    if(registered_)
-    {
-        OptimisationVector().removeFromRegister(this);
-        registered_ = false;
-    }
+void GenericTask::addInRegister()
+{
+    OptimisationVector().addInRegister(this);
+}
+
+void GenericTask::removeFromRegister()
+{
+    OptimisationVector().removeFromRegister(this);
 }
 
 GenericTask::~GenericTask()
@@ -117,7 +121,15 @@ Eigen::VectorXd& GenericTask::f()
 
 void GenericTask::update()
 {
-    MutexLock lock(mutex);
+    setInitialized(robot().isInitialized());
+    
+    MutexTryLock lock(mutex);
+    
+    if(!lock.isSuccessful())
+    {
+        LOG_DEBUG << "Mutex locked, not updating";
+        return;
+    }
 
     this->updateAffineFunction();
     this->updateQuadraticCost();

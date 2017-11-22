@@ -74,5 +74,56 @@ protected:
     MutexInterface& m_;
 };
 
+class MutexTryLock
+{
+
+    public:
+
+        /**
+         * Try to lock a Mutex object
+         *
+         * @param mutex The Mutex which should be attempted to be locked
+         */
+        MutexTryLock( MutexInterface &mutex )
+                : _mutex( &mutex), successful( mutex.trylock() )
+        {
+        }
+
+        /**
+         * Return if the locking of the Mutex was succesfull
+         *
+         * @return true when the Mutex is locked
+         */
+        bool isSuccessful()
+        {
+            return successful;
+        }
+
+        /**
+         * Releases, if any, a lock on the previously try-locked Mutex
+         */
+        ~MutexTryLock()
+        {
+            if ( successful )
+                _mutex->unlock();
+        }
+
+    protected:
+        /**
+         * The Mutex to lock and unlock
+         */
+        MutexInterface *_mutex;
+
+        MutexTryLock()
+        {}
+
+    private:
+
+        /**
+         * Stores the state of success
+         */
+        bool successful;
+
+};
 
 #endif

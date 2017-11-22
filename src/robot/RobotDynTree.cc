@@ -46,26 +46,30 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
 
     OptimisationVector().buildControlVariablesMapping(model.getNrOfDOFs());
 
-    is_initialized_ = ok;
     return ok;
 }
 
-void RobotDynTree::print()
+void RobotDynTree::print() const
 {
     std::cout << "Robot Model " << std::endl;
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfJoints() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfJoints() ; i++)
     {
-        std::cout << "      Joint " << i << " " << kinDynComp_.model().getJointName(i) << std::endl;
+        std::cout << "      Joint " << i << " " << kinDynComp_.getRobotModel().getJointName(i) << std::endl;
     }
 
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfFrames() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
     {
-        std::cout << "      Frame " << i << " " << kinDynComp_.model().getFrameName(i) << std::endl;
+        std::cout << "      Frame " << i << " " << kinDynComp_.getRobotModel().getFrameName(i) << std::endl;
     }
-    for(unsigned int i=0; i < kinDynComp_.model().getNrOfLinks() ; i++)
+    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfLinks() ; i++)
     {
-        std::cout << "      Link " << i << " " << kinDynComp_.model().getLinkName(i) << std::endl;
+        std::cout << "      Link " << i << " " << kinDynComp_.getRobotModel().getLinkName(i) << std::endl;
     }
+}
+
+bool RobotDynTree::isInitialized() const
+{
+    return is_initialized_ && getNrOfDegreesOfFreedom() > 0;
 }
 
 void RobotDynTree::setGravity(const Eigen::Vector3d& g)
@@ -99,11 +103,26 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
+    if(getNrOfDegreesOfFreedom() == 0)
+        throw std::runtime_error("Robot model is not loaded");
+    
+    
     if( base_frame_.empty())
         throw std::runtime_error("Base/FreeFloating frame is empty. Please use setBaseFrame before setting the robot state");
 
     if(global_gravity_vector_.mean() == 0)
         throw std::runtime_error("Global gravity vector is not set. Please use setGravity before setting the robot state");
+
+    if(jointPos.size() != getNrOfDegreesOfFreedom())
+        throw std::runtime_error(util::Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
+
+    if(jointVel.size() != getNrOfDegreesOfFreedom())
+        throw std::runtime_error(util::Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
+
+    if(!is_initialized_)
+    {
+        is_initialized_ = true;
+    }
 
     eigRobotState_.world_H_base = world_H_base;
     eigRobotState_.jointPos = jointPos;
@@ -137,6 +156,11 @@ const std::string& RobotDynTree::getFileURL() const
 unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
 {
     return kinDynComp_.getNrOfDegreesOfFreedom();
+}
+
+unsigned int RobotDynTree::configurationSpaceDimension() const
+{
+    return 6 + kinDynComp_.getNrOfDegreesOfFreedom();
 }
 
 const iDynTree::Model& RobotDynTree::getRobotModel()

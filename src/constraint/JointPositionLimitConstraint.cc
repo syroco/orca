@@ -30,7 +30,7 @@ void JointPositionLimitConstraint::setHorizon(double horizon)
     horizon_ = horizon;
 }
 
-void JointPositionLimitConstraint::update()
+void JointPositionLimitConstraint::updateConstraintFunction()
 {
     MutexLock lock(mutex);
 
@@ -47,7 +47,7 @@ void JointPositionLimitConstraint::update()
 void JointPositionLimitConstraint::resize()
 {
     MutexLock lock(mutex);
-    const int dof = robot().getNrOfDegreesOfFreedom();
+    const unsigned int dof = robot().getNrOfDegreesOfFreedom();
     if(min_.size() != dof || max_.size() != dof)
     {
         JointLimitConstraint::resize();

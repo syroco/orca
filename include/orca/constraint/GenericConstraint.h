@@ -42,13 +42,13 @@ namespace orca
 namespace constraint
 {
 
-    /**
-     * @brief Builds a double bounded function : l < C.x < u
-     * With x the control variable, l = lowerBound,
-     * u = upperBound, and C the constraint matrix.
-     *
-     */
-    class GenericConstraint : public common::TaskCommon
+/**
+ * @brief Builds a double bounded function : l < C.x < u
+ * With x the control variable, l = lowerBound,
+ * u = upperBound, and C the constraint matrix.
+ *
+ */
+class GenericConstraint : public common::TaskCommon
 {
 public:
     /**
@@ -66,31 +66,9 @@ public:
      */
     virtual ~GenericConstraint();
 
-    /**
-     * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
-     *
-     */
-    virtual void activate();
-
-    /**
-     * @brief Check if the constraint is active in the solver
-     *
-     * @return bool
-     */
-    virtual bool isActivated() const;
-
-    /**
-     * @brief Check if the constraint is inserted in the problem
-     *
-     * @return bool
-     */
-    virtual bool isInsertedInProblem() const;
-
-    /**
-     * @brief Desactivates the constraint : in the solver it is seen as -inf < 0.x < inf
-     *
-     */
-    virtual void desactivate();
+    virtual void update();
+    virtual void updateConstraintFunction() = 0;
+    virtual void print() const override;
 
     /**
      * @brief Get the size of the constraint matrix (rows,cols)
@@ -141,20 +119,10 @@ public:
      */
     const math::ConstraintFunction& getConstraintFunction() const;
 
-    /**
-     * @brief Insert the constraint in the QP problem
-     *
-     */
-    virtual void insertInProblem();
-
-    /**
-     * @brief Removes the constraint from the QP problem
-     *
-     */
-    virtual void removeFromProblem();
 
 protected:
-
+    void addInRegister();
+    void removeFromRegister();
     /**
      * @brief Replace the constraint matrix with a new one
      *
@@ -193,7 +161,6 @@ protected:
     math::ConstraintFunction& constraintFunction();
 
 private:
-    bool is_activated_;
     math::ConstraintFunction constraint_function_;
 };
 

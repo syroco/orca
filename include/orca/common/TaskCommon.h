@@ -64,17 +64,59 @@ namespace common
 
         virtual void update() = 0;
         virtual void resize() = 0;
+        virtual void print() const {};
 
+        /**
+         * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
+         *
+         */
+        virtual bool activate();
+
+        /**
+         * @brief Check if the constraint is active in the solver
+         *
+         * @return bool
+         */
+        virtual bool isActivated() const;
+        /**
+         * @brief Desactivates the constraint : in the solver it is seen as -inf < 0.x < inf
+         *
+         */
+        virtual bool desactivate();
+        /**
+        * @brief Check if the constraint is inserted in the problem
+        *
+        * @return bool
+        */
+        virtual bool isInsertedInProblem() const;
+        
+        /**
+        * @brief Insert the constraint in the QP problem
+        *
+        */
+        virtual bool insertInProblem();
+        bool isInitialized() const;
+        
+        /**
+        * @brief Removes the constraint from the QP problem
+        *
+        */
+        virtual bool removeFromProblem();
         mutable MutexRecursive mutex;
 
         robot::RobotDataHelper& robotData();
         robot::RobotDynTree& robot();
         std::shared_ptr<robot::RobotDynTree> robotPtr();
     protected:
+        void setInitialized(bool isinit);
+        virtual void addInRegister() = 0;
+        virtual void removeFromRegister() = 0;
         optim::ControlVariable control_var_;
         std::shared_ptr<robot::RobotDynTree> robot_;
-        bool registered_ = false;
     private:
+        bool is_activated_ = false;
+        bool is_inserted_ = false;
+        bool is_initialized_ = false;
         std::string name_;
     };
 }
