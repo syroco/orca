@@ -4,8 +4,8 @@ require("print")
 import("orca")
 import("eigen_typekit")
 
-this.require("orca_logger")
-orca_logger.setLogLevel(0)
+this.require("orca_logger")     
+orca_logger.setLogLevel( orca_logger.verbose )
 
 var string urdf = "/home/hoarau/isir/orca_ws/src/orca/examples/lwr.urdf"
 var string base_frame = "link_0"

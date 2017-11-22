@@ -32,7 +32,7 @@ struct QPSolver::SolverImpl
     }
 
     void setPrintLevel(int level)
-    {
+    {        
         if(!qpoases_) return;
 
         switch (level)
@@ -132,6 +132,8 @@ QPSolver::~QPSolver()
 
 void QPSolver::print() const
 {
+    MutexLock lock(mutex);
+    
     std::cout << "=========================================================================================================================================" << std::endl;
     std::cout << "H" << std::endl;
     std::cout << data_.H_ << std::endl;
@@ -152,6 +154,7 @@ void QPSolver::print() const
 
 void QPSolver::setPrintLevel(int level)
 {
+    MutexLock lock(mutex);
     // PL_DEBUG_ITER = -2, PL_TABULAR, PL_NONE, PL_LOW, PL_MEDIUM, PL_HIGH
     pimpl->setPrintLevel(level);
 }
@@ -164,11 +167,15 @@ void QPSolver::resizeInternal(int nvar,int nconstr)
 
 int QPSolver::solve()
 {
+    MutexLock lock(mutex);
+    
     return pimpl->solve(data_);
 }
 
 const Eigen::VectorXd& QPSolver::getPrimalSolution()
 {
+    MutexLock lock(mutex);
+    
     pimpl->getPrimalSolution(data_.primal_solution_);
     return data_.primal_solution_;
 }

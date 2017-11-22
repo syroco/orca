@@ -57,19 +57,16 @@ void WeightedQPSolver::resize()
 
 void WeightedQPSolver::buildOptimisationProblem()
 {
-    MutexTryLock lock(mutex);
-    
-    if(!lock.isSuccessful())
-    {
-        LOG_DEBUG << "Mutex locked, not updating";
-        return;
-    }
+    MutexLock lock(mutex);
+
     // Reset H and g
     data_.reset();
 
     int iwrench = 0;
     for(auto task : tasks_)
-    {        
+    {
+        MutexLock lock(task->mutex);
+
         int start_idx = idx_map_[task->getControlVariable()];
 
         int nrows = task->getQuadraticCost().rows();
