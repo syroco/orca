@@ -14,8 +14,10 @@ namespace task
 
         void updateHook()
         {
-            this->updateRobotModel();
-            orca::task::RegularisationTask<C>::update();
+            if(this->updateRobotModel())
+            {
+                orca::task::RegularisationTask<C>::update();
+            }
         }
     };
 }

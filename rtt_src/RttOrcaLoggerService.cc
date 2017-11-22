@@ -26,12 +26,12 @@ namespace util
             this->addConstant("debug",static_cast<int>(orca::util::LogLevel::debug));
             this->addConstant("verbose",static_cast<int>(orca::util::LogLevel::verbose));
             this->addOperation("setLogLevel", &RttOrcaLoggerService::setLogLevel, this);
-            this->setLogLevel(orca::util::LogLevel::debug);
+            this->setLogLevel(static_cast<int>(orca::util::LogLevel::debug));
         }
         
-        void setLogLevel(orca::util::LogLevel level)
+        void setLogLevel(int level)
         {
-            orca::util::Logger::setLogLevel( level  );
+            orca::util::Logger::setLogLevel( static_cast<orca::util::LogLevel>(level) );
         }
     };
 }

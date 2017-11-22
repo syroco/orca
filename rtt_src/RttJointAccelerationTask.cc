@@ -21,11 +21,13 @@ namespace task
 
         void updateHook()
         {
-            this->updateRobotModel();
-            port_jnt_pos_des_.readNewest(this->jnt_pos_des_);
-            port_jnt_vel_des_.readNewest(this->jnt_vel_des_);
-            port_jnt_acc_des_.readNewest(this->jnt_acc_des_);
-            orca::task::JointAccelerationTask::update();
+            if(this->updateRobotModel())
+            {
+                port_jnt_pos_des_.readNewest(this->jnt_pos_des_);
+                port_jnt_vel_des_.readNewest(this->jnt_vel_des_);
+                port_jnt_acc_des_.readNewest(this->jnt_acc_des_);
+                orca::task::JointAccelerationTask::update();
+            }
         }
 
     protected:

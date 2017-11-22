@@ -5,6 +5,7 @@ import("orca")
 import("eigen_typekit")
 
 this.require("orca_logger")
+orca_logger.setLogLevel(0)
 
 var string urdf = "/home/hoarau/isir/orca_ws/src/orca/examples/lwr.urdf"
 var string base_frame = "link_0"
@@ -16,8 +17,9 @@ regx.robot_model.loadModelFromFile(urdf)
 regx.robot_model.setBaseFrame(base_frame)
 regx.robot_model.setGravity(gravity)
 regx.configure()
-regx.insertInProblem()
+regx.activate()
 regx.start()
+regx.insertInProblem()
 
 // loadComponent("contact1","rtt_orca::constraint::RttContact")
 // setActivity("contact1",1.0,10,ORO_SCHED_RT)
@@ -41,12 +43,11 @@ loadComponent("dyneq","rtt_orca::constraint::RttDynamicsEquationConstraint")
 setActivity("dyneq",0.001,30,ORO_SCHED_RT)
 dyneq.robot_model.loadModelFromFile(urdf)
 dyneq.robot_model.setBaseFrame(base_frame)
-dyneq.robot_model.setBaseFrame(base_frame)
 dyneq.robot_model.setGravity(gravity)
-dyneq.robot_model.print()
 dyneq.configure()
-dyneq.insertInProblem()
+regx.activate()
 dyneq.start()
+dyneq.insertInProblem()
 
 loadComponent("qp","rtt_orca::optim::RttQPSolver<orca::optim::WeightedQPSolver>")
 setActivity("qp",0.001,70,ORO_SCHED_RT)

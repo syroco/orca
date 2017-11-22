@@ -24,19 +24,15 @@ namespace constraint
             this->addOperation("setConeOrientation",&orca::constraint::Contact::setConeOrientation,this,RTT::OwnThread);
             this->addOperation("getConeOrientation",&orca::constraint::Contact::getConeOrientation,this,RTT::OwnThread);
             this->addOperation("setNumberOfFaces",&orca::constraint::Contact::setNumberOfFaces,this,RTT::OwnThread);
-            this->provides("wrench")->addOperation("getJacobianTranspose",&orca::constraint::Contact::getJacobianTranspose,this,RTT::OwnThread);
             this->addOperation("setControlFrame",&orca::constraint::Contact::setControlFrame,this,RTT::OwnThread);
-        }
-
-        bool configureHook()
-        {
-            return true;
         }
 
         void updateHook()
         {
-            this->updateRobotModel();
-            orca::constraint::Contact::update();
+            if(this->updateRobotModel())
+            {
+                orca::constraint::Contact::update();
+            }
         }
     };
 

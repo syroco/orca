@@ -29,10 +29,12 @@ namespace task
 
         void updateHook()
         {
-            this->updateRobotModel();
-            port_wrench_des_.readNewest(this->wrench_des_);
-            port_current_wrench_.readNewest(this->current_wrench_);
-            orca::task::WrenchTask::update();
+            if(this->updateRobotModel())
+            {
+                port_wrench_des_.readNewest(this->wrench_des_);
+                port_current_wrench_.readNewest(this->current_wrench_);
+                orca::task::WrenchTask::update();
+            }
         }
 
     protected:

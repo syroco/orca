@@ -70,6 +70,7 @@ namespace common
                         ,robot_data_helper_.eigRobotState.jointVel
                         ,robot_data_helper_.eigRobotState.gravity
                                                 );
+            return true;
         }
         
         bool loadRobotModel(const std::string& file_url)

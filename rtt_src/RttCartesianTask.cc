@@ -18,9 +18,11 @@ namespace task
 
         void updateHook()
         {
-            this->updateRobotModel();
-            port_cartesian_acceleration_des_.readNewest(this->cart_acc_des_);
-            orca::task::CartesianTask::update();
+            if(this->updateRobotModel())
+            {
+                port_cartesian_acceleration_des_.readNewest(this->cart_acc_des_);
+                orca::task::CartesianTask::update();
+            }
         }
 
     protected:
