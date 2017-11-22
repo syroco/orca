@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(USE_OROCOS_MUTEXESS)
+#if defined(USE_OROCOS_MUTEXES)
 
 #include <rtt/os/Mutex.hpp>
 #include <rtt/os/MutexLock.hpp>
