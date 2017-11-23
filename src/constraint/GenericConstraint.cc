@@ -127,8 +127,6 @@ void GenericConstraint::removeFromRegister()
 
 void GenericConstraint::update()
 {
-    setInitialized(robot().isInitialized());
-
     MutexTryLock lock(mutex);
 
     if(!lock.isSuccessful())
@@ -136,6 +134,8 @@ void GenericConstraint::update()
         LOG_DEBUG << "Mutex locked, not updating";
         return;
     }
+    
+    setInitialized(robot().isInitialized());
 
     if(!isActivated())
     {

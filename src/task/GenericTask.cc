@@ -121,8 +121,6 @@ Eigen::VectorXd& GenericTask::f()
 
 void GenericTask::update()
 {
-    setInitialized(robot().isInitialized());
-    
     MutexTryLock lock(mutex);
     
     if(!lock.isSuccessful())
@@ -130,6 +128,8 @@ void GenericTask::update()
         LOG_DEBUG << "Mutex locked, not updating";
         return;
     }
+    
+    setInitialized(robot().isInitialized());
 
     this->updateAffineFunction();
     this->updateQuadraticCost();
