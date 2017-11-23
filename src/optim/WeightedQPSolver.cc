@@ -25,32 +25,26 @@ void WeightedQPSolver::resize()
     idx_map_ = OptimisationVector().getIndexMap();
     size_map_ = OptimisationVector().getSizeMap();
     
-    //MutexLock lock(mutex);
-    //LOG_DEBUG << "WeightedQPSolver::resize() Mutex lock, resizing";
     const int nvars = size_map_[ControlVariable::X];
-    LOG_DEBUG << "WeightedQPSolver::resize() nvars " << nvars;
     int number_of_constraints_rows = 0;
-    
-    LOG_DEBUG << "WeightedQPSolver::resize() getConstraints " << nvars;
-    LOG_DEBUG << "WeightedQPSolver::resize() got constraints " << nvars;
-    
+
     for(auto constr : constraints_)
     {
-        LOG_DEBUG << "WeightedQPSolver::resize() for constr " << constr ;
+        MutexLock lock(constr->mutex);
+        
         if(constr->getConstraintMatrix().isIdentity())
         {
-            LOG_DEBUG << "WeightedQPSolver::resize() Detecting lb < x < ub constraint " << constr;
+            LOG_DEBUG << "WeightedQPSolver::resize() Detecting lb < x < ub constraint, not adding rows" << constr;
             // Detecting lb < x < ub constraint
-            //std::cout << "Detecting lb < x < ub constraint" << std::endl;
         }
         else
         {
-            LOG_DEBUG << "WeightedQPSolver::resize() qdding constrqint rows ";
+            LOG_DEBUG << "WeightedQPSolver::resize() Adding constraint rows ";
             number_of_constraints_rows += constr->rows();
-            LOG_DEBUG << "WeightedQPSolver::resize()number of rows is now  " << number_of_constraints_rows ;
+            LOG_DEBUG << "WeightedQPSolver::resize() Number of rows is now  " << number_of_constraints_rows ;
         }
     }
-    LOG_DEBUG << "WeightedQPSolver::resize() resizeinternal " << nvars << "x" << number_of_constraints_rows;
+    LOG_DEBUG << "WeightedQPSolver::resize() resizeInternal " << nvars << "x" << number_of_constraints_rows;
     
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
