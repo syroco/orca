@@ -136,19 +136,21 @@ void QPSolver::print() const
     
     std::cout << "=========================================================================================================================================" << std::endl;
     std::cout << "H" << std::endl;
-    std::cout << data_.H_ << std::endl;
+    std::cout << data_.H_ << "\n\n";
     std::cout << "g" << std::endl;
-    std::cout << data_.g_ << std::endl;
+    std::cout << data_.g_ << "\n\n";
     std::cout << "A" << std::endl;
-    std::cout << data_.A_ << std::endl;
+    std::cout << data_.A_ << "\n\n";
     std::cout << "lbA" << std::endl;
-    std::cout << data_.lbA_ << std::endl;
+    std::cout << data_.lbA_ << "\n\n";
     std::cout << "ubA" << std::endl;
-    std::cout << data_.ubA_ << std::endl;
+    std::cout << data_.ubA_ << "\n\n";
     std::cout << "lb" << std::endl;
-    std::cout << data_.lb_ << std::endl;
+    std::cout << data_.lb_ << "\n\n";
     std::cout << "ub" << std::endl;
-    std::cout << data_.ub_ << std::endl;
+    std::cout << data_.ub_ << "\n\n";
+    std::cout << " - Nvars   (Hrows) : " << data_.H_.rows() << std::endl;
+    std::cout << " - NConstr (Arows) : " << data_.A_.rows() << std::endl;
     std::cout << "=========================================================================================================================================" << std::endl;
 }
 
