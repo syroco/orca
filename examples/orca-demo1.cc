@@ -216,28 +216,32 @@ int main(int argc, char const *argv[])
         return -2;
     }
     timer.Reset();
+    
+    cart_task.insertInProblem();
+    acc_reg_task.insertInProblem();
+    trq_reg_task.insertInProblem();
+    wrench_reg_task1.insertInProblem();
+    wrench_reg_task2.insertInProblem();
+    wrench_reg_task3.insertInProblem();
+    wrench_reg_task4.insertInProblem();
+
+    dynConstr.insertInProblem();
+    jnt_trq_cstr.insertInProblem();
+    jnt_pos_cstr.insertInProblem();
+    jnt_vel_cstr.insertInProblem();
+    jnt_acc_cstr.insertInProblem();
+
+    contact1.insertInProblem();
+    contact2.insertInProblem();
+    contact3.insertInProblem();
+    contact4.insertInProblem();
+    
+    
     int ntrials=1000;
     int i=ntrials;
     do
     {
-        cart_task.insertInProblem();
-        acc_reg_task.insertInProblem();
-        trq_reg_task.insertInProblem();
-        wrench_reg_task1.insertInProblem();
-        wrench_reg_task2.insertInProblem();
-        wrench_reg_task3.insertInProblem();
-        wrench_reg_task4.insertInProblem();
 
-        dynConstr.insertInProblem();
-        jnt_trq_cstr.insertInProblem();
-        jnt_pos_cstr.insertInProblem();
-        jnt_vel_cstr.insertInProblem();
-        jnt_acc_cstr.insertInProblem();
-
-        contact1.insertInProblem();
-        contact2.insertInProblem();
-        contact3.insertInProblem();
-        contact4.insertInProblem();
         
         dynConstr.update();
 
