@@ -3,6 +3,7 @@
 #include <orca/constraint/Contact.h>
 #include <orca/task/WrenchTask.h>
 #include <iostream>
+#include <array>
 
 using namespace orca::optim;
 using namespace orca::constraint;
@@ -171,7 +172,7 @@ void OptimVector::buildControlVariablesMapping(int ndof)
     MutexLock lock(mutex);
     ndof_ = ndof;
     is_floating_base_ = true;
-    nwrenches_ = getNrOfWrenches();
+    nwrenches_ = wrenches_.size();
     const int fulldim = ndof + (is_floating_base_ ? 6 : 0);
     
     size_map_[    ControlVariable::X                          ] = 2 * fulldim + nwrenches_ * 6;
@@ -182,6 +183,9 @@ void OptimVector::buildControlVariablesMapping(int ndof)
     size_map_[    ControlVariable::FloatingBaseWrench         ] = (is_floating_base_ ? 6 : 0);
     size_map_[    ControlVariable::JointSpaceTorque           ] = ndof;
     size_map_[    ControlVariable::ExternalWrench             ] = 6;
+    size_map_[    ControlVariable::ExternalWrenches           ] = nwrenches_ * 6;
+    size_map_[    ControlVariable::Composite                  ] = 0;
+    size_map_[    ControlVariable::None                       ] = 0;
     
     idx_map_[    ControlVariable::X                          ] = 0;
     idx_map_[    ControlVariable::GeneralisedAcceleration    ] = 0;
@@ -191,18 +195,34 @@ void OptimVector::buildControlVariablesMapping(int ndof)
     idx_map_[    ControlVariable::FloatingBaseWrench         ] = fulldim;
     idx_map_[    ControlVariable::JointSpaceTorque           ] = fulldim + (is_floating_base_ ? 6 : 0);
     idx_map_[    ControlVariable::ExternalWrench             ] = 2 * fulldim;
+    idx_map_[    ControlVariable::ExternalWrenches           ] = 2 * fulldim;
+    idx_map_[    ControlVariable::Composite                  ] = 0;
+    idx_map_[    ControlVariable::None                       ] = 0;
 
 }
 
 void OptimVector::print() const
 {
     MutexLock lock(mutex);
-//     LOG_DEBUG << "Optimisation OptimVector X Total size : "<< getSize(ControlVariable::X) << std::endl;
-//     LOG_DEBUG << "  Acceleration index " << getIndex(ControlVariable::Acceleration) << " size " << getSize(ControlVariable::Acceleration) << std::endl;
-//     LOG_DEBUG << "  Torque       index " << getIndex(ControlVariable::Torque) << " size " << getSize(ControlVariable::Torque) << std::endl;
-//     LOG_DEBUG << "  Wrench       index " << getIndex(ControlVariable::ExternalWrench) << " size " << getSize(ControlVariable::ExternalWrench)
-//                         << " * NWrenches (" << getNrOfWrenches() <<")"
-//                         << std::endl;
+    std::cout << "Optimisation Vector : " << '\n';
+    const auto all_variables =     
+    {
+          ControlVariable::X
+        , ControlVariable::GeneralisedAcceleration
+        , ControlVariable::FloatingBaseAcceleration
+        , ControlVariable::JointSpaceAcceleration
+        , ControlVariable::GeneralisedTorque
+        , ControlVariable::FloatingBaseWrench
+        , ControlVariable::JointSpaceTorque
+        , ControlVariable::ExternalWrench
+        , ControlVariable::ExternalWrenches
+        , ControlVariable::Composite
+        , ControlVariable::None
+    };
+    for(auto v : all_variables)
+    {
+        std::cout << "  - " << v << " index " << idx_map_.at(v) << " size " << size_map_.at(v) << '\n';
+    }
 }
 
 int OptimVector::getNrOfWrenches() const
