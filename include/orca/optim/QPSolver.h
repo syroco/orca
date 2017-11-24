@@ -45,21 +45,18 @@ struct QPSolverData
 {
     void resize(int nvar, int nconstr)
     {
-        if(nvar != H_.cols() || nconstr != A_.rows() )
-        {
-            H_.conservativeResizeLike(Eigen::MatrixXd::Zero(nvar,nvar));
-            g_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
+        H_.conservativeResizeLike(Eigen::MatrixXd::Zero(nvar,nvar));
+        g_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
 
-            A_.conservativeResizeLike(Eigen::MatrixXd::Zero(nconstr,nvar));
+        A_.conservativeResizeLike(Eigen::MatrixXd::Zero(nconstr,nvar));
 
-            lbA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr, - math::Infinity) );
-            lb_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,    - math::Infinity) );
+        lbA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr, - math::Infinity) );
+        lb_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,    - math::Infinity) );
 
-            ubA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr,  math::Infinity) );
-            ub_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,     math::Infinity) );
+        ubA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr,  math::Infinity) );
+        ub_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,     math::Infinity) );
 
-            primal_solution_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
-        }
+        primal_solution_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
     }
 
     void reset()
