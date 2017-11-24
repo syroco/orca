@@ -23,39 +23,48 @@ void Contact::setName(const std::string& name)
 
 void Contact::addInRegister()
 {
-    wrench_->addInRegister();
+    
 }
 
 void Contact::removeFromRegister()
 {
-    wrench_->removeFromRegister();
+    
 }
 
 bool Contact::insertInProblem()
 {
-    return friction_cone_->insertInProblem() && ex_condition_->insertInProblem();
+    return friction_cone_->insertInProblem()
+        && ex_condition_->insertInProblem() 
+        && wrench_->insertInProblem();
 }
 
 bool Contact::removeFromProblem()
 {
-    return friction_cone_->removeFromProblem() && ex_condition_->removeFromProblem();
+    return friction_cone_->removeFromProblem() 
+        && ex_condition_->removeFromProblem() 
+        && wrench_->removeFromProblem();
 }
 
 bool Contact::desactivate()
 {
     // TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0
-    return friction_cone_->desactivate() && ex_condition_->desactivate() && wrench_->desactivate();
+    return friction_cone_->desactivate() 
+        && ex_condition_->desactivate() 
+        && wrench_->desactivate();
 }
 
 bool Contact::activate()
 {
-    return friction_cone_->activate() && ex_condition_->activate() && wrench_->activate();
+    return friction_cone_->activate() 
+        && ex_condition_->activate() 
+        && wrench_->activate();
 }
 
 void Contact::update()
 {
     friction_cone_->update();
     ex_condition_->update();
+    wrench_->update();
 }
 
 double Contact::getFrictionCoeff() const
@@ -127,10 +136,7 @@ void Contact::setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_f
 
 void Contact::resize()
 {
-    if( ex_condition_->robotPtr() != this->robotPtr() )
-    {
-        ex_condition_->setRobotModel( this->robotPtr() );
-        friction_cone_->setRobotModel( this->robotPtr() );
-        wrench_->setRobotModel( this->robotPtr() );
-    }
+    ex_condition_->setRobotModel( this->robotPtr() );
+    friction_cone_->setRobotModel( this->robotPtr() );
+    wrench_->setRobotModel( this->robotPtr() );
 }

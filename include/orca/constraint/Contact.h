@@ -49,11 +49,10 @@ class Contact : public common::TaskCommon
 public:
     Contact();
 
-    void addInRegister();
-
-    void removeFromRegister();
-
     bool insertInProblem();
+    void addInRegister();
+    void removeFromRegister();
+    bool removeFromProblem();
     
     void setName(const std::string& name);
 
@@ -66,8 +65,6 @@ public:
     void setControlFrame(const std::string& control_frame);
 
     void setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
-
-    bool removeFromProblem();
 
     bool desactivate();
 

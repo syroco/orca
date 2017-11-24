@@ -86,11 +86,12 @@ const Eigen::MatrixXd& Wrench::getJacobian() const
 void Wrench::update()
 {
     MutexLock lock(mutex);
-
-    if(!isInitialized())
-    {
-        return;
-    }
+    
+    // A task is considered initialised when 
+    // Robot has been loaded --> calls this->resize()
+    // At least one update has been done on the task
+    
+    setInitialized(robot().isInitialized());
 
     if(base_ref_frame_.empty())
     {

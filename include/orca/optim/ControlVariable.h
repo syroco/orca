@@ -65,6 +65,7 @@ namespace optim
             case ControlVariable::FloatingBaseWrench :          os << "FloatingBaseWrench"; break;
             case ControlVariable::JointSpaceTorque :            os << "JointSpaceTorque"; break;
             case ControlVariable::ExternalWrench :              os << "ExternalWrench"; break;
+            case ControlVariable::ExternalWrenches :            os << "ExternalWrenches"; break;
             case ControlVariable::Composite :                   os << "Composite"; break;
             case ControlVariable::None :                        os << "None"; break;
             default: break;
