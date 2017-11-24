@@ -48,6 +48,7 @@ namespace optim
         , FloatingBaseWrench
         , JointSpaceTorque
         , ExternalWrench
+        , ExternalWrenches
         , Composite
         , None
     };
