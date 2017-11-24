@@ -91,19 +91,20 @@ bool TaskCommon::activate()
 
     if(is_activated_)
     {
-        LOG_ERROR << "Contact already activated ";
+        LOG_WARNING << "[" << TaskCommon::getName() << "] " << "Already activated";
         return true;
     }
     else
     {
         if(isInitialized())
         {
+            LOG_INFO << "[" << TaskCommon::getName() << "] " << "Activating";
             is_activated_ = true;
             return true;
         }
         else
         {
-            LOG_WARNING << "Cannot activate constraint, as robot model is not initialized";
+            LOG_WARNING << "[" << TaskCommon::getName() << "] " << "Cannot activate constraint, as robot model is not initialized";
         }
     }
     return false;
@@ -115,10 +116,11 @@ bool TaskCommon::desactivate()
 
     if(!is_activated_)
     {
-        LOG_ERROR << "Contact already desactivated ";
+        LOG_ERROR << "[" << TaskCommon::getName() << "] " << "Contact already desactivated ";
     }
     else
     {
+        LOG_INFO << "[" << TaskCommon::getName() << "] " << "Desactivating";
         is_activated_ = false;
     }
     return true;
@@ -158,20 +160,20 @@ bool TaskCommon::insertInProblem()
     {
         if(isInitialized())
         {
+            LOG_INFO << "[" << TaskCommon::getName() << "] " << "Inserting in problem";
             addInRegister();
-            
             is_inserted_ = true;
             return true;
         }
         else
         {
-            LOG_WARNING << "Could not insert in problem as robot is not initialized";
+            LOG_WARNING << "[" << TaskCommon::getName() << "] " << "Could not insert in problem as robot is not initialized (urdf loaded + received first state)";
             return false;
         }
     }
     else
     {
-        LOG_WARNING << "Already inserted";        
+        LOG_WARNING << "[" << TaskCommon::getName() << "] " << "Already inserted";
     }
     return true;
 }
@@ -183,8 +185,12 @@ bool TaskCommon::removeFromProblem()
     if(is_inserted_)
     {
         removeFromRegister();
-        
+        LOG_INFO << "[" << TaskCommon::getName() << "] " << "Removing from problem";
         is_inserted_ = false;
+    }
+    else
+    {
+        LOG_WARNING << "[" << TaskCommon::getName() << "] " << "Not inserted, so not removing anything";
     }
     return true;
 }

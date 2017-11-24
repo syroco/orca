@@ -125,7 +125,7 @@ void GenericTask::update()
     
     if(!lock.isSuccessful())
     {
-        LOG_DEBUG << "Mutex locked, not updating";
+        LOG_DEBUG << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
         return;
     }
     

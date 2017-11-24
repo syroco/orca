@@ -1,9 +1,12 @@
 #include <orca/optim/WeightedQPSolver.h>
 #include <orca/optim/OptimisationVector.h>
+#include <orca/math/GenericFunction.h>
 
 using namespace orca::optim;
 using namespace orca::task;
 using namespace orca::constraint;
+using namespace orca::math;
+
 WeightedQPSolver::WeightedQPSolver()
 {
     OptimisationVector().addInRegister(this);
@@ -18,7 +21,7 @@ void WeightedQPSolver::resize()
 {
     MutexLock lock(mutex);
     
-    LOG_DEBUG << "WeightedQPSolver::resize()";
+    LOG_DEBUG << "[WQP] resize()";
     
     constraints_ =  OptimisationVector().getConstraints();
     tasks_ = OptimisationVector().getTasks();
@@ -34,17 +37,17 @@ void WeightedQPSolver::resize()
         
         if(constr->getConstraintMatrix().isIdentity())
         {
-            LOG_DEBUG << "WeightedQPSolver::resize() Detecting lb < x < ub constraint, not adding rows" << constr;
+            LOG_DEBUG << "[WQP] resize() Detecting lb < x < ub constraint, not adding rows" << constr;
             // Detecting lb < x < ub constraint
         }
         else
         {
-            LOG_DEBUG << "WeightedQPSolver::resize() Adding constraint rows ";
+            LOG_DEBUG << "[WQP] resize() Adding constraint rows ";
             number_of_constraints_rows += constr->rows();
-            LOG_DEBUG << "WeightedQPSolver::resize() Number of rows is now  " << number_of_constraints_rows ;
+            LOG_DEBUG << "[WQP] resize() Number of rows is now  " << number_of_constraints_rows ;
         }
     }
-    LOG_DEBUG << "WeightedQPSolver::resize() resizeInternal " << nvars << "x" << number_of_constraints_rows;
+    LOG_DEBUG << "[WQP] resize() resizeInternal " << nvars << "x" << number_of_constraints_rows;
     
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
@@ -81,6 +84,10 @@ void WeightedQPSolver::buildOptimisationProblem()
         else
         {
             // Error
+            task->print();
+            LOG_ERROR << "[WQP] Task block of size (" << Size(nrows,ncols) << ")"
+                      << "\nCould not fit at index (" << Size(start_idx,start_idx) << ")"
+                      << "\nBecause H size is " << Size(data_.H_) << ")";
             throw std::runtime_error(util::Formatter() << "Task " << task->getName() << " ptr " << task << " is out of band : start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols()");
         }
     }

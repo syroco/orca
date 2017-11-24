@@ -13,6 +13,14 @@ Contact::Contact()
 
 }
 
+void Contact::setName(const std::string& name)
+{
+    TaskCommon::setName(name);
+    friction_cone_->setName(name + "_FrCone");
+    ex_condition_->setName(name + "_ExCond");
+    wrench_->setName(name + "_Wrench");
+}
+
 void Contact::addInRegister()
 {
     wrench_->addInRegister();

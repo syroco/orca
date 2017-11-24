@@ -8,11 +8,12 @@ using namespace orca::robot;
 using namespace orca::math;
 using namespace orca::util;
 
-int main(int argc, char** argv)
+int main(int argc, char const *argv[])
 {
-    orca::util::Logger::setLogLevel( orca::util::LogLevel::debug  );
+    
+    orca::util::Logger::parseArgv( argc, argv );
 
-    if(argc != 2)
+    if(argc < 2)
     {
         std::cerr << "Usage : ./orca-demo1 /path/to/robot-urdf.urdf" << "\n";
         return -1;
@@ -41,6 +42,7 @@ int main(int argc, char** argv)
     std::cout << "===== Cartesian Task" << '\n';
 
     CartesianTask cart_task;
+    cart_task.setName("CartTask-link_7");
     cart_task.setRobotModel(robot);
     cart_task.setControlFrame("link_7");
 
@@ -66,6 +68,7 @@ int main(int argc, char** argv)
     std::cout << "===== Cartesian Acceleration PID" << '\n';
 
     CartesianAccelerationPID cart_acc_pid;
+    cart_acc_pid.setName("CartPID-7");
     cart_acc_pid.setRobotModel(robot);
     Vector6d P_gain;
     P_gain << 100, 100, 100, 10, 10, 10;
@@ -90,6 +93,11 @@ int main(int argc, char** argv)
     Contact contact3;
     Contact contact4;
 
+    contact1.setName("Contact1");
+    contact2.setName("Contact2");
+    contact3.setName("Contact3");
+    contact4.setName("Contact4");
+
     contact1.setRobotModel(robot);
     contact2.setRobotModel(robot);
     contact3.setRobotModel(robot);
@@ -108,6 +116,7 @@ int main(int argc, char** argv)
     std::cout << "===== Dynamics Equation Constraint" << '\n';
     DynamicsEquationConstraint dynConstr;
 
+    dynConstr.setName("Dynamics Equation");
     dynConstr.setRobotModel(robot);
     dynConstr.update();
 
@@ -116,6 +125,7 @@ int main(int argc, char** argv)
     const int ndof = robot->getNrOfDegreesOfFreedom();
 
     JointTorqueLimitConstraint jnt_trq_cstr;
+    jnt_trq_cstr.setName("JointTorqueLimit");
     Eigen::VectorXd jntTrqMax;
     jntTrqMax.resize(ndof);
     jntTrqMax.setConstant(200.0);
@@ -124,6 +134,7 @@ int main(int argc, char** argv)
     jnt_trq_cstr.update();
 
     JointPositionLimitConstraint jnt_pos_cstr;
+    jnt_pos_cstr.setName("JointPositionLimit");
     jnt_pos_cstr.setRobotModel(robot);
     jnt_pos_cstr.update();
 
@@ -131,6 +142,7 @@ int main(int argc, char** argv)
     Eigen::VectorXd jntVelMax;
     jntVelMax.resize(ndof);
     jntVelMax.setConstant(2.0);
+    jnt_vel_cstr.setName("JointVelocityLimit");
     jnt_vel_cstr.setRobotModel(robot);
     jnt_vel_cstr.setLimits(-jntVelMax,jntVelMax);
     jnt_vel_cstr.update();
@@ -139,6 +151,7 @@ int main(int argc, char** argv)
     Eigen::VectorXd jntAccMax;
     jntAccMax.resize(ndof);
     jntAccMax.setConstant(4.0);
+    jnt_acc_cstr.setName("JointAccelerationLimit");
     jnt_acc_cstr.setRobotModel(robot);
     jnt_acc_cstr.setLimits(-jntAccMax,jntAccMax);
     jnt_acc_cstr.update();
@@ -151,6 +164,14 @@ int main(int argc, char** argv)
     WrenchRegularisationTask wrench_reg_task2;
     WrenchRegularisationTask wrench_reg_task3;
     WrenchRegularisationTask wrench_reg_task4;
+
+    reg_task.setName("reg_task");
+    acc_reg_task.setName("acc_reg_task");
+    trq_reg_task.setName("trq_reg_task");
+    wrench_reg_task1.setName("wrench_reg_task1");
+    wrench_reg_task2.setName("wrench_reg_task2");
+    wrench_reg_task3.setName("wrench_reg_task3");
+    wrench_reg_task4.setName("wrench_reg_task4");
 
     reg_task.setRobotModel(robot);
     acc_reg_task.setRobotModel(robot);

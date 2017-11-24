@@ -54,6 +54,8 @@ public:
     void removeFromRegister();
 
     bool insertInProblem();
+    
+    void setName(const std::string& name);
 
     const std::string& getBaseFrame() const;
 
