@@ -21,7 +21,7 @@ void WeightedQPSolver::resize()
 {
     MutexLock lock(mutex);
     
-    LOG_DEBUG << "[WQP] resize()";
+    LOG_DEBUG << "[WQP] Checking if we need resising";
     
     constraints_ =  OptimisationVector().getConstraints();
     tasks_ = OptimisationVector().getTasks();
@@ -48,7 +48,6 @@ void WeightedQPSolver::resize()
         }
     }
     LOG_DEBUG << "[WQP] resize() resizeInternal " << nvars << "x" << number_of_constraints_rows;
-    
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
 
@@ -87,7 +86,7 @@ void WeightedQPSolver::buildOptimisationProblem()
             task->print();
             LOG_ERROR << "[WQP] Task block of size (" << Size(nrows,ncols) << ")"
                       << "\nCould not fit at index (" << Size(start_idx,start_idx) << ")"
-                      << "\nBecause H size is " << Size(data_.H_) << ")";
+                      << "\nBecause H size is (" << Size(data_.H_) << ")";
             throw std::runtime_error(util::Formatter() << "Task " << task->getName() << " ptr " << task << " is out of band : start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols()");
         }
     }

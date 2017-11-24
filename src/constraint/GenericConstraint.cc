@@ -135,6 +135,10 @@ void GenericConstraint::update()
         return;
     }
     
+    // A task is considered initialised when 
+    // Robot has been loaded --> calls this->resize()
+    // At least one update has been done on the task
+    
     setInitialized(robot().isInitialized());
 
     if(!isActivated())

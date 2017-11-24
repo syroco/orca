@@ -82,7 +82,6 @@ void LinearizedCoulombConstraint::resize()
 
     if(number_of_faces_ != constraintFunction().rows())
     {
-        LOG_DEBUG << "Resizing to "<< number_of_faces_;
         constraintFunction().resize(number_of_faces_, 3);
         constraintFunction().lowerBound().setConstant( - math::Infinity );
         constraintFunction().upperBound().setConstant(margin_);
