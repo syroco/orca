@@ -23,6 +23,10 @@ namespace orca
         {
             Logger();
             static void setLogLevel(LogLevel log_level);
+            static void setLogLevel(int log_level);
+            static void setLogLevel(const std::string& log_level);
+            static void parseArgv(int argc,char ** argv);
+            static void parseArgv(int argc,char const* argv[]);
         };
     }
 }
