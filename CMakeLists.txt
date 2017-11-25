@@ -117,7 +117,7 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>
   )
  
-target_link_libraries(orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES})
+target_link_libraries(orca iDynTree::idyntree-high-level ${qpOASES_LIBRARIES})
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
