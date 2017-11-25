@@ -16,6 +16,7 @@ if(NOT Eigen3_FOUND)
     message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
     find_package(Eigen3 3.2.92 REQUIRED)
+    #add_subdirectory(${PROJECT_SOURCE_DIR}/external/eigen-3.3.4/eigen3)
 endif()
 
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -43,13 +44,12 @@ include_directories(${qpOASES_INCLUDE_DIRS})
 find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
-    set(IDYNTREE_SHARED_LIBRARY FALSE)
     set(iDynTree_DIR external/idyntree-0.8.1)
+    set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}")
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
-
 endif()
 
-include_directories(${iDynTree_INCLUDE_DIRS})
+#include_directories(${iDynTree_INCLUDE_DIRS})
 
 #################### Catkin ###########################
 find_package(catkin QUIET)
@@ -69,7 +69,7 @@ if(NOT iDynTree_FOUND)
 endif()
 
 if(NOT qpOASES_FOUND)
-    add_subdirectory(external/qpOASES-3.2)
+    add_subdirectory(external/qpOASES-3.2 EXCLUDE_FROM_ALL)
 endif()
 
 #################### ORCA #########################
@@ -105,8 +105,19 @@ target_include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   )
- 
-target_link_libraries(orca iDynTree::idyntree-high-level ${qpOASES_LIBRARIES})
+
+if(NOT Eigen3_FOUND)
+	target_include_directories(
+  		${PROJECT_NAME} PUBLIC
+  		$<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+  		$<INSTALL_INTERFACE:include/eigen3>
+  	)
+endif()
+
+
+target_include_directories(orca PUBLIC $<TARGET_PROPERTY:idyntree-high-level,INCLUDE_DIRECTORIES>)
+target_link_libraries(orca PUBLIC idyntree-high-level)
+target_link_libraries(orca PRIVATE ${qpOASES_LIBRARIES})
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
@@ -132,12 +143,18 @@ install(DIRECTORY include/
   PATTERN "*.inl"
   PATTERN "*.in" EXCLUDE)
 
+if(NOT Eigen3_FOUND)
+	install(DIRECTORY external/eigen-3.3.4/eigen3 DESTINATION include)
+endif()
+
+install(DIRECTORY external/plog-1.1.3/include/plog DESTINATION include)
+
 #
 # Cmake Package
 #
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
@@ -146,13 +163,13 @@ set(CONFIG_PACKAGE_LOCATION lib/cmake/orca)
 set(INCLUDE_INSTALL_DIR include/ )
 
 configure_package_config_file(cmake/orcaConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
     INSTALL_DESTINATION ${CONFIG_PACKAGE_LOCATION}
     PATH_VARS INCLUDE_INSTALL_DIR
 )
 
 export(EXPORT orcaTargets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaTargets.cmake"
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
     NAMESPACE orca::
 )
 
@@ -162,7 +179,7 @@ install(EXPORT orcaTargets
     DESTINATION ${CONFIG_PACKAGE_LOCATION}
 )
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
     DESTINATION ${CONFIG_PACKAGE_LOCATION}
 )
