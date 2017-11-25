@@ -19,5 +19,10 @@ if(gazebo_FOUND)
 
     add_executable(orca-demo1-gazebo orca-demo1-gazebo.cc)
     target_link_libraries(orca-demo1-gazebo ${GAZEBO_LIBRARIES} pthread orca tinyxml)
-
+    install(TARGETS orca-demo1-gazebo DESTINATION lib/orca)
 endif()
+
+install(TARGETS orca-demo1 DESTINATION lib/orca)
+
+
+
