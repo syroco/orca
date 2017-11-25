@@ -1,0 +1,8 @@
+# Example usage:
+#   find_package(orca REQUIRED)
+#   add_executable(foo main.cpp)
+#   target_link_libraries(foo orca::orca)
+
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/orcaTargets.cmake")

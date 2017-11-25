@@ -1,31 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
-project(orca)
+project(orca VERSION 0.1.0)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
-# Use C++11
-set(CMAKE_CXX_STANDARD 11)
-
-# include(CheckCXXCompilerFlag)
-# 
-# function(enable_cxx_compiler_flag_if_supported flag)
-#     string(FIND "${CMAKE_CXX_FLAGS}" "${flag}" flag_already_set)
-#     if(flag_already_set EQUAL -1)
-#         check_cxx_compiler_flag("${flag}" flag_supported)
-#         if(flag_supported)
-#             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
-#         endif()
-#         unset(flag_supported CACHE)
-#     endif()
-# endfunction()
-# 
-# # example usage
-# enable_cxx_compiler_flag_if_supported("-Wall")
-# enable_cxx_compiler_flag_if_supported("-Wextra")
-# enable_cxx_compiler_flag_if_supported("-pedantic")
 
 #################### Eigen3 ###########################
 find_package(Eigen3 3.2.92 QUIET)
@@ -39,18 +18,10 @@ if(NOT Eigen3_FOUND)
     find_package(Eigen3 3.2.92 REQUIRED)
 endif()
 
-include_directories(
-    include
-    ${EIGEN3_INCLUDE_DIRS}
-)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
-#################### Catkin ###########################
-find_package(catkin QUIET)
-if(catkin_FOUND)
-    catkin_package(INCLUDE_DIRS include)
-endif()
 
-#################### Catkin ###########################
+#################### PLOG ###########################
 include_directories(external/plog-1.1.3/include)
 
 #################### JSON Parser ###########################
@@ -62,7 +33,6 @@ find_package(qpOASES QUIET)
 
 if(NOT qpOASES_FOUND)
     message(WARNING "Using internal qpOASES (3.2), please consider installing it standalone.")
-    add_subdirectory(external/qpOASES-3.2)
     set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2/include )
     set(qpOASES_LIBRARIES qpOASES)
 endif()
@@ -74,7 +44,6 @@ find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
     set(iDynTree_DIR external/idyntree-0.8.1)
-    add_subdirectory(${iDynTree_DIR})
     set(iDynTree_INCLUDE_DIRS   ${iDynTree_DIR}/src/core/include
                                 ${iDynTree_DIR}/src/model/include
                                 ${iDynTree_DIR}/src/sensors/include
@@ -93,6 +62,26 @@ endif()
 
 include_directories(${iDynTree_INCLUDE_DIRS})
 
+#################### Catkin ###########################
+find_package(catkin QUIET)
+if(catkin_FOUND)
+    catkin_package(
+        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} ${qpOASES_INCLUDE_DIRS} external/plog-1.1.3/include external/json-2.1.1/include
+        LIBRARIES orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES}
+    )
+endif()
+
+# Add the subdirs to build the external libraries
+# These have to be after catkin_package()
+# so it can catch the targets
+
+if(NOT iDynTree_FOUND)
+    add_subdirectory(${iDynTree_DIR})
+endif()
+
+if(NOT qpOASES_FOUND)
+    add_subdirectory(external/qpOASES-3.2)
+endif()
 
 #################### ORCA #########################
 set(sub-dirs
@@ -120,12 +109,20 @@ endforeach()
 source_group("Header Files" FILES ${lib-hdrs})
 
 add_library(orca ${lib-srcs})
-target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
+set_target_properties(orca PROPERTIES CXX_STANDARD 11)
+set_target_properties(orca PROPERTIES CXX_STANDARD_REQUIRED ON)
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+ 
 target_link_libraries(orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES})
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
+#################### Linter for atom #########################
 if(Unix)
 add_custom_target(  orca-atom-files ALL
                     DEPENDS orca
@@ -135,3 +132,48 @@ add_custom_target(  orca-atom-files ALL
                     COMMENT "Copying 'compile_commands.json' to '${PROJECT_SOURCE_DIR}'"
                  )
 endif()
+
+#################### ORCA Install #########################
+install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
+install(DIRECTORY include/
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.h"
+  PATTERN "*.hpp"
+  PATTERN "*.inl"
+  PATTERN "*.in" EXCLUDE)
+
+#
+# Cmake Package
+#
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+set(CONFIG_PACKAGE_LOCATION lib/cmake/orca)
+set(INCLUDE_INSTALL_DIR include/ )
+
+configure_package_config_file(cmake/orcaConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfig.cmake
+    INSTALL_DESTINATION ${CONFIG_PACKAGE_LOCATION}
+    PATH_VARS INCLUDE_INSTALL_DIR
+)
+
+export(EXPORT orcaTargets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaTargets.cmake"
+    NAMESPACE orca::
+)
+
+install(EXPORT orcaTargets
+    FILE orcaTargets.cmake
+    NAMESPACE orca::
+    DESTINATION ${CONFIG_PACKAGE_LOCATION}
+)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/orcaConfigVersion.cmake
+    DESTINATION ${CONFIG_PACKAGE_LOCATION}
+)

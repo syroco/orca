@@ -11,7 +11,7 @@ compile_commands.json
 # OROCOS
 .tb_history
 orocos.log
-
+install
 # CLion
 .idea/
 
