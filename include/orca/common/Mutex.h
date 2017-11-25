@@ -18,6 +18,7 @@ namespace orca
         {
             public:
                 Mutex();
+                virtual ~Mutex();
                 void lock();
                 void unlock();
                 bool trylock();
