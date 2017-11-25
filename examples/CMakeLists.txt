@@ -1,5 +1,3 @@
-set(CMAKE_CXX_STANDARD 11)
-
 add_executable(orca-demo1 orca-demo1.cc)
 target_link_libraries(orca-demo1 orca)
 

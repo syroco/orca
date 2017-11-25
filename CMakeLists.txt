@@ -87,6 +87,14 @@ endforeach()
 source_group("Header Files" FILES ${lib-hdrs})
 
 add_library(${PROJECT_NAME} ${lib-srcs})
+target_compile_features(${PROJECT_NAME} PUBLIC 
+    cxx_auto_type
+    cxx_constexpr
+    cxx_final
+    cxx_inheriting_constructors
+    cxx_lambdas
+    cxx_nullptr
+)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
 
