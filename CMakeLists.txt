@@ -123,50 +123,6 @@ add_library(orca ${lib-srcs})
 target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES})
 
-
-#################### OROCOS Wrapper ########################
-find_package(OROCOS-RTT QUIET ${RTT_HINTS})
-if(OROCOS-RTT_FOUND)
-    include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake )
-
-    add_definitions(-DUSE_OROCOS_MUTEXES)
-    include_directories(${OROCOS-RTT_INCLUDE_DIRS})
-    target_link_libraries(orca ${OROCOS-RTT_LIBRARIES})
-
-    orocos_use_package(ocl-taskbrowser)
-    orocos_use_package(ocl-deployment)
-    include_directories(${OROCOS-RTT_INCLUDE_DIRS})
-    
-    orocos_service(RttOrcaLoggerService rtt_src/RttOrcaLoggerService.cc)
-    target_link_libraries(RttOrcaLoggerService orca)
-    
-    orocos_service(RttOrcaRegisterService rtt_src/RttOrcaRegisterService.cc)
-    target_link_libraries(RttOrcaRegisterService orca)
-    
-    orocos_component(RttContact rtt_src/RttContact.cc)
-    target_link_libraries(RttContact orca)
-    
-    orocos_component(RttCartesianTask rtt_src/RttCartesianTask.cc)
-    target_link_libraries(RttCartesianTask orca)
-    
-    orocos_component(RttRegularisationTask rtt_src/RttRegularisationTask.cc)
-    target_link_libraries(RttRegularisationTask orca)
-    
-    orocos_component(RttJointAccelerationTask rtt_src/RttJointAccelerationTask.cc)
-    target_link_libraries(RttJointAccelerationTask orca)
-    
-    orocos_component(RttWrenchTask rtt_src/RttWrenchTask.cc)
-    target_link_libraries(RttWrenchTask orca)
-    
-    orocos_component(RttDynamicsEquationConstraint rtt_src/RttDynamicsEquationConstraint.cc)
-    target_link_libraries(RttDynamicsEquationConstraint orca)
-    
-    orocos_component(RttQPSolver rtt_src/RttQPSolver.cc)
-    target_link_libraries(RttQPSolver orca)
-    
-    orocos_generate_package()
-endif()
-
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
