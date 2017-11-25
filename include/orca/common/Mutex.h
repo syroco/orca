@@ -31,6 +31,7 @@ namespace orca
         {
             public:
                 MutexRecursive();
+		virtual ~MutexRecursive();
                 void lock();
                 void unlock();
                 bool trylock();
