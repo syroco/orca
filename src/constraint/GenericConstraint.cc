@@ -132,7 +132,7 @@ void GenericConstraint::update()
 
     if(!lock.isSuccessful())
     {
-        LOG_DEBUG << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
+        //LOG_VERBOSE << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
         return;
     }
     
