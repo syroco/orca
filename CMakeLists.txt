@@ -6,6 +6,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+#################### Xenomai ###########################
+find_package(Xenomai QUIET)
+
+if(XENOMAI_FOUND)
+    message(STATUS "[ORCA] Building with Xenomai mutexes")
+endif()
+
 #################### Eigen3 ###########################
 find_package(Eigen3 3.2.92 QUIET)
 
@@ -97,6 +104,13 @@ target_compile_features(${PROJECT_NAME} PUBLIC
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
+
+if(XENOMAI_FOUND)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${XENOMAI_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${XENOMAI_LIBRARIES})
+endif()
+
 
 target_include_directories(
       ${PROJECT_NAME} PUBLIC
