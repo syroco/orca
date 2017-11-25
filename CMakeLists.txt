@@ -14,19 +14,10 @@ if(NOT Eigen3_FOUND)
         unset(EIGEN3_INCLUDE_DIR CACHE)
     endif()
     message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
+    # This is for iDynTree to find the library
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
-    find_package(Eigen3 3.2.92 REQUIRED)
+    set(EIGEN3_INCLUDE_DIR ENV{EIGEN3_ROOT})
 endif()
-
-include_directories(${EIGEN3_INCLUDE_DIR})
-
-
-#################### PLOG ###########################
-include_directories(external/plog-1.1.3/include)
-
-#################### JSON Parser ###########################
-include_directories(external/json-2.1.1/include)
-
 
 #################### qpOASES ##########################
 find_package(qpOASES QUIET)
@@ -37,8 +28,6 @@ if(NOT qpOASES_FOUND)
     set(qpOASES_LIBRARIES qpOASES)
 endif()
 
-include_directories(${qpOASES_INCLUDE_DIRS})
-
 #################### iDynTree #########################
 find_package(iDynTree QUIET)
 
@@ -47,8 +36,6 @@ if(NOT iDynTree_FOUND)
     set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}")
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
 endif()
-
-#include_directories(${iDynTree_INCLUDE_DIRS})
 
 #################### Catkin ###########################
 find_package(catkin QUIET)
@@ -97,35 +84,48 @@ endforeach()
 
 source_group("Header Files" FILES ${lib-hdrs})
 
-add_library(orca ${lib-srcs})
-set_target_properties(orca PROPERTIES CXX_STANDARD 11)
-set_target_properties(orca PROPERTIES CXX_STANDARD_REQUIRED ON)
+add_library(${PROJECT_NAME} ${lib-srcs})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11)
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
+
 target_include_directories(
-  ${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+      ${PROJECT_NAME} PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
   )
 
-if(NOT Eigen3_FOUND)
-	target_include_directories(
-  		${PROJECT_NAME} PUBLIC
-  		$<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
-  		$<INSTALL_INTERFACE:include/eigen3>
-  	)
-endif()
+target_include_directories(
+      ${PROJECT_NAME} PUBLIC
+      $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+      $<INSTALL_INTERFACE:include/eigen3>
+  )
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${qpOASES_INCLUDE_DIRS})
+
+target_include_directories(
+      ${PROJECT_NAME} PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/plog-1.1.3/include>
+      $<INSTALL_INTERFACE:include>
+  )
+
+target_include_directories(
+      ${PROJECT_NAME} PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/json-2.1.1/include>
+      $<INSTALL_INTERFACE:include>
+  )
 
 
-target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
-target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
-target_link_libraries(orca PRIVATE ${qpOASES_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
+target_link_libraries(${PROJECT_NAME} PUBLIC iDynTree::idyntree-high-level)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${qpOASES_LIBRARIES})
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
 #################### Linter for atom #########################
 if(Unix)
-add_custom_target(  orca-atom-files ALL
-                    DEPENDS orca
+add_custom_target(  ${PROJECT_NAME}-atom-files ALL
+                    DEPENDS ${PROJECT_NAME}
                     COMMAND ${CMAKE_COMMAND} -E copy
                     ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
                     ${PROJECT_SOURCE_DIR}
@@ -134,7 +134,7 @@ add_custom_target(  orca-atom-files ALL
 endif()
 
 #################### ORCA Install #########################
-install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
+install(TARGETS ${PROJECT_NAME} DESTINATION lib EXPORT orcaTargets)
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
@@ -144,7 +144,7 @@ install(DIRECTORY include/
   PATTERN "*.in" EXCLUDE)
 
 if(NOT Eigen3_FOUND)
-	install(DIRECTORY external/eigen-3.3.4/eigen3 DESTINATION include)
+    install(DIRECTORY external/eigen-3.3.4/eigen3 DESTINATION include)
 endif()
 
 install(DIRECTORY external/plog-1.1.3/include/plog DESTINATION include)
