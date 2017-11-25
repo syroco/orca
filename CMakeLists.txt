@@ -43,19 +43,8 @@ include_directories(${qpOASES_INCLUDE_DIRS})
 find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
+    set(IDYNTREE_SHARED_LIBRARY FALSE)
     set(iDynTree_DIR external/idyntree-0.8.1)
-    set(iDynTree_INCLUDE_DIRS   ${iDynTree_DIR}/src/core/include
-                                ${iDynTree_DIR}/src/model/include
-                                ${iDynTree_DIR}/src/sensors/include
-                                ${iDynTree_DIR}/src/model_io/urdf/include
-                                ${iDynTree_DIR}/src/estimation/include
-                                ${iDynTree_DIR}/src/high-level/include
-    )
-    set(iDynTree_LIBRARIES idyntree-core
-                           idyntree-model
-                           idyntree-modelio-urdf
-                           idyntree-regressors
-                           idyntree-high-level)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
 
 endif()
