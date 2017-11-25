@@ -16,7 +16,7 @@ if(NOT Eigen3_FOUND)
     message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
     # This is for iDynTree to find the library
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
-    set(EIGEN3_INCLUDE_DIR ENV{EIGEN3_ROOT})
+    set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4/eigen3)
 endif()
 
 #################### qpOASES ##########################
