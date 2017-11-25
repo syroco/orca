@@ -87,7 +87,7 @@ namespace optim
         const std::map<ControlVariable, unsigned int >& getSizeMap() const;
 
     private:
-        mutable MutexRecursive mutex;
+        mutable common::MutexRecursive mutex;
 
         void resizeTasks();
         void resizeConstraints();

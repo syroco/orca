@@ -96,7 +96,7 @@ public:
 protected:
     QPSolverData data_;
     void resizeInternal(int nvar, int nconstr);
-    mutable MutexRecursive mutex;
+    mutable common::MutexRecursive mutex;
 private:
     struct SolverImpl; std::shared_ptr<SolverImpl> pimpl;
 };

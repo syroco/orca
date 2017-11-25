@@ -56,7 +56,7 @@ namespace task
         
         void resize()
         {
-            MutexLock lock(mutex);
+            common::MutexLock lock(mutex);
             
             const int sizeofvar = optim::OptimisationVector().getSize(this->getControlVariable());
             int old_cols = EuclidianNorm().cols();

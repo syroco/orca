@@ -3,6 +3,7 @@
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::task;
+using namespace orca::common;
 
 DynamicsEquationConstraint::DynamicsEquationConstraint()
 : EqualityConstraint(ControlVariable::X)

@@ -102,7 +102,12 @@ namespace common
         *
         */
         virtual bool removeFromProblem();
-        mutable MutexRecursive mutex;
+        
+        /**
+        * @brief The recursive mutex to protect public fucntions
+        *
+        */
+        mutable common::MutexRecursive mutex;
 
         robot::RobotDataHelper& robotData();
         robot::RobotDynTree& robot();

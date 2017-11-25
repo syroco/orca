@@ -47,8 +47,6 @@ int main(int argc, char** argv)
     doc.Accept( &printer );
     std::string xmltext = printer.CStr();
 
-    std::cout << xmltext << std::endl;
-
     world->InsertModelString(xmltext);
 
     LOG_INFO << "To make it work you need first to set the path to the meshes : (ex path to lwr_description)" << '\n';
@@ -83,7 +81,7 @@ int main(int argc, char** argv)
     std::cout << "All Joints : " << gz_model->GetName() << '\n';
     for(auto j : gz_model->GetJoints())
     {
-        std::cout << "   - " << j->GetName() << '\n';
+        std::cout << "   - " << j->GetName() << " type : " << j->TypeStr() << " lowerLimit : " << j->GetLowerLimit(0u) << " upperLimit : " << j->GetUpperLimit(0u) <<'\n';
     }
 
     PosixTimer timer(false);

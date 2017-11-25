@@ -6,6 +6,7 @@ using namespace orca::optim;
 using namespace orca::task;
 using namespace orca::constraint;
 using namespace orca::math;
+using namespace orca::common;
 
 WeightedQPSolver::WeightedQPSolver()
 {

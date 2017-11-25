@@ -4,6 +4,7 @@
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::robot;
+using namespace orca::common;
 
 JointPositionLimitConstraint::JointPositionLimitConstraint()
 : JointLimitConstraint(ControlVariable::JointSpaceAcceleration)

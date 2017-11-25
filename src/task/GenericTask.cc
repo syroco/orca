@@ -4,6 +4,7 @@
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::math;
+using namespace orca::common;
 
 GenericTask::GenericTask(ControlVariable control_var)
 : TaskCommon(control_var)

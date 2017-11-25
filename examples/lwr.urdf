@@ -35,6 +35,7 @@
     <parent link="world"/>
     <child link="table_link"/>
     <origin xyz="0 0 0.845"/>
+    <limit effort="400000" lower="0" upper="0" velocity="0"/>
   </joint>
   <link name="table_link">
     <inertial>

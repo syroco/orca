@@ -2,6 +2,7 @@
 #include <orca/optim/OptimisationVector.h>
 using namespace orca::task;
 using namespace orca::optim;
+using namespace orca::common;
 
 CartesianTask::CartesianTask()
 : GenericTask(ControlVariable::GeneralisedAcceleration)

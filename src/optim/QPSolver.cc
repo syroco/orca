@@ -3,6 +3,7 @@
 #include <qpOASES.hpp>
 #include <iostream>
 using namespace orca::optim;
+using namespace orca::common;
 
 struct QPSolver::SolverImpl
 {

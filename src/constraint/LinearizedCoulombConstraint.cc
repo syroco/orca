@@ -3,6 +3,7 @@
 #define M_PI       3.14159265358979323846
 #endif
 using namespace orca::constraint;
+using namespace orca::common;
 
 LinearizedCoulombConstraint::LinearizedCoulombConstraint()
 : GenericConstraint(optim::ControlVariable::ExternalWrench)

@@ -2,6 +2,7 @@
 #include <orca/optim/OptimisationVector.h>
 using namespace orca::constraint;
 using namespace orca::optim;
+using namespace orca::common;
 
 JointLimitConstraint::JointLimitConstraint(ControlVariable control_var)
 : GenericConstraint(control_var)
