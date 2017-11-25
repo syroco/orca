@@ -32,7 +32,7 @@ namespace orca
         {
             MutexImpl()
             {
-		rt_mutex_create(&m_,0);
+                rt_mutex_create(&m_,0);
             }
             void lock()
             {
@@ -51,8 +51,8 @@ namespace orca
         };
         
         struct MutexRecursive::MutexRecursiveImpl
-	{
-	    MutexRecursiveImpl()
+        {
+            MutexRecursiveImpl()
             {
                 rt_mutex_create(&m_,0);
             }
@@ -70,29 +70,41 @@ namespace orca
             }
 
             RT_MUTEX m_;
-	};
+        };
 #else
-    struct Mutex::MutexImpl
-    {
-	void lock()
-	{
-		m_.lock();
-	}
-	void unlock()
-	{
-		m_.unlock();
-	}
-	bool trylock()
-	{
-		return m_.try_lock();
-	}
-        std::mutex m_;
-    };
+        struct Mutex::MutexImpl
+        {
+            void lock()
+            {
+                m_.lock();
+            }
+            void unlock()
+            {
+                m_.unlock();
+            }
+            bool trylock()
+            {
+                return m_.try_lock();
+            }
+            std::mutex m_;
+        };
 
-    struct MutexRecursive::MutexRecursiveImpl
-    {
-        std::recursive_mutex m_;
-    };
+        struct MutexRecursive::MutexRecursiveImpl
+        {
+            void lock()
+            {
+                m_.lock();
+            }
+            void unlock()
+            {
+                m_.unlock();
+            }
+            bool trylock()
+            {
+                return m_.try_lock();
+            }
+            std::recursive_mutex m_;
+        };
 #endif
         Mutex::Mutex()
         : pimpl(std::make_shared<MutexImpl>())
@@ -115,8 +127,8 @@ namespace orca
         {
             if (trylock())
             {
-	            unlock();
-	    }
+                unlock();
+            }
         }
 
         MutexRecursive::MutexRecursive()
@@ -135,13 +147,12 @@ namespace orca
         {
             return pimpl->trylock();
         }
-	MutexRecursive::~MutexRecursive()
-	{
-	    if (trylock())
+        MutexRecursive::~MutexRecursive()
+        {
+            if (trylock())
             {
-                    unlock();
+                unlock();
             }
-
-	}
+        }
     } // namespace common
 } // namespace orca
