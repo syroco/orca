@@ -16,8 +16,10 @@ if(NOT Eigen3_FOUND)
     message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
     # This is for iDynTree to find the library
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
+    set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4/eigen3)
 endif()
+
 
 #################### qpOASES ##########################
 find_package(qpOASES QUIET)
@@ -41,8 +43,8 @@ endif()
 find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
-        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} ${qpOASES_INCLUDE_DIRS} external/plog-1.1.3/include external/json-2.1.1/include
-        LIBRARIES orca ${iDynTree_LIBRARIES} ${qpOASES_LIBRARIES}
+        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/plog-1.1.3/include external/json-2.1.1/include
+        LIBRARIES orca iDynTree::idyntree-high-level
     )
 endif()
 
@@ -94,11 +96,15 @@ target_include_directories(
       $<INSTALL_INTERFACE:include>
   )
 
-target_include_directories(
-      ${PROJECT_NAME} PUBLIC
-      $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
-      $<INSTALL_INTERFACE:include/eigen3>
-  )
+if(NOT Eigen3_FOUND)
+    target_include_directories(
+          ${PROJECT_NAME} PUBLIC
+          $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+          $<INSTALL_INTERFACE:include/eigen3>
+      )
+else()
+    target_include_directories(${PROJECT_NAME} PUBLIC ${EIGEN3_INCLUDE_DIR})
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${qpOASES_INCLUDE_DIRS})
 

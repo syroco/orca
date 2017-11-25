@@ -5,6 +5,11 @@
 
 @PACKAGE_INIT@
 
+if(EIGEN3_ROOTDIR)
+    set(ENV{EIGEN3_ROOT} @EIGEN3_ROOTDIR@)
+endif()
+
+find_package(Eigen3 REQUIRED)
 
 if(NOT TARGET iDynTree::idyntree-high-level)
   find_package(iDynTree REQUIRED)
