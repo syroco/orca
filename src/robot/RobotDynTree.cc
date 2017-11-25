@@ -103,15 +103,16 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
+    global_gravity_vector_ = gravity;
+    
     if(getNrOfDegreesOfFreedom() == 0)
         throw std::runtime_error("Robot model is not loaded");
-
 
     if( base_frame_.empty())
         throw std::runtime_error("Base/FreeFloating frame is empty. Please use setBaseFrame before setting the robot state");
 
-    if(global_gravity_vector_.mean() == 0)
-        throw std::runtime_error("Global gravity vector is not set. Please use setGravity before setting the robot state");
+    if(global_gravity_vector_.isZero(0))
+        throw std::runtime_error("Gravity vector is zero. Please use setGravity before setting the robot state");
 
     if(jointPos.size() != getNrOfDegreesOfFreedom())
         throw std::runtime_error(util::Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
