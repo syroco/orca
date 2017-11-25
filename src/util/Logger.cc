@@ -11,7 +11,7 @@ namespace orca
 
         Logger::Logger()
         {
-            plog::init(plog::verbose, &fileAppender).addAppender(&consoleAppender);
+            plog::init(plog::info, &fileAppender).addAppender(&consoleAppender);
             //LOG_VERBOSE << "\n\n   Welcome to ORCA : an Optimisation-based Framework for Robotics Applications\n";
             setLogLevel(LogLevel::none);
         }
