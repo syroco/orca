@@ -43,10 +43,10 @@ void OptimVector::addInRegister(TaskCommon* t)
     LOG_DEBUG << "[OptimisationVector] Locking TaskCommon " << t << " var " << t->getControlVariable();
     t->mutex.lock();
 
-    if (std::find(std::begin(all_tasks_), std::end(all_tasks_), t) == std::end(all_tasks_))
+    if (std::find(std::begin(commons_), std::end(commons_), t) == std::end(commons_))
     {
         LOG_DEBUG << "[OptimisationVector] Adding TaskCommon " << t << " var " << t->getControlVariable();
-        all_tasks_.push_back(t);
+        commons_.push_back(t);
         
         if(dynamic_cast<GenericTask*>(t))
         {
@@ -108,13 +108,19 @@ void OptimVector::resizeConstraints()
     }
 }
 
+bool OptimVector::isInRegister(TaskCommon* t)
+{
+    MutexLock lock(mutex);
+    return std::find(std::begin(commons_), std::end(commons_), t) != std::end(commons_);
+}
+
 void OptimVector::removeFromRegister(TaskCommon* t)
 {
     MutexLock lock(mutex);
-    auto elem_it = std::find(std::begin(all_tasks_), std::end(all_tasks_), t);
-    if(elem_it != std::end(all_tasks_))
+    auto elem_it = std::find(std::begin(commons_), std::end(commons_), t);
+    if(elem_it != std::end(commons_))
     {
-        all_tasks_.erase(elem_it);
+        commons_.erase(elem_it);
         
         if(dynamic_cast<GenericTask*>(t))
         {
@@ -241,6 +247,12 @@ const std::list<GenericTask *>& OptimVector::getTasks() const
 {
     MutexLock lock(mutex);
     return tasks_;
+}
+
+const std::list<TaskCommon *>& OptimVector::getAllCommons() const
+{
+    MutexLock lock(mutex);
+    return commons_;
 }
 
 const std::list<GenericConstraint *>& OptimVector::getConstraints() const

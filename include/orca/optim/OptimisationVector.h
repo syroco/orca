@@ -60,6 +60,8 @@ namespace optim
 
         void removeFromRegister(QPSolver* qp);
         void removeFromRegister(common::TaskCommon* t) ;
+        
+        bool isInRegister(common::TaskCommon* t);
 
         void buildControlVariablesMapping(int ndof);
 
@@ -67,6 +69,7 @@ namespace optim
 
         const std::list<common::Wrench *>& getWrenches() const;
         const std::list<task::GenericTask *>& getTasks() const;
+        const std::list<common::TaskCommon *>& getAllCommons() const;
         const std::list<constraint::GenericConstraint *>& getConstraints() const;
 
         int getNrOfWrenches() const;
@@ -100,7 +103,7 @@ namespace optim
         std::map<ControlVariable, unsigned int > size_map_;
 
         std::list<common::Wrench *> wrenches_;
-        std::list<common::TaskCommon *> all_tasks_;
+        std::list<common::TaskCommon *> commons_;
 
         std::list<task::GenericTask *> tasks_;
         std::list<constraint::GenericConstraint *> constraints_;
