@@ -48,7 +48,8 @@ void WeightedQPSolver::resize()
             LOG_DEBUG << "[WQP] resize() Number of rows is now  " << number_of_constraints_rows ;
         }
     }
-    LOG_DEBUG << "[WQP] resize() resizeInternal " << nvars << "x" << number_of_constraints_rows;
+    LOG_DEBUG << "[WQP] resize() we are now at  " << data_.H_.rows() << "x" << data_.A_.rows();
+    LOG_DEBUG << "[WQP] resize() we ask to resize to  " << nvars << "x" << number_of_constraints_rows;
     QPSolver::resizeInternal(nvars,number_of_constraints_rows);
 }
 
@@ -85,10 +86,9 @@ void WeightedQPSolver::buildOptimisationProblem()
         {
             // Error
             task->print();
-            LOG_ERROR << "[WQP] Task block of size (" << Size(nrows,ncols) << ")"
+            throw std::runtime_error(util::Formatter() << "[WQP] Task " << task->getName() << " ptr " << task << " << block of size (" << Size(nrows,ncols) << ")"
                       << "\nCould not fit at index (" << Size(start_idx,start_idx) << ")"
-                      << "\nBecause H size is (" << Size(data_.H_) << ")";
-            throw std::runtime_error(util::Formatter() << "Task " << task->getName() << " ptr " << task << " is out of band : start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols()");
+                      << "\nBecause H size is (" << Size(data_.H_) << ")");
         }
     }
 
