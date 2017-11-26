@@ -96,7 +96,6 @@ source_group("Header Files" FILES ${lib-hdrs})
 add_library(orca ${lib-srcs})
 target_compile_features(${PROJECT_NAME} PUBLIC 
     cxx_auto_type
-    cxx_constexpr
     cxx_final
     cxx_inheriting_constructors
     cxx_lambdas
