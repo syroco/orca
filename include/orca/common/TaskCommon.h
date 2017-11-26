@@ -45,6 +45,7 @@ namespace common
     {
     public:
         TaskCommon(optim::ControlVariable control_var);
+        virtual ~TaskCommon();
 
         void setRobotState(const Eigen::Matrix4d& world_H_base
                         , const Eigen::VectorXd& jointPos

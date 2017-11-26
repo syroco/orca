@@ -63,6 +63,9 @@ namespace optim
         
         bool isInRegister(common::TaskCommon* t);
 
+        void declareObject(common::TaskCommon* t);
+        void removeObject(common::TaskCommon* t);
+
         void buildControlVariablesMapping(int ndof);
 
         void print() const;
@@ -70,6 +73,7 @@ namespace optim
         const std::list<common::Wrench *>& getWrenches() const;
         const std::list<task::GenericTask *>& getTasks() const;
         const std::list<common::TaskCommon *>& getAllCommons() const;
+        const std::list<common::TaskCommon *>& getAllCreatedObjects() const;
         const std::list<constraint::GenericConstraint *>& getConstraints() const;
 
         int getNrOfWrenches() const;
@@ -104,6 +108,7 @@ namespace optim
 
         std::list<common::Wrench *> wrenches_;
         std::list<common::TaskCommon *> commons_;
+        std::list<common::TaskCommon *> objs_created_;
 
         std::list<task::GenericTask *> tasks_;
         std::list<constraint::GenericConstraint *> constraints_;

@@ -37,6 +37,27 @@ void OptimVector::addInRegister(QPSolver* qp)
     }
 }
 
+void OptimVector::declareObject(TaskCommon* t)
+{
+    MutexLock lock(mutex);
+    if (std::find(std::begin(objs_created_), std::end(objs_created_), t) == std::end(objs_created_))
+    {
+        LOG_DEBUG << "[OptimisationVector] Declaring TaskCommon " << t;
+        objs_created_.push_back(t);
+    }
+}
+
+void OptimVector::removeObject(TaskCommon* t)
+{
+    MutexLock lock(mutex);
+    auto elem_it = std::find(std::begin(objs_created_), std::end(objs_created_), t);
+    if(elem_it != std::end(objs_created_))
+    {
+        LOG_DEBUG << "[OptimisationVector] Removing TaskCommon " << t;
+        objs_created_.erase(elem_it);
+    }
+}
+
 void OptimVector::addInRegister(TaskCommon* t)
 {
     MutexLock lock(mutex);
@@ -253,6 +274,12 @@ const std::list<TaskCommon *>& OptimVector::getAllCommons() const
 {
     MutexLock lock(mutex);
     return commons_;
+}
+
+const std::list<TaskCommon *>& OptimVector::getAllCreatedObjects() const
+{
+    MutexLock lock(mutex);
+    return objs_created_;
 }
 
 const std::list<GenericConstraint *>& OptimVector::getConstraints() const

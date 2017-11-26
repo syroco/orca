@@ -20,6 +20,7 @@ WeightedQPSolver::~WeightedQPSolver()
 
 void WeightedQPSolver::resize()
 {
+    LOG_DEBUG << "[WQP] WeightedQPSolver::resize()";
     MutexLock lock(mutex);
     
     LOG_DEBUG << "[WQP] Checking if we need resising";

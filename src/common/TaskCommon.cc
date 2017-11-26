@@ -10,7 +10,12 @@ TaskCommon::TaskCommon(ControlVariable control_var)
 : control_var_(control_var)
 , robot_(std::make_shared<RobotDynTree>())
 {
+    OptimisationVector().declareObject(this);
+}
 
+TaskCommon::~TaskCommon()
+{
+    OptimisationVector().removeObject(this);
 }
 
 void TaskCommon::setRobotState(const Eigen::Matrix4d& world_H_base
