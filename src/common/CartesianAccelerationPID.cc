@@ -12,7 +12,15 @@ CartesianAccelerationPID::CartesianAccelerationPID()
 
 void CartesianAccelerationPID::resize()
 {
-
+    cart_pos_curr_.setZero();
+    cart_pos_des_.setZero();
+    cart_acc_cmd_.setZero();
+    cart_acc_bias_.setZero();
+    cart_acc_des_.setZero();
+    cart_vel_des_.setZero();
+    cart_pos_err_.setZero();
+    cart_vel_err_.setZero();
+    cart_vel_curr_.setZero();
 }
 
 void CartesianAccelerationPID::setBaseFrame(const std::string& base_ref_frame)
