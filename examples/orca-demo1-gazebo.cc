@@ -255,6 +255,15 @@ int main(int argc, char** argv)
     jnt_pos_cstr.insertInProblem();
     jnt_vel_cstr.insertInProblem();
     jnt_acc_cstr.insertInProblem();
+    
+    cart_task.activate();
+    reg_task.activate();
+
+    dynConstr.activate();
+    jnt_trq_cstr.activate();
+    jnt_pos_cstr.activate();
+    jnt_vel_cstr.activate();
+    jnt_acc_cstr.activate();
 
     // contact1.insertInProblem();
     // contact2.insertInProblem();
