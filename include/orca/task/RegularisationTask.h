@@ -43,7 +43,7 @@ namespace task
     {
     public:
         
-        const double DefaultWeight = 1.E-3;
+        const double DefaultWeight = 1.E-4;
         
         RegularisationTask()
         : GenericTask(C)
@@ -66,8 +66,7 @@ namespace task
                 EuclidianNorm().resize(sizeofvar,sizeofvar);
                 if(sizeofvar - old_cols)
                 {
-                    EuclidianNorm().A().block(old_cols,old_cols,sizeofvar - old_cols,sizeofvar - old_cols).setIdentity() * DefaultWeight;
-                    EuclidianNorm().A().block(old_cols,old_cols,sizeofvar - old_cols,sizeofvar - old_cols) *= DefaultWeight;
+                    EuclidianNorm().A().setIdentity();
                     EuclidianNorm().computeQuadraticCost();
                 }
             }
