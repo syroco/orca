@@ -85,7 +85,6 @@ protected:
 private:
     math::WeightedEuclidianNormFunction euclidian_norm_;
     double weight_ = 1.0;
-    double weight_cache_ = 1.0;
 };
 
 }
