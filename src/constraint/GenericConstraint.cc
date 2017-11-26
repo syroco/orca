@@ -142,11 +142,6 @@ void GenericConstraint::update()
     
     setInitialized(robot().isInitialized());
 
-    if(!isActivated())
-    {
-        constraint_function_.reset();
-    }
-
     if(isInitialized())
     {
         updateConstraintFunction();
