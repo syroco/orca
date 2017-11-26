@@ -80,8 +80,11 @@ void WeightedQPSolver::buildOptimisationProblem()
 
         if(start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
         {
-            data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
-            data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
+            if(task->isActivated())
+            {
+                data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
+                data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
+            }
         }
         else
         {
@@ -115,8 +118,11 @@ void WeightedQPSolver::buildOptimisationProblem()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
-                data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
+                if(constr->isActivated())
+                {
+                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
+                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
+                }
             }
             else
             {

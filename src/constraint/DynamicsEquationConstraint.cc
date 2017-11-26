@@ -50,7 +50,9 @@ void DynamicsEquationConstraint::updateConstraintFunction()
     int i=0;
     for(auto w : wrenches_)
     {
-        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
+        MutexLock lock(w->mutex);
+        if(w->isActivated())
+            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
         i++;
     }
 
