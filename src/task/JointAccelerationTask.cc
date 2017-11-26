@@ -33,7 +33,7 @@ void JointAccelerationTask::updateAffineFunction()
     const Eigen::VectorXd& current_jnt_pos = robot().getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot().getJointVel();
 
-    f() = - (jnt_acc_des_ + pid_.computeCommand( current_jnt_pos - jnt_pos_des_ , current_jnt_vel - jnt_vel_des_ ) );
+    f() = - (jnt_acc_des_ + pid_.computeCommand( jnt_pos_des_ - current_jnt_pos , jnt_vel_des_ - current_jnt_vel) );
 }
 
 void JointAccelerationTask::resize()
@@ -45,7 +45,7 @@ void JointAccelerationTask::resize()
     if(this->cols() != dof)
     {
         EuclidianNorm().resize(dof,dof);
-
+        E().setIdentity();
         pid_.resize(dof);
 
         jnt_pos_des_.setZero( dof );
