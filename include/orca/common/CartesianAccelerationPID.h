@@ -52,12 +52,15 @@ namespace orca
                                 , const Vector6d& cartesian_acceleration_traj);
             void update();
             const Vector6d& getCommand() const;
-
+            const Eigen::Matrix4d& getCartesianPositionRef() const;
+            const Vector6d& getCartesianVelocityRef() const;
+            const Vector6d& getCartesianAccelerationRef() const;
             void setBaseFrame(const std::string& base_ref_frame);
             void setControlFrame(const std::string& control_frame);
             const std::string& getBaseFrame() const;
             const std::string& getControlFrame() const;
             PIDController<6>& pid();
+            void print() const;
         protected:
             void addInRegister(){}
             void removeFromRegister(){}

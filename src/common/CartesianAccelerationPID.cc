@@ -10,6 +10,22 @@ CartesianAccelerationPID::CartesianAccelerationPID()
 
 }
 
+const Eigen::Matrix4d& CartesianAccelerationPID::getCartesianPositionRef() const
+{
+    MutexLock lock(mutex);
+    return cart_pos_des_;
+}
+const Vector6d& CartesianAccelerationPID::getCartesianVelocityRef() const
+{
+    MutexLock lock(mutex);
+    return cart_vel_des_;
+}
+const Vector6d& CartesianAccelerationPID::getCartesianAccelerationRef() const
+{
+    MutexLock lock(mutex);
+    return cart_acc_des_;
+}
+
 void CartesianAccelerationPID::resize()
 {
     cart_pos_curr_.setZero();
@@ -21,6 +37,18 @@ void CartesianAccelerationPID::resize()
     cart_pos_err_.setZero();
     cart_vel_err_.setZero();
     cart_vel_curr_.setZero();
+}
+
+void CartesianAccelerationPID::print() const
+{
+    MutexLock lock(mutex);
+    std::cout << "Cartesian Acceleration PID" << '\n';
+    std::cout << "Position ref : " << '\n';
+    std::cout << getCartesianPositionRef() << '\n';
+    std::cout << "Velocity ref : " << '\n';
+    std::cout << getCartesianVelocityRef() << '\n';
+    std::cout << "Acceleration ref : " << '\n';
+    std::cout << getCartesianAccelerationRef() << '\n';
 }
 
 void CartesianAccelerationPID::setBaseFrame(const std::string& base_ref_frame)
