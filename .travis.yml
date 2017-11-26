@@ -18,9 +18,7 @@ addons:
     sources:
       - llvm-toolchain-precise-3.8
       - ubuntu-toolchain-r-test
-      - george-edison55-precise-backports
     packages:
-      - libsfml-dev
       - g++-5
       - gcc-5
       - clang-3.8
@@ -33,14 +31,9 @@ install:
   - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update                ; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install llvm@3.8 gcc@5 eigen; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls ; fi
 
 script:
   - mkdir build ; cd build
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export COV=OFF ;else export COV=ON ; fi
   - cmake -DCMAKE_INSTALL_PREFIX=../install ..
   - cmake --build . --config $BUILD_TYPE
   - cmake --build . --target install
-
-after_success:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then coveralls --exclude test --exclude external --gcov /usr/bin/gcov-5 ; fi
