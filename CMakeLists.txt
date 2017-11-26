@@ -51,7 +51,7 @@ find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/plog-1.1.3/include external/json-2.1.1/include
-        LIBRARIES orca iDynTree::idyntree-high-level
+        LIBRARIES orca idyntree-high-level idyntree-core idyntree-model idyntree-modelio-urdf idyntree-sensors tinyxml
     )
 endif()
 
@@ -93,7 +93,7 @@ endforeach()
 
 source_group("Header Files" FILES ${lib-hdrs})
 
-add_library(${PROJECT_NAME} ${lib-srcs})
+add_library(orca ${lib-srcs})
 target_compile_features(${PROJECT_NAME} PUBLIC 
     cxx_auto_type
     cxx_constexpr
@@ -187,7 +187,7 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
-set(CONFIG_PACKAGE_LOCATION lib/cmake/orca)
+set(CONFIG_PACKAGE_LOCATION share/cmake/orca)
 set(INCLUDE_INSTALL_DIR include/ )
 
 configure_package_config_file(cmake/orcaConfig.cmake.in
@@ -200,6 +200,21 @@ export(EXPORT orcaTargets
     FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
     NAMESPACE orca::
 )
+
+if(catkin_FOUND)
+    add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
+                        DEPENDS ${PROJECT_NAME}
+                        COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
+                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake
+                        COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+                     )
+
+    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake DESTINATION ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake)
+    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake DESTINATION ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake)
+endif()
+
+
 
 install(EXPORT orcaTargets
     FILE orcaTargets.cmake
