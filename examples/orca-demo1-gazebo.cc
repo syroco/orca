@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 
     RegularisationTask<ControlVariable::X> reg_task;
     reg_task.setRobotModel(robot);
-    reg_task.EuclidianNorm().setWeight(1E-3);
+    reg_task.EuclidianNorm().setWeight(1E-4);
     reg_task.update();
 
 
@@ -264,6 +264,8 @@ int main(int argc, char** argv)
     jnt_pos_cstr.activate();
     jnt_vel_cstr.activate();
     jnt_acc_cstr.activate();
+
+    reg_task.print();
 
     // contact1.insertInProblem();
     // contact2.insertInProblem();
