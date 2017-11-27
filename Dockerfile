@@ -7,5 +7,5 @@ RUN git clone https://github.com/syroco/orca
 WORKDIR orca 
 ADD build
 WORKDIR build
-RUN cmake ..
+RUN cmake .. || true
 RUN cmake --build . --target Release
