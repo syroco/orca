@@ -172,13 +172,13 @@ int QPSolver::solve()
 {
     MutexLock lock(mutex);
     
-    return pimpl->solve(data_);
+    int ret = pimpl->solve(data_);
+    pimpl->getPrimalSolution(data_.primal_solution_);
+    return ret;
 }
 
 const Eigen::VectorXd& QPSolver::getPrimalSolution()
 {
     MutexLock lock(mutex);
-    
-    pimpl->getPrimalSolution(data_.primal_solution_);
     return data_.primal_solution_;
 }
