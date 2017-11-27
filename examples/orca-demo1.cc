@@ -181,13 +181,13 @@ int main(int argc, char const *argv[])
     wrench_reg_task3.setRobotModel(robot);
     wrench_reg_task4.setRobotModel(robot);
 
-    reg_task.EuclidianNorm().setWeight(1E-6);
-    acc_reg_task.EuclidianNorm().setWeight(1E-6);
-    trq_reg_task.EuclidianNorm().setWeight(1E-6);
-    wrench_reg_task1.EuclidianNorm().setWeight(1E-6);
-    wrench_reg_task2.EuclidianNorm().setWeight(1E-6);
-    wrench_reg_task3.EuclidianNorm().setWeight(1E-6);
-    wrench_reg_task4.EuclidianNorm().setWeight(1E-6);
+    reg_task.EuclidianNorm().setWeight(1E-3);
+    acc_reg_task.EuclidianNorm().setWeight(1E-3);
+    trq_reg_task.EuclidianNorm().setWeight(1E-3);
+    wrench_reg_task1.EuclidianNorm().setWeight(1E-3);
+    wrench_reg_task2.EuclidianNorm().setWeight(1E-3);
+    wrench_reg_task3.EuclidianNorm().setWeight(1E-3);
+    wrench_reg_task4.EuclidianNorm().setWeight(1E-3);
 
     reg_task.update();
     reg_task.insertInProblem();
@@ -197,10 +197,40 @@ int main(int argc, char const *argv[])
     wrench_reg_task2.update();
     wrench_reg_task3.update();
     wrench_reg_task4.update();
+    
+    LOG_INFO << "===== Inserting Tasks" << '\n';
+    // Insert Tasks/Constraints in Problem
+    cart_task.insertInProblem();
+    reg_task.insertInProblem();
 
+    dynConstr.insertInProblem();
+    jnt_trq_cstr.insertInProblem();
+    jnt_pos_cstr.insertInProblem();
+    jnt_vel_cstr.insertInProblem();
+    jnt_acc_cstr.insertInProblem();
+    contact1.insertInProblem();
+    contact2.insertInProblem();
+    contact3.insertInProblem();
+    contact4.insertInProblem();
+    
+    cart_task.activate();
+    reg_task.activate();
+
+    dynConstr.activate();
+    jnt_trq_cstr.activate();
+    jnt_pos_cstr.activate();
+    jnt_vel_cstr.activate();
+    jnt_acc_cstr.activate();
+
+    contact1.desactivate();
+    contact2.desactivate();
+    contact3.desactivate();
+    contact4.desactivate();
+    
     std::cout << "===== Qp Solver" << '\n';
 
     WeightedQPSolver qp;
+    qp.resize();
     qp.setPrintLevel(0);
 
     timer.Reset();
@@ -216,25 +246,6 @@ int main(int argc, char const *argv[])
         return -2;
     }
     timer.Reset();
-    
-    cart_task.insertInProblem();
-    acc_reg_task.insertInProblem();
-    trq_reg_task.insertInProblem();
-    wrench_reg_task1.insertInProblem();
-    wrench_reg_task2.insertInProblem();
-    wrench_reg_task3.insertInProblem();
-    wrench_reg_task4.insertInProblem();
-
-    dynConstr.insertInProblem();
-    jnt_trq_cstr.insertInProblem();
-    jnt_pos_cstr.insertInProblem();
-    jnt_vel_cstr.insertInProblem();
-    jnt_acc_cstr.insertInProblem();
-
-    contact1.insertInProblem();
-    contact2.insertInProblem();
-    contact3.insertInProblem();
-    contact4.insertInProblem();
     
     
     int ntrials=1000;

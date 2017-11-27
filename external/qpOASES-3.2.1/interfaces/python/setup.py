@@ -25,16 +25,15 @@
 
 #
 #   Filename:  setup.py
-#   Author:    Sebastian F. Walter, Manuel Kudruss (thanks to Felix Lenders)
+#   Author:    Sebastian F. Walter, Manuel Kudruss
 #   Version:   3.2
 #   Date:      2013-2017
 #
 
 import os
 import numpy as np
-import platform
 
-from=20distutils.core import setup
+from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
@@ -57,9 +56,6 @@ extra_params['libraries'] = ['qpOASES']
 
 extra_params['library_dirs'] = ['/usr/lib', os.path.join(BASEDIR, 'bin')]
 extra_params['language'] = 'c++'
-
-if platform.system() in ['Linux', 'Darwin']:
-    extra_params['extra_compile_args'] = ['-D__USE_LONG_INTEGERS__', '-D__USE_LONG_INTS__']
 
 if os.name == 'posix':
     extra_params['runtime_library_dirs'] = extra_params['library_dirs']

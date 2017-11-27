@@ -32,40 +32,38 @@ endif()
 find_package(qpOASES QUIET)
 
 if(NOT qpOASES_FOUND)
-    message(WARNING "Using internal qpOASES (3.2), please consider installing it standalone.")
-    set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2/include )
+    message(WARNING "Using internal qpOASES (3.2.1), please consider installing it standalone.")
+    set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include )
+    file(GLOB qpOASES_srcs ${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
+    
+    add_library(qpOASES STATIC ${qpOASES_srcs})
     set(qpOASES_LIBRARIES qpOASES)
+    target_include_directories(qpOASES PRIVATE external/qpOASES-3.2.1/include)
+    install(DIRECTORY external/qpOASES-3.2.1/include
+            DESTINATION include
+            PATTERN ".svn" EXCLUDE
+    )
+else()
+    add_library(qpOASES UNKNOWN IMPORTED)
 endif()
 
 #################### iDynTree #########################
 find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
+    message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
     set(iDynTree_DIR external/idyntree-0.8.1)
     set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}")
-    message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
+    add_subdirectory(${iDynTree_DIR})
+    add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
 endif()
 
 #################### Catkin ###########################
 find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
-        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/plog-1.1.3/include external/json-2.1.1/include
-        LIBRARIES orca idyntree-high-level idyntree-core idyntree-model idyntree-modelio-urdf idyntree-sensors tinyxml
+        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
     )
-endif()
-
-# Add the subdirs to build the external libraries
-# These have to be after catkin_package()
-# so it can catch the targets
-
-if(NOT iDynTree_FOUND)
-    add_subdirectory(${iDynTree_DIR})
-    add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
-endif()
-
-if(NOT qpOASES_FOUND)
-    add_subdirectory(external/qpOASES-3.2 EXCLUDE_FROM_ALL)
 endif()
 
 #################### ORCA #########################
@@ -94,57 +92,57 @@ endforeach()
 source_group("Header Files" FILES ${lib-hdrs})
 
 add_library(orca ${lib-srcs})
-target_compile_features(${PROJECT_NAME} PUBLIC 
+target_compile_features(orca PUBLIC 
     cxx_auto_type
     cxx_final
     cxx_inheriting_constructors
     cxx_lambdas
     cxx_nullptr
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 11)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD_REQUIRED ON)
+set_target_properties(orca PROPERTIES CXX_STANDARD 11)
+set_target_properties(orca PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 if(XENOMAI_FOUND)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${XENOMAI_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${XENOMAI_LIBRARIES})
+    target_compile_definitions(orca PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
+    target_include_directories(orca PUBLIC ${XENOMAI_INCLUDE_DIRS})
+    target_link_libraries(orca PUBLIC ${XENOMAI_LIBRARIES})
 endif()
 
 
 target_include_directories(
-      ${PROJECT_NAME} PUBLIC
+      orca PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>
   )
 
 if(NOT Eigen3_FOUND)
     target_include_directories(
-          ${PROJECT_NAME} PUBLIC
+          orca PUBLIC
           $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
           $<INSTALL_INTERFACE:include/eigen3>
       )
 else()
-    target_include_directories(${PROJECT_NAME} PUBLIC ${EIGEN3_INCLUDE_DIR})
+    target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${qpOASES_INCLUDE_DIRS})
+target_include_directories(orca PRIVATE ${qpOASES_INCLUDE_DIRS})
 
 target_include_directories(
-      ${PROJECT_NAME} PUBLIC
+      orca PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/plog-1.1.3/include>
       $<INSTALL_INTERFACE:include>
   )
 
 target_include_directories(
-      ${PROJECT_NAME} PUBLIC
+      orca PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/json-2.1.1/include>
       $<INSTALL_INTERFACE:include>
   )
 
 
-target_include_directories(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
-target_link_libraries(${PROJECT_NAME} PUBLIC iDynTree::idyntree-high-level)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${qpOASES_LIBRARIES})
+target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
+target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
+target_link_libraries(orca PRIVATE ${qpOASES_LIBRARIES})
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
@@ -161,7 +159,7 @@ add_custom_target(  ${PROJECT_NAME}-atom-files ALL
 endif()
 
 #################### ORCA Install #########################
-install(TARGETS ${PROJECT_NAME} DESTINATION lib EXPORT orcaTargets)
+install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
@@ -200,7 +198,7 @@ export(EXPORT orcaTargets
     NAMESPACE orca::
 )
 
-if(catkin_FOUND)
+if(0)
     add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
                         DEPENDS ${PROJECT_NAME}
                         COMMAND ${CMAKE_COMMAND} -E copy
