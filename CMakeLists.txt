@@ -96,6 +96,19 @@ if(NOT iDynTree_FOUND)
         endif()
     endforeach()
     
+    add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
+endif()
+
+#################### Catkin ###########################
+find_package(catkin QUIET)
+if(catkin_FOUND)
+    catkin_package(
+        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
+        LIBRARIES orca ${iDynTree_LIBRARIES}
+    )
+endif()
+
+if(catkin_FOUND AND NOT iDynTree_FOUND)
     foreach(l : ${iDynTree_LIBRARIES})
     if(TARGET ${l})
         set(lib_name ${CMAKE_SHARED_LIBRARY_PREFIX}${l}${CMAKE_SHARED_LIBRARY_SUFFIX})
@@ -108,16 +121,6 @@ if(NOT iDynTree_FOUND)
                          )
         endif()
     endforeach()
-    add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
-endif()
-
-#################### Catkin ###########################
-find_package(catkin QUIET)
-if(catkin_FOUND)
-    catkin_package(
-        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
-        LIBRARIES orca ${iDynTree_LIBRARIES}
-    )
 endif()
 
 #################### ORCA #########################
