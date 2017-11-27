@@ -215,7 +215,7 @@ add_custom_target(  ${PROJECT_NAME}-atom-files ALL
 endif()
 
 #################### ORCA Install #########################
-install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
+install(TARGETS orca qpOASES DESTINATION lib EXPORT orcaTargets)
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
