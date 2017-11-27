@@ -52,9 +52,60 @@ find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
-    set(iDynTree_DIR external/idyntree-0.8.1)
-    set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}")
-    add_subdirectory(${iDynTree_DIR})
+    set(iDynTree_INCLUDE_DIRS
+        external/idyntree-0.8.1/src/core/include
+        external/idyntree-0.8.1/src/estimation/include
+        external/idyntree-0.8.1/src/high-level/include
+        external/idyntree-0.8.1/src/icub/include
+        external/idyntree-0.8.1/src/inverse-kinematics/include
+        external/idyntree-0.8.1/src/model/include
+        external/idyntree-0.8.1/src/model_io/iKin-kdl/include
+        external/idyntree-0.8.1/src/model_io/symoro/include
+        external/idyntree-0.8.1/src/model_io/urdf/include
+        external/idyntree-0.8.1/src/model_io/urdf-kdl/include
+        external/idyntree-0.8.1/src/regressors/include
+        external/idyntree-0.8.1/src/sensors/include
+        external/idyntree-0.8.1/src/visualization/include
+        external/idyntree-0.8.1/src/yarp/include
+    )
+
+    set(iDynTree_LIBRARIES_ALL
+        idyntree-core
+        idyntree-estimation
+        idyntree-high-level
+        idyntree-icub
+        idyntree-inverse-kinematics
+        idyntree-model
+        idyntree-modelio-urdf
+        idyntree-modelio-ikin-kdl
+        idyntree-modelio-symoro
+        idyntree-modelio-urdf-kdl
+        idyntree-regressors
+        idyntree-sensors
+        idyntree-visualization
+        idyntree-yarp
+    )
+
+    add_subdirectory(external/idyntree-0.8.1)
+
+    foreach(l : ${iDynTree_LIBRARIES_ALL})
+        if(TARGET ${l})
+            list(APPEND iDynTree_LIBRARIES ${l})
+        endif()
+    endforeach()
+    
+    foreach(l : ${iDynTree_LIBRARIES})
+    if(TARGET ${l})
+        set(lib_name ${CMAKE_SHARED_LIBRARY_PREFIX}${l}${CMAKE_SHARED_LIBRARY_SUFFIX})
+        add_custom_target(  ${l}-targets-copy ALL
+                            DEPENDS ${l}
+                            COMMAND ${CMAKE_COMMAND} -E copy
+                            ${CMAKE_CURRENT_BINARY_DIR}/lib/${lib_name}
+                            ${CATKIN_DEVEL_PREFIX}/lib/${lib_name}
+                            COMMENT "Copying ${CMAKE_CURRENT_BINARY_DIR}/lib/${lib_name} to ${CATKIN_DEVEL_PREFIX}/lib/${lib_name}"
+                         )
+        endif()
+    endforeach()
     add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
 endif()
 
@@ -63,6 +114,7 @@ find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
+        LIBRARIES orca ${iDynTree_LIBRARIES}
     )
 endif()
 

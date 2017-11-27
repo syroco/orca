@@ -30,10 +30,7 @@ if (CMAKE_VERSION LESS 3.0)
     # workaround for http://public.kitware.com/pipermail/cmake-developers/2014-January/009435.html
     set(CMAKE_INSTALL_LIBDIR lib)
 endif()
-find_package(catkin QUIET)
-if(catkin_FOUND)
-    catkin_package()
-endif()
+
 #Use options specified in iDynTreeOptions.cmake file
 include(iDynTreeOptions)
 
