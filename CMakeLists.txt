@@ -95,7 +95,6 @@ add_library(orca ${lib-srcs})
 target_compile_features(orca PUBLIC 
     cxx_auto_type
     cxx_final
-    cxx_inheriting_constructors
     cxx_lambdas
     cxx_nullptr
 )
