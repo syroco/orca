@@ -35,5 +35,5 @@ install:
 script:
   - mkdir build ; cd build
   - cmake -DCMAKE_INSTALL_PREFIX=../install ..
-  - cmake --build . --config $BUILD_TYPE
+  - cmake --build . --config $BUILD_TYPE || true
   - cmake --build . --target install
