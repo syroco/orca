@@ -52,6 +52,8 @@ find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
+    set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}") 
+    
     set(iDynTree_INCLUDE_DIRS
         external/idyntree-0.8.1/src/core/include
         external/idyntree-0.8.1/src/estimation/include
