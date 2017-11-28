@@ -5,6 +5,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+include(CMakePackageConfigHelpers)
 
 #################### Xenomai ###########################
 find_package(Xenomai QUIET)
@@ -20,11 +21,11 @@ if(NOT Eigen3_FOUND)
     if(EIGEN3_INCLUDE_DIR)
         unset(EIGEN3_INCLUDE_DIR CACHE)
     endif()
-    message(WARNING "Using internal Eigen3 (3.3.4), please consider installing it standalone.")
-    # This is for iDynTree to find the library
-    set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4)
+    message(WARNING "Using internal Eigen3 (3.3.90), please consider installing it standalone.")
+    add_subdirectory(external/eigen-3.3.90/eigen3)
+    set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
-    set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.4/eigen3)
+    set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
 endif()
 
 
@@ -35,7 +36,7 @@ if(NOT qpOASES_FOUND)
     message(WARNING "Using internal qpOASES (3.2.1), please consider installing it standalone.")
     set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include )
     file(GLOB qpOASES_srcs ${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
-    
+
     add_library(qpOASES STATIC ${qpOASES_srcs})
     set(qpOASES_LIBRARIES qpOASES)
     target_include_directories(qpOASES PRIVATE external/qpOASES-3.2.1/include)
@@ -52,8 +53,8 @@ find_package(iDynTree QUIET)
 
 if(NOT iDynTree_FOUND)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
-    set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}") 
-    
+    set(PACKAGE_iDynTree_INCLUDEDIR "${CMAKE_INSTALL_PREFIX}")
+
     set(iDynTree_INCLUDE_DIRS
         external/idyntree-0.8.1/src/core/include
         external/idyntree-0.8.1/src/estimation/include
@@ -95,7 +96,7 @@ if(NOT iDynTree_FOUND)
             list(APPEND iDynTree_LIBRARIES ${l})
         endif()
     endforeach()
-    
+
     add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
 endif()
 
@@ -149,7 +150,7 @@ endforeach()
 source_group("Header Files" FILES ${lib-hdrs})
 
 add_library(orca ${lib-srcs})
-target_compile_features(orca PUBLIC 
+target_compile_features(orca PUBLIC
     cxx_auto_type
     cxx_final
     cxx_lambdas
@@ -228,18 +229,14 @@ install(DIRECTORY include/
   PATTERN "*.h"
   PATTERN "*.hpp"
   PATTERN "*.inl"
-  PATTERN "*.in" EXCLUDE)
-
-if(NOT Eigen3_FOUND)
-    install(DIRECTORY external/eigen-3.3.4/eigen3 DESTINATION include)
-endif()
+  PATTERN "*.in" EXCLUDE
+)
 
 install(DIRECTORY external/plog-1.1.3/include/plog DESTINATION include)
 
 #
 # Cmake Package
 #
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
@@ -259,6 +256,10 @@ export(EXPORT orcaTargets
     FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
     NAMESPACE orca::
 )
+
+export(PACKAGE orca)
+# Export iDynTree library
+#export(PACKAGE iDynTree)
 
 if(catkin_FOUND)
     add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
