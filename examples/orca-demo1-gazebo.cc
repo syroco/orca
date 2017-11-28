@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     gazebo::printVersion();
     gazebo::setupServer({"--verbose"});
     gazebo::physics::WorldPtr world = gazebo::loadWorld("worlds/empty.world");
-    const double sim_step_dt = world->Physics()->GetMaxStepSize();
+    const double sim_step_dt = world->GetPhysicsEngine()->GetMaxStepSize();
     std::cout << "sim_step_dt " << sim_step_dt << '\n';
 
     std::cout << "Inserting model file " << urdf_url << '\n';
@@ -57,32 +57,32 @@ int main(int argc, char** argv)
     {
         gazebo::runWorld(world,1);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        if(world->ModelCount() == 2)
+        if(world->GetModelCount() == 2)
         {
             break;
         }
     }
 
 
-    std::cout << "Gazebo contains " << world->ModelCount() << " models" << '\n';
-    for(auto m : world->Models())
+    std::cout << "Gazebo contains " << world->GetModelCount() << " models" << '\n';
+    for(auto m : world->GetModels())
     {
         std::cout << "  - " << m->GetName() << '\n';
     }
 
-    if(world->ModelCount() != 2)
+    if(world->GetModelCount() != 2)
     {
-        std::cerr << "There should be only 2 models, we have " << world->ModelCount() << std::endl;
+	std::cerr << "There should be only 2 models, we have " << world->GetModelCount() << std::endl;
         return -1;
     }
 
-    gazebo::physics::ModelPtr gz_model = world->ModelByIndex(1);
+    gazebo::physics::ModelPtr gz_model = world->GetModels()[1];
     std::cout << "Gazebo getting model " << gz_model->GetName() << '\n';
     std::cout << "All Joints : " << gz_model->GetName() << '\n';
-    for(auto j : gz_model->GetJoints())
-    {
-        std::cout << "   - " << j->GetName() << " type : " << j->TypeStr() << " lowerLimit : " << j->GetLowerLimit(0u) << " upperLimit : " << j->GetUpperLimit(0u) <<'\n';
-    }
+    //for(auto j : gz_model->GetJoints())
+    //{
+    //    std::cout << "   - " << j->GetName() << " type : " << j->TypeStr() << " lowerLimit : " << j->GetLowerLimit(0u) << " upperLimit : " << j->GetUpperLimit(0u) <<'\n';
+    //}
 
     PosixTimer timer(false);
 
@@ -255,7 +255,7 @@ int main(int argc, char** argv)
     jnt_pos_cstr.insertInProblem();
     jnt_vel_cstr.insertInProblem();
     jnt_acc_cstr.insertInProblem();
-    
+
     cart_task.activate();
     reg_task.activate();
 
@@ -310,7 +310,7 @@ int main(int argc, char** argv)
         {
             auto joint = gz_model->GetJoint(joint_idx[i]);
 
-            robot_state.jointPos[i] = joint->Position(0);
+            robot_state.jointPos[i] = joint->GetAngle(0).Radian();
             robot_state.jointVel[i] = joint->GetVelocity(0);
             jointTrq[i] = joint->GetForce(0u);
         }

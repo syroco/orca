@@ -8,14 +8,14 @@ add_executable(orca-idyntree-tests iDynTreeTests.cc)
 target_link_libraries(orca-idyntree-tests orca)
 
 
-find_package(gazebo 8 QUIET)
+find_package(gazebo 7 QUIET)
 
 if(gazebo_FOUND)
     message(STATUS "Gazebo ${GAZEBO_VERSION} found, building examples")
 
     include_directories(${GAZEBO_INCLUDE_DIRS})
     link_directories(${GAZEBO_LIBRARY_DIRS})
-    list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
+    list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS} -fext-numeric-literals")
 
     add_executable(orca-demo1-gazebo orca-demo1-gazebo.cc)
     target_link_libraries(orca-demo1-gazebo ${GAZEBO_LIBRARIES} pthread orca tinyxml)
