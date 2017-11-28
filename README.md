@@ -81,5 +81,5 @@ Examples are built with Gazebo 8. They can be adapted of course to be backwards 
 curl -ssL http://get.gazebosim.org | sh
 ```
 
-> NOTE: You can almost always avoid calling sudo, by calling `cmake .. -DCMAKE_INSTALL_PREFIX=/some/dir` and exporting the `CMAKE_PREFIX_PATH` variable : ` exportCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/some/dir`
+> NOTE: You can almost always avoid calling sudo, by calling `cmake .. -DCMAKE_INSTALL_PREFIX=/some/dir` and exporting the `CMAKE_PREFIX_PATH` variable : ` export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/some/dir`
 
