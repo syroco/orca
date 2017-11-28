@@ -260,17 +260,21 @@ export(EXPORT orcaTargets
     NAMESPACE orca::
 )
 
-if(0)
+if(catkin_FOUND)
     add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
-                        DEPENDS ${PROJECT_NAME}
+                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
                         COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake
                         COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
                      )
-
-    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake DESTINATION ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake)
-    file(COPY ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake DESTINATION ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake)
+    add_custom_target(  ${PROJECT_NAME}-config-copy ALL
+                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+                        COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake
+                        COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+                     )
 endif()
 
 
