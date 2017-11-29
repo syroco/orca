@@ -194,9 +194,9 @@ function(INSTALL_BASIC_PACKAGE_FILES _Name)
 
     string(TOLOWER "${_Name}" _name)
     if(NOT _IBPF_UPPERCASE_FILENAMES AND NOT _IBPF_LOWERCASE_FILENAMES)
-        if(EXISTS ${CMAKE_SOURCE_DIR}/${_Name}Config.cmake.in)
+        if(EXISTS ${PROJECT_SOURCE_DIR}/${_Name}Config.cmake.in)
             set(_IBPF_UPPERCASE_FILENAMES 1)
-        elseif(EXISTS${CMAKE_SOURCE_DIR}/${_name}-config.cmake.in)
+        elseif(EXISTS${PROJECT_SOURCE_DIR}/${_name}-config.cmake.in)
             set(_IBPF_LOWERCASE_FILENAMES 1)
         else()
             set(_IBPF_UPPERCASE_FILENAMES 1)
@@ -261,18 +261,18 @@ function(INSTALL_BASIC_PACKAGE_FILES _Name)
 
 
     # <name>ConfigVersion.cmake file (same for build tree and intall)
-    write_basic_package_version_file(${CMAKE_BINARY_DIR}/${_version_filename}
+    write_basic_package_version_file(${PROJECT_BINARY_DIR}/${_version_filename}
                                     VERSION ${_IBPF_VERSION}
                                     COMPATIBILITY ${_IBPF_COMPATIBILITY})
-    install(FILES ${CMAKE_BINARY_DIR}/${_version_filename}
+    install(FILES ${PROJECT_BINARY_DIR}/${_version_filename}
             DESTINATION ${_IBPF_DESTINATION})
 
 
 
     # If there is no Config.cmake.in file, write a basic one
-    set(_config_cmake_in ${CMAKE_SOURCE_DIR}/${_config_filename}.in)
+    set(_config_cmake_in ${PROJECT_SOURCE_DIR}/${_config_filename}.in)
     if(NOT EXISTS ${_config_cmake_in})
-        set(_config_cmake_in ${CMAKE_BINARY_DIR}/${_config_filename}.in)
+        set(_config_cmake_in ${PROJECT_BINARY_DIR}/${_config_filename}.in)
         file(WRITE ${_config_cmake_in}
 "set(${_IBPF_VARS_PREFIX}_VERSION \@${_IBPF_VARS_PREFIX}_VERSION\@)
 
@@ -299,11 +299,11 @@ set(${_Name}_INCLUDE_DIRS \${${_IBPF_VARS_PREFIX}_INCLUDEDIR})
         endif()
     endforeach()
     configure_package_config_file(${_config_cmake_in}
-                                  ${CMAKE_BINARY_DIR}/${_config_filename}
-                                  INSTALL_DESTINATION ${CMAKE_BINARY_DIR}
+                                  ${PROJECT_BINARY_DIR}/${_config_filename}
+                                  INSTALL_DESTINATION ${PROJECT_BINARY_DIR}
                                   PATH_VARS ${_build_path_vars}
                                   ${configure_package_config_file_extra_args}
-                                  INSTALL_PREFIX ${CMAKE_BINARY_DIR})
+                              INSTALL_PREFIX ${PROJECT_BINARY_DIR})
 
     # <name>Config.cmake (installed)
     foreach(p ${_install_path_vars_suffix})
@@ -314,11 +314,11 @@ set(${_Name}_INCLUDE_DIRS \${${_IBPF_VARS_PREFIX}_INCLUDEDIR})
         endif()
     endforeach()
     configure_package_config_file(${_config_cmake_in}
-                                  ${CMAKE_BINARY_DIR}/${_config_filename}.install
+                                  ${PROJECT_BINARY_DIR}/${_config_filename}.install
                                   INSTALL_DESTINATION ${_IBPF_DESTINATION}
                                   PATH_VARS ${_install_path_vars}
                                   ${configure_package_config_file_extra_args})
-    install(FILES ${CMAKE_BINARY_DIR}/${_config_filename}.install
+    install(FILES ${PROJECT_BINARY_DIR}/${_config_filename}.install
             DESTINATION ${_IBPF_DESTINATION}
             RENAME ${_config_filename})
 
@@ -327,7 +327,7 @@ set(${_Name}_INCLUDE_DIRS \${${_IBPF_VARS_PREFIX}_INCLUDEDIR})
     # <name>Targets.cmake (build tree)
     export(TARGETS ${_targets}
            NAMESPACE ${_IBPF_NAMESPACE}
-           FILE ${CMAKE_BINARY_DIR}/${_targets_filename})
+       FILE ${PROJECT_BINARY_DIR}/${_targets_filename})
 
     # <name>Targets.cmake (installed)
     install(EXPORT ${_Name}
