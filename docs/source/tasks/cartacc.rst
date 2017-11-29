@@ -1,5 +1,5 @@
-Cartesian Acceleration task
-===========================
+Cartesian Acceleration
+======================
 
 
 .. math::
