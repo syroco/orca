@@ -48,7 +48,9 @@ class Contact : public common::TaskCommon
 
 public:
     Contact();
-
+    bool isInitialized() const;
+    bool isActivated() const;
+    bool isInsertedInProblem() const;
     bool insertInProblem();
     void addInRegister();
     void removeFromRegister();

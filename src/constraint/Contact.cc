@@ -31,6 +31,19 @@ void Contact::removeFromRegister()
     
 }
 
+bool Contact::isInitialized() const
+{
+    return wrench_->isInitialized();
+}
+bool Contact::isActivated() const
+{
+    return wrench_->isActivated();
+}
+bool Contact::isInsertedInProblem() const
+{
+    return wrench_->isInsertedInProblem();
+}
+
 bool Contact::insertInProblem()
 {
     return friction_cone_->insertInProblem()
