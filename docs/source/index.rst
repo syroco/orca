@@ -7,7 +7,7 @@ ORCA Control
 
 ORCA is c++ whole-body controller meant to solve a set of tasks under constraints.
 
-The problem is written as a ``quadratic problem`` :
+The problem is written as a **quadratic problem** :
 
 .. math::
 
