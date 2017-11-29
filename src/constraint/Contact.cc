@@ -10,7 +10,7 @@ Contact::Contact()
 , ex_condition_(std::make_shared<ContactExistenceConditionConstraint>())
 , wrench_(std::make_shared<Wrench>())
 {
-
+    this->desactivate();
 }
 
 void Contact::setName(const std::string& name)
