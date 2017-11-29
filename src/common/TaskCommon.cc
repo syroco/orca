@@ -11,6 +11,7 @@ TaskCommon::TaskCommon(ControlVariable control_var)
 , robot_(std::make_shared<RobotDynTree>())
 {
     OptimisationVector().declareObject(this);
+    this->activate();
 }
 
 TaskCommon::~TaskCommon()
@@ -101,7 +102,7 @@ bool TaskCommon::activate()
     }
     else
     {
-        if(isInitialized())
+        if(true || isInitialized())
         {
             LOG_INFO << "[" << TaskCommon::getName() << "] " << "Activating";
             is_activated_ = true;
