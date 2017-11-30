@@ -80,7 +80,7 @@ function(find_xeno_skin_variables prefix skin_name)
     set(${prefix}_FOUND TRUE)
 
     if(NOT ${${prefix}_LDFLAGS} STREQUAL "")
-        string(REGEX MATCHALL "-L([^ ]+)|-l([^ ]+)" ${prefix}_LIBRARY ${${prefix}_LDFLAGS})
+        string(REGEX MATCHALL "-L([^ ]+)|-l([^ ]+)|.*bootstrap(-pic)?.o" ${prefix}_LIBRARY ${${prefix}_LDFLAGS})
     else()
         set(${prefix}_LIBRARY "")
     endif()
@@ -141,8 +141,14 @@ else()
     set(XENOMAI_RTDM_FOUND FALSE)
 endif()
 
+if(Xenomai_FIND_QUIETLY)
+    set(XENOMAI_FIND_QUIETLY True)
+    set(XENOMAI_POSIX_FIND_QUIETLY True)
+    set(XENOMAI_RTDM_FIND_QUIETLY True)
+endif()
+
+find_package_handle_standard_args(Xenomai DEFAULT_MSG XENOMAI_XENO_CONFIG)
+
 handle_standard_args(XENOMAI)
 handle_standard_args(XENOMAI_POSIX)
 handle_standard_args(XENOMAI_RTDM)
-
-find_package_handle_standard_args(Xenomai DEFAULT_MSG XENOMAI_XENO_CONFIG)
