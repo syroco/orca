@@ -276,20 +276,22 @@ if(catkin_FOUND)
                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaConfig.cmake
                         COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
                      )
-    add_custom_target(  idyntree-targets-copy ALL
-                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeTargets.cmake
-                        COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeTargets.cmake
-                        ${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake/iDynTreeTargets.cmake
-                        COMMENT "Copying 'iDynTreeTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake'"
-                     )
-    add_custom_target(  idyntree-config-copy ALL
-                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeConfig.cmake
-                        COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeConfig.cmake
-                        ${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake/iDynTreeConfig.cmake
-                        COMMENT "Copying 'iDynTreeConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake'"
-                     )
+    if(NOT iDynTree_FOUND)
+        add_custom_target(  idyntree-targets-copy ALL
+                            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeTargets.cmake
+                            COMMAND ${CMAKE_COMMAND} -E copy
+                            ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeTargets.cmake
+                            ${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake/iDynTreeTargets.cmake
+                            COMMENT "Copying 'iDynTreeTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake'"
+                         )
+        add_custom_target(  idyntree-config-copy ALL
+                            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeConfig.cmake
+                            COMMAND ${CMAKE_COMMAND} -E copy
+                            ${CMAKE_CURRENT_BINARY_DIR}/external/idyntree-0.8.1/iDynTreeConfig.cmake
+                            ${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake/iDynTreeConfig.cmake
+                            COMMENT "Copying 'iDynTreeConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/iDynTree/cmake'"
+                         )
+    endif()
 endif()
 
 
