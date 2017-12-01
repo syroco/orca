@@ -246,8 +246,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "===== Qp Solver" << '\n';
 
-    WeightedQPSolver qp;
-    qp.resize(); //allocation based on the created optimization problem
+    WeightedQPSolver qp; //allocation based on the created optimization problem
     qp.setPrintLevel(0);
 
     timer.Reset();
