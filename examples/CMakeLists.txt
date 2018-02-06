@@ -7,10 +7,9 @@ target_link_libraries(orca-idyntree-example orca)
 add_executable(orca-idyntree-tests iDynTreeTests.cc)
 target_link_libraries(orca-idyntree-tests orca)
 
+find_package(gazebo QUIET)
 
-find_package(gazebo 7 QUIET)
-
-if(gazebo_FOUND)
+if(gazebo_FOUND AND ${GAZEBO_VERSION} VERSION_GREATER "7.0")
     message(STATUS "Gazebo ${GAZEBO_VERSION} found, building examples")
 
     include_directories(${GAZEBO_INCLUDE_DIRS})
@@ -23,6 +22,3 @@ if(gazebo_FOUND)
 endif()
 
 install(TARGETS orca-demo1 DESTINATION lib/orca)
-
-
-
