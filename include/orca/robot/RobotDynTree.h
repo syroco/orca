@@ -245,7 +245,7 @@ public:
     bool frameExists(const std::string& frame_name);
     const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 
-    Eigen::Map< const Eigen::Matrix<double,4,4,Eigen::RowMajor> > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    Eigen::Matrix< double, 4, 4, Eigen::RowMajor > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
     const Eigen::Matrix<double,6,1> getFrameVel(const std::string& frameName);
     Eigen::Map< const Eigen::Matrix<double,6,1> > getFrameBiasAcc(const std::string& frameName);
     Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFreeFloatingMassMatrix();
