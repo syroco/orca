@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
     {
         return -1;
     }
-    robot->setBaseFrame("link_0");
+    robot->setBaseFrame("base_link");
     robot->setGravity(Eigen::Vector3d(0,0,-9.81));
 
     EigenRobotState state;
@@ -173,7 +173,9 @@ int main(int argc, char const *argv[])
     WrenchRegularisationTask wrench_reg_task2;
     WrenchRegularisationTask wrench_reg_task3;
     WrenchRegularisationTask wrench_reg_task4;
-
+    
+    Eigen::MatrixXd InertiaMatrix = robot->getFreeFloatingMassMatrix().block(6,6,6+robot->getNrOfDegreesOfFreedom(),6+robot->getNrOfDegreesOfFreedom());
+    
     reg_task.setName("reg_task");
     acc_reg_task.setName("acc_reg_task");
     trq_reg_task.setName("trq_reg_task");
