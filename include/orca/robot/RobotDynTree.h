@@ -268,6 +268,9 @@ protected:
     std::string urdf_url_;
     Eigen::Vector3d global_gravity_vector_;
     std::map<unsigned int, std::pair<double,double> > joint_pos_limits_;
+private:
+    class iDynTreeImpl;                     // Forward declaration of the implementation class
+    std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
 
 };
 
