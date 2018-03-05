@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
     LOG_INFO << "===== Robot" << '\n';
     std::shared_ptr<RobotDynTree> robot(new RobotDynTree(urdf_url));
-    robot->setBaseFrame("link_0");
+    robot->setBaseFrame("base_link");
 
     // Build the same with Gazebo joints
     std::vector<std::string> joint_idx;
@@ -137,8 +137,8 @@ int main(int argc, char** argv)
 
     // Build Set desired command
     Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref = Eigen::Translation3d(1.,0.75,0.5);
-    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5);
+    //cart_pos_ref = Eigen::Translation3d(0.5,0.5,0.5);
+    cart_pos_ref.translation() = Eigen::Vector3d(0.5,0.35,0.5);
     Eigen::Quaterniond quat;
     quat = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ())
          * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
@@ -338,13 +338,15 @@ int main(int argc, char** argv)
         contact3.update();
         contact4.update();
 
-        if(i == 2000)
-        {
-            LOG_WARNING << "Inserting Contact 1";
-            contact1.insertInProblem();
-            qp.buildOptimisationProblem();
-            qp.print();
-        }
+        
+        std::cout << "robot->getRelativeTransform(\"base_link\",\"link_7\")\n" << robot->getRelativeTransform("base_link","link_7") << std::endl;
+//         if(i == 2000)
+//         {
+//             LOG_WARNING << "Inserting Contact 1";
+//             contact1.insertInProblem();
+//             qp.buildOptimisationProblem();
+//             qp.print();
+//         }
 
 
         qp.buildOptimisationProblem();

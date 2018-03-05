@@ -47,7 +47,8 @@ wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
 tar xjvf 3.3.4.tar.bz2
 cd eigen-eigen-dc6cfdf9bcec
 mkdir build ; cd build
-sudo make install
+cmake --build .
+sudo cmake --build . --target install
 ```
 
 #### qpOASES
@@ -58,8 +59,8 @@ unzip qpOASES-3.2.1.zip
 cd qpOASES-3.2.1
 mkdir build ; cd build
 cmake .. -DCMAKE_CXX_FLAGS="-fPIC" 
-make -j$(nproc)
-sudo make install
+cmake --build .
+sudo cmake --build . --target install
 ```
 
 #### iDynTree
@@ -69,8 +70,8 @@ git clone https://github.com/robotology/idyntree
 cd idyntree
 mkdir build ; cd build
 cmake ..
-make -j$(nproc)
-sudo make install
+cmake --build .
+sudo cmake --build . --target install
 ```
 
 #### Gazebo
