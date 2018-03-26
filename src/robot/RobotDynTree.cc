@@ -1,5 +1,6 @@
-#include <orca/robot/RobotDynTree.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/robot/RobotDynTree.h"
+#include "orca/optim/OptimisationVector.h"
+#include "iDynTreeImpl.impl"
 #include <exception>
 #include <stdexcept>
 
@@ -7,6 +8,7 @@ using namespace orca::robot;
 using namespace orca::optim;
 
 RobotDynTree::RobotDynTree(const std::string& modelFile)
+: robot_impl_(new iDynTreeImpl)
 {
     global_gravity_vector_.setZero();
     if(!modelFile.empty())
@@ -194,7 +196,7 @@ unsigned int RobotDynTree::getNrOfJoints()
     return kinDynComp_.model().getNrOfJoints();
 }
 
-Eigen::Map< const Eigen::Matrix<double,4,4,Eigen::RowMajor> > RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
+Eigen::Matrix<double,4,4,Eigen::RowMajor> RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
 {
     return iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
 }
