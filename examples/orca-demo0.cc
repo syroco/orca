@@ -140,7 +140,6 @@ int main(int argc, char const *argv[])
 
     QPSolver qp(QPSolver::qpOASES);
     
-    
     problem->print();
 
     return 0;
