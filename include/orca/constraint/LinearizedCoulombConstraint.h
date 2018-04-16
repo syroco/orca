@@ -32,7 +32,7 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <orca/constraint/GenericConstraint.h>
+#include "orca/constraint/GenericConstraint.h"
 
 namespace orca
 {

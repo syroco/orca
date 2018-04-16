@@ -1,4 +1,6 @@
-#include <orca/math/ConstraintFunction.h>
+#include "orca/math/ConstraintFunction.h"
+#include "orca/util/Utils.h"
+
 using namespace orca::math;
 
 void ConstraintFunction::print() const
@@ -29,7 +31,7 @@ void ConstraintFunction::setLowerBound(const Eigen::VectorXd& newlb)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of lower bound do not match, provided "
+        throw std::runtime_error(orca::util::Formatter() << "Size of lower bound do not match, provided "
             << newlb.size() << ", but expected " << lower_bound_.size());
     }
 }
@@ -42,7 +44,7 @@ void ConstraintFunction::setUpperBound(const Eigen::VectorXd& newub)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of upper bound do not match, provided "
+        throw std::runtime_error(orca::util::Formatter() << "Size of upper bound do not match, provided "
             << newub.size() << ", but expected " << upper_bound_.size());
     }
 }
@@ -55,7 +57,7 @@ void ConstraintFunction::setConstraintMatrix(const Eigen::MatrixXd& newC)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of constraint matrix do not match, provided "
+        throw std::runtime_error(orca::util::Formatter() << "Size of constraint matrix do not match, provided "
             << Size(newC) << ", but expected " << getSize());
     }
 }

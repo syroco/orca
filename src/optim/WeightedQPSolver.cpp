@@ -1,6 +1,6 @@
-#include <orca/optim/WeightedQPSolver.h>
-#include <orca/optim/OptimisationVector.h>
-#include <orca/math/GenericFunction.h>
+#include "orca/optim/WeightedQPSolver.h"
+
+#include "orca/math/GenericFunction.h"
 
 using namespace orca::optim;
 using namespace orca::task;
@@ -10,25 +10,23 @@ using namespace orca::common;
 
 WeightedQPSolver::WeightedQPSolver()
 {
-    OptimisationVector().addInRegister(this);
 }
 
 WeightedQPSolver::~WeightedQPSolver()
 {
-    OptimisationVector().removeFromRegister(this);
 }
 
 void WeightedQPSolver::resize()
 {
     LOG_DEBUG << "[WQP] WeightedQPSolver::resize()";
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     LOG_DEBUG << "[WQP] Checking if we need resising";
     
-    constraints_ =  OptimisationVector().getConstraints();
-    tasks_ = OptimisationVector().getTasks();
-    idx_map_ = OptimisationVector().getIndexMap();
-    size_map_ = OptimisationVector().getSizeMap();
+    constraints_ =  this->problem()->getConstraints();
+    tasks_ = this->problem()->getTasks();
+    idx_map_ = this->problem()->getIndexMap();
+    size_map_ = this->problem()->getSizeMap();
     
     const int nvars = size_map_[ControlVariable::X];
     int number_of_constraints_rows = 0;
@@ -56,7 +54,7 @@ void WeightedQPSolver::resize()
 
 void WeightedQPSolver::buildOptimisationProblem()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     // Reset H and g
     data_.reset();
@@ -64,7 +62,7 @@ void WeightedQPSolver::buildOptimisationProblem()
     int iwrench = 0;
     for(auto task : tasks_)
     {
-        MutexLock lock(task->mutex);
+        MutexLock lock(task->mutex());
 
         int start_idx = idx_map_[task->getControlVariable()];
 
@@ -101,7 +99,7 @@ void WeightedQPSolver::buildOptimisationProblem()
     int row_idx = 0;
     for(auto constr : constraints_)
     {
-        MutexLock lock(constr->mutex);
+        MutexLock lock(constr->mutex());
         
         int start_idx = idx_map_[constr->getControlVariable()];
 

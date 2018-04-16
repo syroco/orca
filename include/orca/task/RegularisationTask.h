@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <orca/task/GenericTask.h>
+#include "orca/task/GenericTask.h"
 
 namespace orca
 {
@@ -56,9 +56,9 @@ namespace task
         
         void resize()
         {
-            common::MutexLock lock(mutex);
+            common::MutexLock lock(this->mutex);
             
-            const int sizeofvar = optim::OptimisationVector().getSize(this->getControlVariable());
+            const int sizeofvar = this->problem()->getSize(this->getControlVariable());
             int old_cols = EuclidianNorm().cols();
             
             if(old_cols != sizeofvar)

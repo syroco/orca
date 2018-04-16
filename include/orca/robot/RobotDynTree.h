@@ -33,8 +33,8 @@
 
 #pragma once
 
-#include <orca/util/Utils.h>
-#include <orca/math/Utils.h>
+#include "orca/util/Utils.h"
+#include "orca/math/Utils.h"
 #include <map>
 #include <cstdlib>
 
@@ -241,7 +241,7 @@ public:
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
     const std::string& getFileURL() const;
     unsigned int getNrOfDegreesOfFreedom() const;
-    unsigned int configurationSpaceDimension() const;
+    unsigned int getConfigurationSpaceDimension() const;
     bool frameExists(const std::string& frame_name);
     const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 

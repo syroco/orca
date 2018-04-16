@@ -32,16 +32,41 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
-#include <memory>
 #include "orca/math/Utils.h"
-#include "orca/common/Mutex.h"
+#include "orca/util/Utils.h"
+#include "orca/util/Logger.h"
+#include "orca/optim/ControlVariable.h"
+#include <map>
+#include <list>
+
+namespace orca
+{
+    namespace common
+    {
+        class Wrench;
+    }
+    namespace task
+    {
+        class GenericTask;
+    }
+    namespace constraint
+    {
+        class GenericConstraint;
+    }
+    namespace robot
+    {
+        class RobotDynTree;
+    }
+}
+
+
 
 namespace orca
 {
 namespace optim
 {
-struct QPSolverData
+
+struct ProblemData
 {
     void resize(int nvar, int nconstr)
     {
@@ -81,25 +106,60 @@ struct QPSolverData
     Eigen::VectorXd primal_solution_;
 };
 
-
-class QPSolver
+class MultiObjectiveOptimisationProblem
 {
 public:
-    QPSolver();
-    virtual ~QPSolver();
-    void setPrintLevel(int level);
-    const Eigen::VectorXd& getPrimalSolution();
-    virtual void buildOptimisationProblem() = 0;
-    virtual void resize() = 0;
-    void print() const;
-    int solve();
+    virtual bool solve() = 0;
+    bool addTask(std::shared_ptr<orca::task::GenericTask> task);
+
+    bool taskExists(std::shared_ptr<orca::task::GenericTask> task);
+
+    bool constraintExists(std::shared_ptr<orca::constraint::GenericConstraint> cstr);
+
+    void setRobotModel(std::shared_ptr<orca::robot::RobotDynTree> robot);
+
+    void print();
+
+    const std::list< std::shared_ptr<orca::common::Wrench> >& getWrenches() const;
+
+    const std::list< std::shared_ptr<orca::task::GenericTask> >& getTasks() const;
+
+    const std::list< std::shared_ptr<orca::constraint::GenericConstraint> >& getConstraints() const;
+
+    int getConfigurationSpaceDimension() const;
+    
+    const std::map<ControlVariable, unsigned int >& getIndexMap() const;
+    
+    const std::map<ControlVariable, unsigned int >& getSizeMap() const;
+    
+    int getIndex(ControlVariable var) const;
+
+    int getSize(ControlVariable var) const;
+
+    int getTotalSize() const;
 protected:
-    QPSolverData data_;
-    void resizeInternal(int nvar, int nconstr);
-    mutable common::MutexRecursive mutex;
-private:
-    struct SolverImpl; std::shared_ptr<SolverImpl> pimpl;
+    std::list< std::shared_ptr<orca::common::Wrench> > wrenches_;
+    std::list< std::shared_ptr<orca::task::GenericTask> > tasks_;
+    std::list< std::shared_ptr<orca::constraint::GenericConstraint> > constraints_;
+    int ndof_ = 0;
+    int configuration_space_dim_ = 0;
+    bool is_floating_base_ = true;
+    int nwrenches_ = 0;
+
+    std::map<ControlVariable, unsigned int > index_map_;
+    std::map<ControlVariable, unsigned int > size_map_;
 };
 
-}
-}
+class WeightedProblem : public MultiObjectiveOptimisationProblem
+{
+public:
+    bool solve()
+    {
+
+        return true;
+    }
+};
+
+
+} // namespace optim
+} // namespace orca

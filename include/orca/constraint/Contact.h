@@ -33,29 +33,23 @@
 
 #pragma once
 
-#include <orca/common/Wrench.h>
-#include <orca/optim/OptimisationVector.h>
-#include <orca/constraint/LinearizedCoulombConstraint.h>
-#include <orca/constraint/ContactExistenceConditionConstraint.h>
+#include "orca/common/Wrench.h"
+#include "orca/constraint/LinearizedCoulombConstraint.h"
+#include "orca/constraint/ContactExistenceConditionConstraint.h"
 
 namespace orca
 {
 namespace constraint
 {
 
-class Contact : public common::TaskCommon
+class Contact : public common::TaskBase
 {
 
 public:
     Contact();
     bool isInitialized() const;
     bool isActivated() const;
-    bool isInsertedInProblem() const;
-    bool insertInProblem();
-    void addInRegister();
-    void removeFromRegister();
-    bool removeFromProblem();
-    
+
     void setName(const std::string& name);
 
     const std::string& getBaseFrame() const;

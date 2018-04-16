@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <orca/math/GenericFunction.h>
+#include "orca/math/GenericFunction.h"
 
 namespace orca
 {

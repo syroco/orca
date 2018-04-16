@@ -1,5 +1,7 @@
-#include <orca/constraint/JointLimitConstraint.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/JointLimitConstraint.h"
+#include "orca/optim/ControlVariable.h"
+#include "orca/math/Utils.h"
+
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::common;
@@ -10,7 +12,7 @@ JointLimitConstraint::JointLimitConstraint(ControlVariable control_var)
 
 void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     min_ = min;
     max_ = max;
@@ -18,7 +20,7 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
 
 void JointLimitConstraint::updateConstraintFunction()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     constraintFunction().lowerBound() = min_ ;
     constraintFunction().upperBound() = max_ ;
@@ -26,9 +28,9 @@ void JointLimitConstraint::updateConstraintFunction()
 
 void JointLimitConstraint::resize()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
-    const int dim = OptimisationVector().getSize(getControlVariable());
+    const int dim = this->robot()->getNrOfDegreesOfFreedom();
 
     if(min_.size() != dim || max_.size() != dim)
     {

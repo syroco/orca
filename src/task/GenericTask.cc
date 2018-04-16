@@ -1,5 +1,5 @@
-#include <orca/task/GenericTask.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/task/GenericTask.h"
+#include "orca/optim/ControlVariable.h"
 
 using namespace orca::task;
 using namespace orca::optim;
@@ -7,16 +7,16 @@ using namespace orca::math;
 using namespace orca::common;
 
 GenericTask::GenericTask(ControlVariable control_var)
-: TaskCommon(control_var)
+: TaskBase(control_var)
 {
     weight_ = 1.0;
 }
 
 void GenericTask::print() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
-    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - Weight " << getWeight() << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
@@ -25,63 +25,52 @@ void GenericTask::print() const
     
     std::cout << " - isInitialized        " << isInitialized() << '\n';
     std::cout << " - isActivated          " << isActivated() << '\n';
-    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
+    //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
-
-void GenericTask::addInRegister()
-{
-    OptimisationVector().addInRegister(this);
-}
-
-void GenericTask::removeFromRegister()
-{
-    OptimisationVector().removeFromRegister(this);
-}
 
 GenericTask::~GenericTask()
 {
-    removeFromProblem();
 }
 
 double GenericTask::getWeight() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return weight_;
 }
 
 void GenericTask::setWeight(double weight)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     weight_ = weight;
 }
 
 Size GenericTask::getSize() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.getSize();
 }
 
 int GenericTask::cols() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.cols();
 }
 
 int GenericTask::rows() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.rows();
 }
 
 const WeightedEuclidianNormFunction::QuadraticCost& GenericTask::getQuadraticCost() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.getQuadraticCost();
 }
@@ -98,14 +87,14 @@ const WeightedEuclidianNormFunction& GenericTask::getEuclidianNorm() const
 
 const Eigen::MatrixXd& GenericTask::getE() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.getA();
 }
 
 const Eigen::VectorXd& GenericTask::getf() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return euclidian_norm_.getb();
 }
@@ -126,7 +115,7 @@ void GenericTask::update()
     
     if(!lock.isSuccessful())
     {
-        //LOG_VERBOSE << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
+        //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
         return;
     }
     
@@ -134,7 +123,7 @@ void GenericTask::update()
     // Robot has been loaded --> calls this->resize()
     // At least one update has been done on the task
     
-    setInitialized(robot().isInitialized());
+    setInitialized(robot()->isInitialized());
 
     this->updateAffineFunction();
     this->updateQuadraticCost();

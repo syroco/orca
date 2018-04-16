@@ -43,8 +43,8 @@
 #include <list>
 #include <functional>
 #include <thread>
-#include <orca/math/Utils.h>
-#include <orca/util/Logger.h>
+#include "orca/math/Utils.h"
+#include "orca/util/Logger.h"
 
 namespace orca
 {
@@ -57,23 +57,34 @@ class PosixTimer
     typedef std::chrono::nanoseconds nanoseconds;
 
 public:
-    explicit PosixTimer(bool run = false)
+    const double nsToMs = 1./1e6;
+    const double nsToS = 1./1e9;
+
+    explicit PosixTimer(bool start_now = false)
     {
-        if (run)
-            Reset();
+        if (start_now)
+            start();
     }
-    void Reset()
+    void start()
     {
         _start = high_resolution_clock::now();
     }
-    nanoseconds Elapsed() const
+    double elapsedNs() const
     {
-        return std::chrono::duration_cast<nanoseconds>(high_resolution_clock::now() - _start);
+        return std::chrono::duration_cast<nanoseconds>(high_resolution_clock::now() - _start).count();
+    }
+    double elapsedMs() const
+    {
+        return nsToMs * elapsedNs();
+    }
+    double elapsed() const
+    {
+        return nsToS * elapsedNs();
     }
     template <typename T, typename Traits>
     friend std::basic_ostream<T, Traits>& operator<<(std::basic_ostream<T, Traits>& out, const PosixTimer& timer)
     {
-        return out << timer.Elapsed().count();
+        return out << timer.elapsed();
     }
 private:
     high_resolution_clock::time_point _start;
@@ -131,7 +142,6 @@ class Formatter
 public:
     Formatter() {}
     ~Formatter() {}
-
     template <typename Type>
     Formatter & operator << (const Type & value)
     {
@@ -160,12 +170,12 @@ private:
 
 
 
-class PeriodicThread
+class PeriodicPosixThread
 {
 public:
-    PeriodicThread(std::function<void(void)> f , const unsigned long period_ms, bool start_now = false)
+    PeriodicPosixThread(std::function<void(void)> f , const unsigned long period_ms, bool start_now = false)
     : f_(f)
-    , do_run_(false)
+    , running_(false)
     , period_ms_(period_ms)
     {
         if(start_now)
@@ -174,10 +184,10 @@ public:
 
     void start()
     {
-        if(!do_run_)
+        if(!running_)
         {
-            do_run_ = true;
-            th_ = std::thread( std::bind(&PeriodicThread::run,this) );
+            running_ = true;
+            th_ = std::thread( std::bind(&PeriodicPosixThread::run,this) );
         }
     }
 
@@ -185,7 +195,7 @@ public:
     {
         const auto timeWindow = std::chrono::milliseconds(period_ms_);
 
-        while(do_run_)
+        while(running_)
         {
             auto start = std::chrono::steady_clock::now();
             f_();
@@ -202,14 +212,14 @@ public:
 
     void stop()
     {
-        if(do_run_)
+        if(running_)
         {
-            do_run_ = false;
+            running_ = false;
             th_.join();
         }
     }
 
-    ~PeriodicThread()
+    ~PeriodicPosixThread()
     {
         stop();
     }
@@ -217,7 +227,7 @@ public:
 private:
     std::function<void(void)> f_;
     std::thread th_;
-    std::atomic<bool> do_run_;
+    std::atomic<bool> running_;
     const unsigned long period_ms_;
 };
 

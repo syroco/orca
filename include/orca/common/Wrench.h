@@ -33,22 +33,19 @@
 
 #pragma once
 
-#include <orca/common/TaskCommon.h>
+#include "orca/robot/RobotDynTree.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
 namespace common
 {
 
-class Wrench final: public TaskCommon
+class Wrench : public common::TaskBase
 {
 public:
     Wrench();
-
-    void addInRegister();
-
-    void removeFromRegister();
-
+    
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
@@ -68,6 +65,8 @@ public:
     void resize();
 
     void update();
+    
+    void print() const;
 
 protected:
     std::string base_ref_frame_,control_frame_;

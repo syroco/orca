@@ -1,4 +1,4 @@
-#include <orca/math/WeightedEuclidianNormFunction.h>
+#include "orca/math/WeightedEuclidianNormFunction.h"
 using namespace orca::math;
 
 WeightedEuclidianNormFunction::WeightedEuclidianNormFunction()

@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include <orca/constraint/JointLimitConstraint.h>
+#include "orca/constraint/JointLimitConstraint.h"
 
 namespace orca
 {

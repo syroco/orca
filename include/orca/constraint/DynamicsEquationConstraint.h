@@ -32,9 +32,9 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <orca/constraint/Contact.h>
-#include <orca/constraint/EqualityConstraint.h>
-#include <orca/common/Wrench.h>
+#include "orca/constraint/Contact.h"
+#include "orca/constraint/EqualityConstraint.h"
+#include "orca/common/Wrench.h"
 
 namespace orca
 {
@@ -50,7 +50,7 @@ public:
     
     void updateConstraintFunction();
 protected:
-    std::list<common::Wrench*> wrenches_;
+    std::list<std::shared_ptr<common::Wrench> > wrenches_;
     std::map<optim::ControlVariable, unsigned int > idx_map_;
     std::map<optim::ControlVariable, unsigned int > size_map_;
     int ndof_,fulldim_;

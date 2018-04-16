@@ -1,4 +1,4 @@
-#include <orca/constraint/LinearizedCoulombConstraint.h>
+#include "orca/constraint/LinearizedCoulombConstraint.h"
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
 #endif
@@ -13,56 +13,56 @@ LinearizedCoulombConstraint::LinearizedCoulombConstraint()
 }
 double LinearizedCoulombConstraint::getFrictionCoeff() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return friction_coeff_;
 }
 
 double LinearizedCoulombConstraint::getMargin() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return margin_;
 }
 
 void LinearizedCoulombConstraint::setAngleOffset(double angle_offset)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     angle_offset_ = angle_offset;
 }
 
 void LinearizedCoulombConstraint::setFrictionCoeff(double coeff)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     friction_coeff_ = coeff;
 }
 
 void LinearizedCoulombConstraint::setMargin(double margin)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     margin_ = margin;
 }
 
 void LinearizedCoulombConstraint::setConeOrientation(const Eigen::Matrix3d& R)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     R_cone_ = R;
 }
 
 const Eigen::Matrix3d& LinearizedCoulombConstraint::getConeOrientation() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return R_cone_;
 }
 
 void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     if (nfaces < 3)
     {
@@ -79,7 +79,7 @@ void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
 
 void LinearizedCoulombConstraint::resize()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     if(number_of_faces_ != constraintFunction().rows())
     {
@@ -91,7 +91,7 @@ void LinearizedCoulombConstraint::resize()
 
 void LinearizedCoulombConstraint::updateConstraintFunction()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     const double angleIncr = 2. * M_PI/(double)number_of_faces_;
 

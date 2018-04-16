@@ -34,9 +34,9 @@
 #pragma once
 
 #include <type_traits>
-#include <orca/common/Mutex.h>
-#include <orca/math/Utils.h>
-#include <orca/util/Utils.h>
+#include "orca/common/Mutex.h"
+#include "orca/math/Utils.h"
+#include "orca/util/Utils.h"
 
 namespace orca
 {
@@ -69,7 +69,7 @@ namespace orca
             
             void resize(unsigned int dim)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 if(dim > 0)
                 {
@@ -90,7 +90,7 @@ namespace orca
 
             void setProportionalGain(const Eigen::Matrix<double,Dimension,1>& P_gain)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 if(P_gain.size() == p_gain_.size())
                 {
@@ -104,14 +104,14 @@ namespace orca
 
             const Eigen::Matrix<double,Dimension,1>& P() const
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 return p_gain_;
             }
 
             void setIntegralGain(const Eigen::Matrix<double,Dimension,1>& I_gain)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 if(I_gain.size() == i_gain_.size())
                 {
@@ -125,28 +125,28 @@ namespace orca
             
             void setWindupLimit(const Eigen::Matrix<double,Dimension,1>& windup_lim)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 windup_limit_ = windup_lim;
             }
 
             const Eigen::Matrix<double,Dimension,1>& WindupLimit()
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 return windup_limit_;
             }
 
             const Eigen::Matrix<double,Dimension,1>& I() const
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 return i_gain_;
             }
             
             void setDt(double dt)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 if(dt>0)
                     dt_ = dt;
@@ -156,7 +156,7 @@ namespace orca
             
             void setDerivativeGain(const Eigen::Matrix<double,Dimension,1>& D_gain)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 if(D_gain.size() == d_gain_.size())
                 {
@@ -170,7 +170,7 @@ namespace orca
 
             const Eigen::Matrix<double,Dimension,1>& D() const
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 return d_gain_;
             }
@@ -179,7 +179,7 @@ namespace orca
                                                                   , const Eigen::Matrix<double,Dimension,1>& DError
             )
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 i_error_ += dt_ * Error;
                 // saturate integral_term
@@ -192,7 +192,7 @@ namespace orca
 
             const Eigen::Matrix<double,Dimension,1>& computeCommand(const Eigen::Matrix<double,Dimension,1>& Error)
             {
-                MutexLock lock(mutex);
+                MutexLock lock(this->mutex);
                 
                 i_error_ += dt_ * Error;
                 // saturate integral_term

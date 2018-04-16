@@ -1,11 +1,11 @@
-#include <orca/constraint/Contact.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/Contact.h"
+
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::common;
 
 Contact::Contact()
-: TaskCommon(optim::ControlVariable::Composite)
+: TaskBase(ControlVariable::Composite)
 , friction_cone_(std::make_shared<LinearizedCoulombConstraint>())
 , ex_condition_(std::make_shared<ContactExistenceConditionConstraint>())
 , wrench_(std::make_shared<Wrench>())
@@ -15,20 +15,10 @@ Contact::Contact()
 
 void Contact::setName(const std::string& name)
 {
-    TaskCommon::setName(name);
+    TaskBase::setName(name);
     friction_cone_->setName(name + "_FrCone");
     ex_condition_->setName(name + "_ExCond");
     wrench_->setName(name + "_Wrench");
-}
-
-void Contact::addInRegister()
-{
-    
-}
-
-void Contact::removeFromRegister()
-{
-    
 }
 
 bool Contact::isInitialized() const
@@ -38,24 +28,6 @@ bool Contact::isInitialized() const
 bool Contact::isActivated() const
 {
     return wrench_->isActivated();
-}
-bool Contact::isInsertedInProblem() const
-{
-    return wrench_->isInsertedInProblem();
-}
-
-bool Contact::insertInProblem()
-{
-    return friction_cone_->insertInProblem()
-        && ex_condition_->insertInProblem() 
-        && wrench_->insertInProblem();
-}
-
-bool Contact::removeFromProblem()
-{
-    return friction_cone_->removeFromProblem() 
-        && ex_condition_->removeFromProblem() 
-        && wrench_->removeFromProblem();
 }
 
 bool Contact::desactivate()
@@ -149,7 +121,7 @@ void Contact::setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_f
 
 void Contact::resize()
 {
-    ex_condition_->setRobotModel( this->robotPtr() );
-    friction_cone_->setRobotModel( this->robotPtr() );
-    wrench_->setRobotModel( this->robotPtr() );
+    ex_condition_->setRobotModel( this->robot() );
+    friction_cone_->setRobotModel( this->robot() );
+    wrench_->setRobotModel( this->robot() );
 }

@@ -33,25 +33,20 @@
 
 #pragma once
 
-#include <orca/robot/RobotDynTree.h>
-#include <orca/optim/ControlVariable.h>
-#include <orca/common/Mutex.h>
+#include "orca/robot/RobotDynTree.h"
+#include "orca/optim/ControlVariable.h"
+#include "orca/common/Mutex.h"
+#include "orca/optim/ControlProblem.h"
 
 namespace orca
 {
+    
 namespace common
 {
-    class TaskCommon
+    class TaskBase
     {
     public:
-        TaskCommon(optim::ControlVariable control_var);
-        virtual ~TaskCommon();
-
-        void setRobotState(const Eigen::Matrix4d& world_H_base
-                        , const Eigen::VectorXd& jointPos
-                        , const Eigen::Matrix<double,6,1>& baseVel
-                        , const Eigen::VectorXd& jointVel
-                        , const Eigen::Vector3d& gravity);
+        TaskBase(optim::ControlVariable control_var);
 
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
@@ -65,7 +60,7 @@ namespace common
 
         virtual void update() = 0;
         virtual void resize() = 0;
-        virtual void print() const {};
+        virtual void print() const = 0;
 
         /**
          * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
@@ -89,41 +84,36 @@ namespace common
         *
         * @return bool
         */
-        virtual bool isInsertedInProblem() const;
+        virtual bool setProblem(std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem);
         
         /**
         * @brief Insert the constraint in the QP problem
         *
         */
-        virtual bool insertInProblem();
         bool isInitialized() const;
-        
-        /**
-        * @brief Removes the constraint from the QP problem
-        *
-        */
-        virtual bool removeFromProblem();
         
         /**
         * @brief The recursive mutex to protect public fucntions
         *
         */
         mutable common::MutexRecursive mutex;
-
-        robot::RobotDataHelper& robotData();
-        robot::RobotDynTree& robot();
-        std::shared_ptr<robot::RobotDynTree> robotPtr();
+        
+        std::shared_ptr<robot::RobotDynTree> robot();
+        std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem();
+        
+        bool hasProblem() const;
+        bool hasRobot() const;
     protected:
         void setInitialized(bool isinit);
-        virtual void addInRegister() = 0;
-        virtual void removeFromRegister() = 0;
-        optim::ControlVariable control_var_;
-        std::shared_ptr<robot::RobotDynTree> robot_;
+        
     private:
         bool is_activated_ = false;
-        bool is_inserted_ = false;
         bool is_initialized_ = false;
         std::string name_;
+        std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem_;
+        common::MutexRecursive mutex_;
+        std::shared_ptr<robot::RobotDynTree> robot_;
+        optim::ControlVariable control_var_;
     };
 }
 }

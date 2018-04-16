@@ -32,10 +32,10 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <orca/util/Utils.h>
-#include <orca/robot/RobotDynTree.h>
-#include <orca/math/ConstraintFunction.h>
-#include <orca/common/TaskCommon.h>
+#include "orca/util/Utils.h"
+#include "orca/robot/RobotDynTree.h"
+#include "orca/math/ConstraintFunction.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
@@ -48,7 +48,7 @@ namespace constraint
  * u = upperBound, and C the constraint matrix.
  *
  */
-class GenericConstraint : public common::TaskCommon
+class GenericConstraint : public common::TaskBase
 {
 public:
     /**
@@ -66,9 +66,10 @@ public:
      */
     virtual ~GenericConstraint();
 
-    virtual void update() override;
+    virtual void update();
     virtual void updateConstraintFunction() = 0;
-    virtual void print() const override;
+    virtual void resize() = 0;
+    virtual void print() const;
 
     /**
      * @brief Get the size of the constraint matrix (rows,cols)
@@ -121,8 +122,6 @@ public:
 
 
 protected:
-    virtual void addInRegister() override;
-    virtual void removeFromRegister() override;
     /**
      * @brief Replace the constraint matrix with a new one
      *

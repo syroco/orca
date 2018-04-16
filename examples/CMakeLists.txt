@@ -1,5 +1,8 @@
-add_executable(orca-demo1 orca-demo1.cc)
-target_link_libraries(orca-demo1 orca)
+add_executable(orca-demo0 orca-demo0.cc)
+target_link_libraries(orca-demo0 orca)
+
+# add_executable(orca-demo1 orca-demo1.cc)
+# target_link_libraries(orca-demo1 orca)
 
 add_executable(orca-idyntree-example iDynTreeExample.cc)
 target_link_libraries(orca-idyntree-example orca)
@@ -27,4 +30,4 @@ else()
     message(STATUS "Gazebo not found, not building gazebo examples")
 endif()
 
-install(TARGETS orca-demo1 DESTINATION lib/orca)
+# install(TARGETS orca-demo1 DESTINATION lib/orca)

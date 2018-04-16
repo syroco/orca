@@ -32,9 +32,9 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <orca/math/Utils.h>
-#include <orca/common/PIDController.h>
-#include <orca/common/TaskCommon.h>
+#include "orca/math/Utils.h"
+#include "orca/common/PIDController.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
@@ -42,7 +42,7 @@ namespace orca
     {
         using math::Vector6d;
 
-        class CartesianAccelerationPID : public TaskCommon
+        class CartesianAccelerationPID : public TaskBase
         {
         public:
             CartesianAccelerationPID();

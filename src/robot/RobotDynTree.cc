@@ -1,11 +1,11 @@
 #include "orca/robot/RobotDynTree.h"
-#include "orca/optim/OptimisationVector.h"
+#include "orca/util/Utils.h"
+
 #include "iDynTreeImpl.impl"
 #include <exception>
 #include <stdexcept>
 
 using namespace orca::robot;
-using namespace orca::optim;
 
 RobotDynTree::RobotDynTree(const std::string& modelFile)
 : robot_impl_(new iDynTreeImpl)
@@ -14,8 +14,6 @@ RobotDynTree::RobotDynTree(const std::string& modelFile)
     if(!modelFile.empty())
         loadModelFromFile(modelFile);
 }
-
-
 
 bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
 {
@@ -45,8 +43,6 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
             joint_pos_limits_[i] = {min,max};
         }
     }
-
-    OptimisationVector().buildControlVariablesMapping(model.getNrOfDOFs());
 
     return ok;
 }
@@ -117,10 +113,10 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
         throw std::runtime_error("Gravity vector is zero. Please use setGravity before setting the robot state");
 
     if(jointPos.size() != getNrOfDegreesOfFreedom())
-        throw std::runtime_error(util::Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
+        throw std::runtime_error(orca::util::Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
 
     if(jointVel.size() != getNrOfDegreesOfFreedom())
-        throw std::runtime_error(util::Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
+        throw std::runtime_error(orca::util::Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
 
     if(!is_initialized_)
     {
@@ -162,7 +158,7 @@ unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
     return kinDynComp_.getNrOfDegreesOfFreedom();
 }
 
-unsigned int RobotDynTree::configurationSpaceDimension() const
+unsigned int RobotDynTree::getConfigurationSpaceDimension() const
 {
     return 6 + kinDynComp_.getNrOfDegreesOfFreedom();
 }

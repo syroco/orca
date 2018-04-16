@@ -1,5 +1,6 @@
-#include <orca/task/WrenchTask.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/task/WrenchTask.h"
+#include "orca/optim/ControlVariable.h"
+
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::common;
@@ -33,14 +34,14 @@ const std::string& WrenchTask::getControlFrame() const
 
 void WrenchTask::setDesired(const Vector6d& wrench_des)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     wrench_des_ = wrench_des;
 }
 
 void WrenchTask::setCurrent(const Vector6d& wrench_curr)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     wrench_.setCurrent(wrench_curr);
 }
@@ -62,9 +63,9 @@ void WrenchTask::updateAffineFunction()
 
 void WrenchTask::resize()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
-    int fulldim = OptimisationVector().configurationSpaceDimension(); // ndof + 6
+    int fulldim = this->problem()->getConfigurationSpaceDimension(); // ndof + 6
     EuclidianNorm().resize(6,fulldim);
     E().setIdentity();
 }

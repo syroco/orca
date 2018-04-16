@@ -33,9 +33,9 @@
 
 #pragma once
 
-#include <orca/common/Wrench.h>
-#include <orca/common/PIDController.h>
-#include <orca/task/GenericTask.h>
+#include "orca/common/Wrench.h"
+#include "orca/common/PIDController.h"
+#include "orca/task/GenericTask.h"
 
 namespace orca
 {

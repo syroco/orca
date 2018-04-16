@@ -143,7 +143,7 @@ endforeach()
 source_group("Source Files" FILES ${lib-srcs})
 
 foreach(sub : ${sub-dirs})
-    file(GLOB sub-hdrs include/orca/${sub}/*.h)
+    file(GLOB sub-hdrs include/orca/${sub}/*.h include/orca/${sub}/*.hh include/orca/${sub}/*.impl)
     list(APPEND lib-hdrs ${sub-hdrs})
 endforeach()
 
@@ -227,6 +227,7 @@ install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING
   PATTERN "*.h"
+  PATTERN "*.hh"
   PATTERN "*.hpp"
   PATTERN "*.inl"
   PATTERN "*.in" EXCLUDE

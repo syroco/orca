@@ -1,5 +1,5 @@
-#include <orca/task/JointTorqueTask.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/task/JointTorqueTask.h"
+
 
 using namespace orca::task;
 using namespace orca::optim;
@@ -16,7 +16,7 @@ JointTorqueTask::JointTorqueTask()
 
 void JointTorqueTask::setDesired(const Eigen::VectorXd& jnt_trq_des)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     jnt_trq_des_ = jnt_trq_des;
 }
@@ -28,7 +28,7 @@ void JointTorqueTask::updateAffineFunction()
 
 void JointTorqueTask::setCurrent(const Eigen::VectorXd& jointTorque)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
     current_jnt_trq_ = jointTorque;
 }
@@ -40,9 +40,9 @@ PIDController<Eigen::Dynamic>& JointTorqueTask::pid()
 
 void JointTorqueTask::resize()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     
-    const unsigned int dof = robot().getNrOfDegreesOfFreedom();
+    const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
 
     if(this->cols() != dof)
     {

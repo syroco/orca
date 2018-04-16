@@ -33,11 +33,11 @@
 
 #pragma once
 
-#include <orca/optim/QPSolver.h>
-#include <orca/task/GenericTask.h>
-#include <orca/task/WrenchTask.h>
-#include <orca/constraint/Contact.h>
-#include <orca/constraint/GenericConstraint.h>
+#include "orca/optim/QPSolver.h"
+#include "orca/task/GenericTask.h"
+#include "orca/task/WrenchTask.h"
+#include "orca/constraint/Contact.h"
+#include "orca/constraint/GenericConstraint.h"
 
 namespace orca
 {

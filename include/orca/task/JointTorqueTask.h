@@ -33,8 +33,8 @@
 
 #pragma once
 
-#include <orca/task/GenericTask.h>
-#include <orca/common/PIDController.h>
+#include "orca/task/GenericTask.h"
+#include "orca/common/PIDController.h"
 
 namespace orca
 {

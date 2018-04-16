@@ -1,4 +1,4 @@
-#include <orca/constraint/EqualityConstraint.h>
+#include "orca/constraint/EqualityConstraint.h"
 using namespace orca::constraint;
 using namespace orca::optim;
 

@@ -33,16 +33,16 @@
 
 #pragma once
 
-#include <orca/optim/ControlVariable.h>
+#include "orca/optim/ControlVariable.h"
 
-#include <orca/task/GenericTask.h>
-#include <orca/constraint/GenericConstraint.h>
+#include "orca/task/GenericTask.h"
+#include "orca/constraint/GenericConstraint.h"
 
-#include <orca/common/TaskCommon.h>
-#include <orca/common/Mutex.h>
-#include <orca/common/Wrench.h>
+#include "orca/common/TaskBase.h"
+#include "orca/common/Mutex.h"
+#include "orca/common/Wrench.h"
 
-#include <orca/optim/QPSolver.h>
+#include "orca/optim/QPSolver.h"
 #include <map>
 #include <list>
 #include <algorithm>
@@ -56,15 +56,15 @@ namespace optim
     {
     public:
         void addInRegister(QPSolver* qp);
-        void addInRegister(common::TaskCommon* t);
+        void addInRegister(common::TaskBase* t);
 
         void removeFromRegister(QPSolver* qp);
-        void removeFromRegister(common::TaskCommon* t) ;
-        
-        bool isInRegister(common::TaskCommon* t);
+        void removeFromRegister(common::TaskBase* t) ;
 
-        void declareObject(common::TaskCommon* t);
-        void removeObject(common::TaskCommon* t);
+        bool isInRegister(common::TaskBase* t);
+
+        void declareObject(common::TaskBase* t);
+        void removeObject(common::TaskBase* t);
 
         void buildControlVariablesMapping(int ndof);
 
@@ -72,8 +72,8 @@ namespace optim
 
         const std::list<common::Wrench *>& getWrenches() const;
         const std::list<task::GenericTask *>& getTasks() const;
-        const std::list<common::TaskCommon *>& getAllCommons() const;
-        const std::list<common::TaskCommon *>& getAllCreatedObjects() const;
+        const std::list<common::TaskBase *>& getAllCommons() const;
+        const std::list<common::TaskBase *>& getAllCreatedObjects() const;
         const std::list<constraint::GenericConstraint *>& getConstraints() const;
 
         int getNrOfWrenches() const;
@@ -107,8 +107,8 @@ namespace optim
         std::map<ControlVariable, unsigned int > size_map_;
 
         std::list<common::Wrench *> wrenches_;
-        std::list<common::TaskCommon *> commons_;
-        std::list<common::TaskCommon *> objs_created_;
+        std::list<common::TaskBase *> commons_;
+        std::list<common::TaskBase *> objs_created_;
 
         std::list<task::GenericTask *> tasks_;
         std::list<constraint::GenericConstraint *> constraints_;

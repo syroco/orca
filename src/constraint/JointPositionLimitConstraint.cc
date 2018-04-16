@@ -1,5 +1,5 @@
-#include <orca/constraint/JointPositionLimitConstraint.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/JointPositionLimitConstraint.h"
+
 
 using namespace orca::constraint;
 using namespace orca::optim;
@@ -12,9 +12,9 @@ JointPositionLimitConstraint::JointPositionLimitConstraint()
 
 void JointPositionLimitConstraint::setJointLimitsFromRobotModel()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
-    for(auto l : robot().getJointPositionLimits())
+    for(auto l : robot()->getJointPositionLimits())
     {
         int i = l.first;
         double lb = l.second.first;
@@ -26,20 +26,20 @@ void JointPositionLimitConstraint::setJointLimitsFromRobotModel()
 
 void JointPositionLimitConstraint::setHorizon(double horizon)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     horizon_ = horizon;
 }
 
 void JointPositionLimitConstraint::updateConstraintFunction()
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     const Eigen::VectorXd& min_jnt_pos(min_);
     const Eigen::VectorXd& max_jnt_pos(max_);
 
-    const Eigen::VectorXd& current_jnt_pos = robot().getJointPos();
-    const Eigen::VectorXd& current_jnt_vel = robot().getJointVel();
+    const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
+    const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
 
     constraintFunction().lowerBound().noalias() = 2. * ( min_jnt_pos - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
     constraintFunction().upperBound().noalias() = 2. * ( max_jnt_pos - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
@@ -47,8 +47,8 @@ void JointPositionLimitConstraint::updateConstraintFunction()
 
 void JointPositionLimitConstraint::resize()
 {
-    MutexLock lock(mutex);
-    const unsigned int dof = robot().getNrOfDegreesOfFreedom();
+    MutexLock lock(this->mutex);
+    const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
     if(min_.size() != dof || max_.size() != dof)
     {
         JointLimitConstraint::resize();

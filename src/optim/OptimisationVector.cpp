@@ -1,7 +1,7 @@
-#include <orca/optim/OptimisationVector.h>
 
-#include <orca/constraint/Contact.h>
-#include <orca/task/WrenchTask.h>
+
+#include "orca/constraint/Contact.h"
+#include "orca/task/WrenchTask.h"
 #include <iostream>
 #include <array>
 
@@ -23,7 +23,7 @@ orca::optim::OptimVector& orca::optim::OptimisationVector()
 
 void OptimVector::addInRegister(QPSolver* qp)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     if (std::find(std::begin(qps_), std::end(qps_), qp) == std::end(qps_))
     {
         LOG_DEBUG << "[OptimisationVector] Adding QPSolver " << qp;
@@ -37,38 +37,38 @@ void OptimVector::addInRegister(QPSolver* qp)
     }
 }
 
-void OptimVector::declareObject(TaskCommon* t)
+void OptimVector::declareObject(TaskBase* t)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     if (std::find(std::begin(objs_created_), std::end(objs_created_), t) == std::end(objs_created_))
     {
-        LOG_DEBUG << "[OptimisationVector] Declaring TaskCommon " << t;
+        LOG_DEBUG << "[OptimisationVector] Declaring TaskBase " << t;
         objs_created_.push_back(t);
     }
 }
 
-void OptimVector::removeObject(TaskCommon* t)
+void OptimVector::removeObject(TaskBase* t)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     auto elem_it = std::find(std::begin(objs_created_), std::end(objs_created_), t);
     if(elem_it != std::end(objs_created_))
     {
-        LOG_DEBUG << "[OptimisationVector] Removing TaskCommon " << t;
+        LOG_DEBUG << "[OptimisationVector] Removing TaskBase " << t;
         objs_created_.erase(elem_it);
     }
 }
 
-void OptimVector::addInRegister(TaskCommon* t)
+void OptimVector::addInRegister(TaskBase* t)
 {
-    MutexLock lock(mutex);
-    LOG_DEBUG << "[OptimisationVector] Locking TaskCommon " << t << " var " << t->getControlVariable();
+    MutexLock lock(this->mutex);
+    LOG_DEBUG << "[OptimisationVector] Locking TaskBase " << t << " var " << t->getControlVariable();
     t->mutex.lock();
 
     if (std::find(std::begin(commons_), std::end(commons_), t) == std::end(commons_))
     {
-        LOG_DEBUG << "[OptimisationVector] Adding TaskCommon " << t << " var " << t->getControlVariable();
+        LOG_DEBUG << "[OptimisationVector] Adding TaskBase " << t << " var " << t->getControlVariable();
         commons_.push_back(t);
-        
+
         if(dynamic_cast<GenericTask*>(t))
         {
             LOG_DEBUG << "----------> Adding GenericTask " << t << " var " << t->getControlVariable();
@@ -80,7 +80,7 @@ void OptimVector::addInRegister(TaskCommon* t)
             LOG_DEBUG << "----------> Adding GenericConstraint " << t << " var " << t->getControlVariable();
             constraints_.push_back(dynamic_cast<GenericConstraint*>(t));
         }
-        
+
         if(dynamic_cast<Wrench*>(t))
         {
             LOG_DEBUG << "----------> Adding Wrench " << t << " var " << t->getControlVariable();
@@ -100,7 +100,7 @@ void OptimVector::addInRegister(TaskCommon* t)
     {
         LOG_WARNING << "[OptimisationVector] Task " << t << " already exists in register";
     }
-    LOG_DEBUG << "[OptimisationVector] Unlocking TaskCommon " << t << " var " << t->getControlVariable();
+    LOG_DEBUG << "[OptimisationVector] Unlocking TaskBase " << t << " var " << t->getControlVariable();
     t->mutex.unlock();
 }
 
@@ -129,20 +129,20 @@ void OptimVector::resizeConstraints()
     }
 }
 
-bool OptimVector::isInRegister(TaskCommon* t)
+bool OptimVector::isInRegister(TaskBase* t)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return std::find(std::begin(commons_), std::end(commons_), t) != std::end(commons_);
 }
 
-void OptimVector::removeFromRegister(TaskCommon* t)
+void OptimVector::removeFromRegister(TaskBase* t)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     auto elem_it = std::find(std::begin(commons_), std::end(commons_), t);
     if(elem_it != std::end(commons_))
     {
         commons_.erase(elem_it);
-        
+
         if(dynamic_cast<GenericTask*>(t))
         {
             LOG_DEBUG << "[OptimisationVector] Removing GenericTask " << dynamic_cast<GenericTask*>(t) << " var " << t->getControlVariable();
@@ -155,17 +155,17 @@ void OptimVector::removeFromRegister(TaskCommon* t)
             LOG_DEBUG << "[OptimisationVector] Removing GenericConstraint " << dynamic_cast<GenericConstraint*>(t) << " var " << t->getControlVariable();
             constraints_.erase( std::find(std::begin(constraints_), std::end(constraints_), dynamic_cast<GenericConstraint*>(t)) );
         }
-        
+
         if(dynamic_cast<Wrench*>(t))
         {
             LOG_DEBUG << "----------> Removing Wrench " << t << " var " << t->getControlVariable();
             wrenches_.erase( std::find(std::begin(wrenches_), std::end(wrenches_), dynamic_cast<Wrench*>(t)) );
-            
+
             this->buildControlVariablesMapping(getNrOfDegreesOfFreedom());
             this->resizeTasks();
             this->resizeConstraints();
         }
-        
+
         LOG_DEBUG << "----------> Resizing QP ";
         for(auto qp : qps_)
         {
@@ -181,7 +181,7 @@ void OptimVector::removeFromRegister(TaskCommon* t)
 
 void OptimVector::removeFromRegister(QPSolver* qp)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     auto elem_it = std::find(std::begin(qps_), std::end(qps_), qp);
     if(elem_it != std::end(qps_))
     {
@@ -196,12 +196,12 @@ void OptimVector::removeFromRegister(QPSolver* qp)
 
 void OptimVector::buildControlVariablesMapping(int ndof)
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     ndof_ = ndof;
     is_floating_base_ = true;
     nwrenches_ = wrenches_.size();
     const int fulldim = ndof + (is_floating_base_ ? 6 : 0);
-    
+
     size_map_[    ControlVariable::X                          ] = 2 * fulldim + nwrenches_ * 6;
     size_map_[    ControlVariable::GeneralisedAcceleration    ] = fulldim;
     size_map_[    ControlVariable::FloatingBaseAcceleration   ] = (is_floating_base_ ? 6 : 0);
@@ -213,7 +213,7 @@ void OptimVector::buildControlVariablesMapping(int ndof)
     size_map_[    ControlVariable::ExternalWrenches           ] = nwrenches_ * 6;
     size_map_[    ControlVariable::Composite                  ] = 0;
     size_map_[    ControlVariable::None                       ] = 0;
-    
+
     idx_map_[    ControlVariable::X                          ] = 0;
     idx_map_[    ControlVariable::GeneralisedAcceleration    ] = 0;
     idx_map_[    ControlVariable::FloatingBaseAcceleration   ] = 0;
@@ -230,9 +230,9 @@ void OptimVector::buildControlVariablesMapping(int ndof)
 
 void OptimVector::print() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     std::cout << "Optimisation Vector : " << '\n';
-    const auto all_variables =     
+    const auto all_variables =
     {
           ControlVariable::X
         , ControlVariable::GeneralisedAcceleration
@@ -254,55 +254,55 @@ void OptimVector::print() const
 
 int OptimVector::getNrOfWrenches() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return wrenches_.size();
 }
 
 const std::list<Wrench*>& OptimVector::getWrenches() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return wrenches_;
 }
 
 const std::list<GenericTask *>& OptimVector::getTasks() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return tasks_;
 }
 
-const std::list<TaskCommon *>& OptimVector::getAllCommons() const
+const std::list<TaskBase *>& OptimVector::getAllCommons() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return commons_;
 }
 
-const std::list<TaskCommon *>& OptimVector::getAllCreatedObjects() const
+const std::list<TaskBase *>& OptimVector::getAllCreatedObjects() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return objs_created_;
 }
 
 const std::list<GenericConstraint *>& OptimVector::getConstraints() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return constraints_;
 }
 
 const std::map<ControlVariable, unsigned int >& OptimVector::getIndexMap() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return idx_map_;
 }
 const std::map<ControlVariable, unsigned int >& OptimVector::getSizeMap() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     return size_map_;
 }
 
 
 int OptimVector::getIndex(ControlVariable var) const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     // if(ndof_ == 0)
     //     throw std::runtime_error("OptimVector is not initialized");
     return idx_map_.at(var);
@@ -310,7 +310,7 @@ int OptimVector::getIndex(ControlVariable var) const
 
 int OptimVector::getSize(ControlVariable var) const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     // if(ndof_ == 0)
     //     throw std::runtime_error("OptimVector is not initialized");
     return size_map_.at(var);
@@ -323,7 +323,7 @@ int OptimVector::getTotalSize() const
 
 bool OptimVector::hasFloatingBaseVars() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     // if(ndof_ == 0)
     //     throw std::runtime_error("OptimVector is not initialized");
     return is_floating_base_;
@@ -331,7 +331,7 @@ bool OptimVector::hasFloatingBaseVars() const
 
 int OptimVector::getNrOfDegreesOfFreedom() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     // if(ndof_ == 0)
     //     throw std::runtime_error("OptimVector is not initialized");
     return ndof_;
@@ -339,9 +339,8 @@ int OptimVector::getNrOfDegreesOfFreedom() const
 
 int OptimVector::configurationSpaceDimension() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
     // if(ndof_ == 0)
     //     throw std::runtime_error("OptimVector is not initialized");
     return ndof_ + (is_floating_base_ ? 6 : 0);
 }
-

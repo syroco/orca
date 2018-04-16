@@ -353,8 +353,8 @@ int main(int argc, char** argv)
         bool solution_found = qp.solve() == 0;
 
         const Eigen::VectorXd& torque = qp.getPrimalSolution().segment(
-                 OptimisationVector().getIndex(ControlVariable::JointSpaceTorque)
-                ,OptimisationVector().getSize(ControlVariable::JointSpaceTorque));
+                 this->problem()->getIndex(ControlVariable::JointSpaceTorque)
+                ,this->problem()->getSize(ControlVariable::JointSpaceTorque));
 
         std::cout << i << " qp.solve() torque :  " << torque.transpose() << std::endl;
 

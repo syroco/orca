@@ -33,18 +33,18 @@
 
 #pragma once
 
-#include <orca/math/Utils.h>
-#include <orca/util/Utils.h>
-#include <orca/math/WeightedEuclidianNormFunction.h>
-#include <orca/robot/RobotDynTree.h>
-#include <orca/common/TaskCommon.h>
+#include "orca/math/Utils.h"
+#include "orca/util/Utils.h"
+#include "orca/math/WeightedEuclidianNormFunction.h"
+#include "orca/robot/RobotDynTree.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
 namespace task
 {
 
-class GenericTask : public common::TaskCommon
+class GenericTask : public common::TaskBase
 {
 
 public:
@@ -71,13 +71,10 @@ public:
     const Eigen::MatrixXd& getE() const;
     const Eigen::VectorXd& getf() const;
 
-    void update() final;
-    void print() const override;
+    virtual void update();
+    void print() const;
     virtual void updateAffineFunction() = 0;
     virtual void updateQuadraticCost();
-protected:
-    virtual void addInRegister() override;
-    virtual void removeFromRegister() override;
 
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();

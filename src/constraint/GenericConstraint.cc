@@ -1,5 +1,5 @@
-#include <orca/constraint/GenericConstraint.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/GenericConstraint.h"
+
 
 using namespace orca::constraint;
 using namespace orca::optim;
@@ -7,16 +7,16 @@ using namespace orca::math;
 using namespace orca::common;
 
 GenericConstraint::GenericConstraint(ControlVariable control_var)
-: TaskCommon(control_var)
+: TaskBase(control_var)
 {
 
 }
 
 void GenericConstraint::print() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
-    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
+    std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
 
@@ -24,52 +24,52 @@ void GenericConstraint::print() const
 
     std::cout << " - isInitialized        " << isInitialized() << '\n';
     std::cout << " - isActivated          " << isActivated() << '\n';
-    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
+    //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
 GenericConstraint::~GenericConstraint()
 {
-    removeFromProblem();
+//     removeFromProblem();
 }
 
 Size GenericConstraint::getSize() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.getSize();
 }
 
 int GenericConstraint::rows() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.rows();
 }
 
 int GenericConstraint::cols() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.cols();
 }
 
 const Eigen::VectorXd& GenericConstraint::getLowerBound() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.getLowerBound();
 }
 
 const Eigen::VectorXd& GenericConstraint::getUpperBound() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.getUpperBound();
 }
 
 const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_.getConstraintMatrix();
 }
@@ -111,28 +111,18 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
-    MutexLock lock(mutex);
+    MutexLock lock(this->mutex);
 
     return constraint_function_;
 }
 
-void GenericConstraint::addInRegister()
-{
-    OptimisationVector().addInRegister(this);
-}
-
-void GenericConstraint::removeFromRegister()
-{
-    OptimisationVector().removeFromRegister(this);
-}
-
 void GenericConstraint::update()
 {
-    MutexTryLock lock(mutex);
+    MutexTryLock lock(this->mutex);
 
     if(!lock.isSuccessful())
     {
-        //LOG_VERBOSE << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
+        //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
         return;
     }
     
@@ -140,7 +130,7 @@ void GenericConstraint::update()
     // Robot has been loaded --> calls this->resize()
     // At least one update has been done on the task
     
-    setInitialized(robot().isInitialized());
+    setInitialized(robot()->isInitialized());
 
     if(isInitialized())
     {

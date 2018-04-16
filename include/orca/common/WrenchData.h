@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <orca/optim/ControlVariable.h>
+#include "orca/optim/ControlVariable.h"
 
 namespace orca
 {
