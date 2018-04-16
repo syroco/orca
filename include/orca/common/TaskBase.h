@@ -47,7 +47,8 @@ namespace common
     {
     public:
         TaskBase(optim::ControlVariable control_var);
-
+        virtual ~TaskBase();
+        
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
         bool loadRobotModel(const std::string& file_url);
@@ -84,7 +85,9 @@ namespace common
         *
         * @return bool
         */
-        virtual bool setProblem(std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem);
+        virtual bool setProblem(std::shared_ptr< orca::optim::Problem > problem, bool insert = true);
+        virtual bool insertInProblem();
+        virtual bool removeFromProblem();
         
         /**
         * @brief Insert the constraint in the QP problem
@@ -99,21 +102,18 @@ namespace common
         mutable common::MutexRecursive mutex;
         
         std::shared_ptr<robot::RobotDynTree> robot();
-        std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem();
+        std::shared_ptr<optim::Problem> problem();
         
         bool hasProblem() const;
         bool hasRobot() const;
-    protected:
-        void setInitialized(bool isinit);
+        void printStateIfErrors() const;
         
     private:
-        bool is_activated_ = false;
-        bool is_initialized_ = false;
+        bool is_activated_ = true;
         std::string name_;
-        std::shared_ptr<optim::MultiObjectiveOptimisationProblem> problem_;
-        common::MutexRecursive mutex_;
+        std::shared_ptr<optim::Problem> problem_;
         std::shared_ptr<robot::RobotDynTree> robot_;
         optim::ControlVariable control_var_;
     };
-}
-}
+} // namespace common
+} // namespace orca

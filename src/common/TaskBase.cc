@@ -8,8 +8,13 @@ using namespace orca::robot;
 TaskBase::TaskBase(ControlVariable control_var)
 : control_var_(control_var)
 {
-    this->activate();
 }
+
+TaskBase::~TaskBase()
+{
+
+}
+
 
 // void TaskBase::setRobotState(const Eigen::Matrix4d& world_H_base
 //                 , const Eigen::VectorXd& jointPos
@@ -34,7 +39,8 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
         }
 
         robot_ = robot;
-        this->resize();
+        if(problem_)
+            this->resize();
     }
     else
     {
@@ -89,16 +95,9 @@ bool TaskBase::activate()
     }
     else
     {
-        if(true || isInitialized())
-        {
-            LOG_INFO << "[" << TaskBase::getName() << "] " << "Activating";
-            is_activated_ = true;
-            return true;
-        }
-        else
-        {
-            LOG_WARNING << "[" << TaskBase::getName() << "] " << "Cannot activate constraint, as robot model is not initialized";
-        }
+        LOG_INFO << "[" << TaskBase::getName() << "] " << "Activating";
+        is_activated_ = true;
+        return true;
     }
     return false;
 }
@@ -126,33 +125,75 @@ bool TaskBase::isActivated() const
     return is_activated_;
 }
 
-bool TaskBase::setProblem(std::shared_ptr<MultiObjectiveOptimisationProblem> problem)
+bool TaskBase::insertInProblem()
+{
+    if(hasProblem())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Inserting task in problem";
+        return problem_->add(this);
+    }
+
+    throw std::runtime_error("Problem is not set");
+}
+
+bool TaskBase::removeFromProblem()
+{
+    if(hasProblem())
+        return problem_->remove(this);
+    return false;
+}
+
+
+bool TaskBase::setProblem(std::shared_ptr<Problem> problem, bool insert)
 {
     MutexLock lock(this->mutex);
-    if(this->problem_)
+    
+    if(!problem)
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Problem is already set";
+        throw std::runtime_error(util::Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
+    }
+    
+    if(hasProblem())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Problem is already set, NOT overriding";
         return false;
     }
-    this->problem_ = problem_;
+    this->problem_ = problem;
+    if(robot_)
+        this->resize();
+    if(insert)
+        problem_->add(this);
     return true;
 }
 
-std::shared_ptr<MultiObjectiveOptimisationProblem> TaskBase::problem()
+std::shared_ptr<Problem> TaskBase::problem()
 {
     return problem_;
 }
 
-void TaskBase::setInitialized(bool isinit)
+void TaskBase::printStateIfErrors() const
 {
-    is_initialized_ = isinit;
+    if(!hasRobot())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Robot is not loaded";
+    }
+    
+    if(!robot_->isInitialized())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Robot is not initialised (first state not set)";
+    }
+    
+    if(!hasProblem())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Problem is not set";
+    }
 }
 
 bool TaskBase::isInitialized() const
 {
     MutexLock lock(this->mutex);
     
-    return is_initialized_;
+    return hasProblem() && hasRobot() && robot_->isInitialized();
 }
 
 bool TaskBase::hasProblem() const

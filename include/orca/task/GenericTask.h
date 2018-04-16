@@ -72,7 +72,7 @@ public:
     const Eigen::VectorXd& getf() const;
 
     virtual void update();
-    void print() const;
+    virtual void print() const;
     virtual void updateAffineFunction() = 0;
     virtual void updateQuadraticCost();
 

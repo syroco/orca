@@ -42,11 +42,17 @@ int main(int argc, char const *argv[])
     // Set the first state to the robot
     robot->setRobotState(eigState.jointPos,eigState.jointVel); // Now is the robot is considered 'initialized'
 
+    std::cout << "===== Optimisation problem" << '\n';
+
+    auto problem = std::make_shared<WeightedProblem>();
+    problem->setRobotModel(robot);
+
     std::cout << "===== Cartesian Task creation" << '\n';
 
     CartesianTask cart_task;
     cart_task.setName("CartTask-EE");
     cart_task.setRobotModel(robot); // Create and Resize the models associated to the task
+    cart_task.setProblem(problem);
     cart_task.setControlFrame("link_7"); // We want to control the link_7
 
     Eigen::Affine3d cart_pos_ref;
@@ -75,7 +81,7 @@ int main(int argc, char const *argv[])
 
     cart_acc_pid.pid().setProportionalGain(P_gain);
     cart_acc_pid.pid().setDerivativeGain(D_gain);
-    cart_acc_pid.setControlFrame(cart_task.getControlFrame());
+    cart_acc_pid.setControlFrame(cart_task.getControlFrame()); // Of course use the same as the cart task
     cart_acc_pid.setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     cart_acc_pid.update();
 
@@ -84,11 +90,12 @@ int main(int argc, char const *argv[])
 
 
     std::cout << "===== Dynamics Equation Constraint" << '\n';
-    DynamicsEquationConstraint dynConstr;
 
-    dynConstr.setName("Dynamics Equation");
-    dynConstr.setRobotModel(robot);
-    dynConstr.update();
+    DynamicsEquationConstraint dyn_cstr;
+    dyn_cstr.setName("DynamicsEquation");
+    dyn_cstr.setRobotModel(robot);
+    dyn_cstr.setProblem(problem);
+    dyn_cstr.update();
 
     std::cout << "===== Joint limits" << '\n';
 
@@ -101,13 +108,14 @@ int main(int argc, char const *argv[])
     jntTrqMax.setConstant(200.0);
     jntTrqMax<<200,200,200,200,120,120,120;
     jnt_trq_cstr.setRobotModel(robot);
+    jnt_trq_cstr.setProblem(problem);
     jnt_trq_cstr.setLimits(-jntTrqMax,jntTrqMax); // because not read in the URDF for now
     jnt_trq_cstr.update();
 
     JointPositionLimitConstraint jnt_pos_cstr;
     jnt_pos_cstr.setName("JointPositionLimit");
     jnt_pos_cstr.setRobotModel(robot);  // Positions limits are actually read from URDF on loading
-    jnt_pos_cstr.setJointLimitsFromRobotModel(); // (OPTIONAL) see previous comment
+    jnt_pos_cstr.setProblem(problem);
     jnt_pos_cstr.update();
 
     JointVelocityLimitConstraint jnt_vel_cstr;
@@ -116,34 +124,22 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr.setName("JointVelocityLimit");
     jnt_vel_cstr.setRobotModel(robot);
+    jnt_vel_cstr.setProblem(problem);
     jnt_vel_cstr.setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
     jnt_vel_cstr.update();
 
-    // There is no such thing as an acceleration constraint...
-
-    JointAccelerationLimitConstraint jnt_acc_cstr;
-    Eigen::VectorXd jntAccMax;
-    jntAccMax.resize(ndof);
-    jntAccMax.setConstant(4.0);
-    jnt_acc_cstr.setName("JointAccelerationLimit");
-    jnt_acc_cstr.setRobotModel(robot);
-    jnt_acc_cstr.setLimits(-jntAccMax,jntAccMax);
-    jnt_acc_cstr.update();
-
     std::cout << "==== Regularisation" << '\n';
 
-    auto reg_task = std::make_shared<RegularisationTask<ControlVariable::X> >(); // whole vector
+    RegularisationTask<ControlVariable::X> reg_task; // whole vector
 
-    reg_task->setName("reg_task");
-    reg_task->setRobotModel(robot);
-    reg_task->EuclidianNorm().setWeight(1E-3);
-    reg_task->update();
+    reg_task.setName("reg_task");
+    reg_task.setRobotModel(robot);
+    reg_task.setProblem(problem);
+    reg_task.EuclidianNorm().setWeight(1E-3);
+    reg_task.update();
 
-    std::cout << "===== Building an optimisation problem" << '\n';
-    
-    WeightedProblem problem;
-    problem.setRobotModel(robot);
-    problem.addTask(reg_task);
-    
+
+    problem->print();
+
     return 0;
 }

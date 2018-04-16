@@ -29,7 +29,8 @@ void GenericConstraint::print() const
 
 GenericConstraint::~GenericConstraint()
 {
-//     removeFromProblem();
+    // This cannot be in TaskBase because when invoking the destructor 'this' is actually a taskBase
+    removeFromProblem();
 }
 
 Size GenericConstraint::getSize() const
@@ -126,18 +127,10 @@ void GenericConstraint::update()
         return;
     }
     
-    // A task is considered initialised when 
-    // Robot has been loaded --> calls this->resize()
-    // At least one update has been done on the task
+    this->printStateIfErrors();
     
-    setInitialized(robot()->isInitialized());
-
     if(isInitialized())
     {
         updateConstraintFunction();
-    }
-    else
-    {
-        LOG_ERROR << "Calling update(), but robot is not initialized";
     }
 }

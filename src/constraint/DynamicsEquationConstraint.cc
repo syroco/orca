@@ -23,10 +23,7 @@ void DynamicsEquationConstraint::resize()
     
     int optim_vector_size = size_map_[ControlVariable::X];
 
-    
-    LOG_DEBUG << "[DynamicsEquationConstraint] Resize constraint matrix to " << fulldim_ << "x" << optim_vector_size;
     constraintFunction().resize(fulldim_,optim_vector_size);
-    LOG_DEBUG << "[DynamicsEquationConstraint] Done resizing to " << fulldim_ << "x" << optim_vector_size;
 }
 
 void DynamicsEquationConstraint::updateConstraintFunction()
@@ -49,8 +46,8 @@ void DynamicsEquationConstraint::updateConstraintFunction()
     int i=0;
     for(auto w : wrenches_)
     {
-        //MutexLock lock(w->mutex);
-        if(true /*w->isActivated()*/)
+        MutexLock lock(w->mutex);
+        if(w->isActivated())
             constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
         i++;
     }

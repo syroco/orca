@@ -50,10 +50,10 @@ public:
     
     void updateConstraintFunction();
 protected:
-    std::list<std::shared_ptr<common::Wrench> > wrenches_;
+    std::list< common::Wrench* > wrenches_;
     std::map<optim::ControlVariable, unsigned int > idx_map_;
     std::map<optim::ControlVariable, unsigned int > size_map_;
-    int ndof_,fulldim_;
+    int ndof_ = 0,fulldim_ = 0;
     
 };
 

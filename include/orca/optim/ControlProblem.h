@@ -44,6 +44,7 @@ namespace orca
     namespace common
     {
         class Wrench;
+        class TaskBase;
     }
     namespace task
     {
@@ -106,41 +107,41 @@ struct ProblemData
     Eigen::VectorXd primal_solution_;
 };
 
-class MultiObjectiveOptimisationProblem
+class Problem
 {
 public:
     virtual bool solve() = 0;
-    bool addTask(std::shared_ptr<orca::task::GenericTask> task);
 
-    bool taskExists(std::shared_ptr<orca::task::GenericTask> task);
+    bool add(common::TaskBase* task_base);
+    bool remove(orca::common::TaskBase* task_base);
 
-    bool constraintExists(std::shared_ptr<orca::constraint::GenericConstraint> cstr);
+    bool taskExists(const orca::common::TaskBase* task_base);
+    bool constraintExists(const common::TaskBase* cstr);
+    bool wrenchExists(const common::TaskBase* wrench);
 
-    void setRobotModel(std::shared_ptr<orca::robot::RobotDynTree> robot);
+    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
-    void print();
-
-    const std::list< std::shared_ptr<orca::common::Wrench> >& getWrenches() const;
-
-    const std::list< std::shared_ptr<orca::task::GenericTask> >& getTasks() const;
-
-    const std::list< std::shared_ptr<orca::constraint::GenericConstraint> >& getConstraints() const;
+    const std::list< common::Wrench* >& getWrenches() const;
+    const std::list< task::GenericTask* >& getTasks() const;
+    const std::list< constraint::GenericConstraint* >& getConstraints() const;
 
     int getConfigurationSpaceDimension() const;
-    
+
+    bool isTask(const common::TaskBase* task_base);
+    bool isConstraint(const common::TaskBase* task_base);
+    bool isWrench(const common::TaskBase* task_base);
+
     const std::map<ControlVariable, unsigned int >& getIndexMap() const;
-    
     const std::map<ControlVariable, unsigned int >& getSizeMap() const;
-    
+
     int getIndex(ControlVariable var) const;
-
     int getSize(ControlVariable var) const;
-
     int getTotalSize() const;
+    void print() const;
 protected:
-    std::list< std::shared_ptr<orca::common::Wrench> > wrenches_;
-    std::list< std::shared_ptr<orca::task::GenericTask> > tasks_;
-    std::list< std::shared_ptr<orca::constraint::GenericConstraint> > constraints_;
+    std::list< common::Wrench* > wrenches_;
+    std::list< task::GenericTask* > tasks_;
+    std::list< constraint::GenericConstraint* > constraints_;
     int ndof_ = 0;
     int configuration_space_dim_ = 0;
     bool is_floating_base_ = true;
@@ -148,9 +149,17 @@ protected:
 
     std::map<ControlVariable, unsigned int > index_map_;
     std::map<ControlVariable, unsigned int > size_map_;
+
+    std::shared_ptr<robot::RobotDynTree> robot_;
+private:
+    void resizeEverybody();
+    void buildControlVariablesMapping();
+    void resizeTasks();
+    void resizeConstraints();
+    void resizeSolver();
 };
 
-class WeightedProblem : public MultiObjectiveOptimisationProblem
+class WeightedProblem : public Problem
 {
 public:
     bool solve()

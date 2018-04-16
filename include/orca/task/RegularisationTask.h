@@ -51,7 +51,6 @@ namespace task
         
         void updateAffineFunction()
         {
-            setInitialized(true);
         }
         
         void resize()

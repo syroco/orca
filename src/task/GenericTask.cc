@@ -31,6 +31,8 @@ void GenericTask::print() const
 
 GenericTask::~GenericTask()
 {
+    // This cannot be in TaskBase because when invoking the destructor 'this' is actually a taskBase
+    removeFromProblem();
 }
 
 double GenericTask::getWeight() const
@@ -119,14 +121,13 @@ void GenericTask::update()
         return;
     }
     
-    // A task is considered initialised when 
-    // Robot has been loaded --> calls this->resize()
-    // At least one update has been done on the task
+    this->printStateIfErrors();
     
-    setInitialized(robot()->isInitialized());
-
-    this->updateAffineFunction();
-    this->updateQuadraticCost();
+    if(isInitialized())
+    {
+        this->updateAffineFunction();
+        this->updateQuadraticCost();
+    }
 }
 
 void GenericTask::updateQuadraticCost()
