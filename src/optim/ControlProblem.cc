@@ -107,6 +107,11 @@ void Problem::setRobotModel(std::shared_ptr<RobotDynTree> robot)
     buildControlVariablesMapping();
 }
 
+void Problem::setQPSolver(QPSolver::SolverType qpsolver_type)
+{
+    this->qpsolver_ = std::make_shared<QPSolver>(qpsolver_type);
+}
+
 void Problem::print() const
 {
     std::cout << "Problem objects : " << std::endl;

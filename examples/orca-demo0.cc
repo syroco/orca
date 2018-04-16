@@ -138,8 +138,7 @@ int main(int argc, char const *argv[])
     reg_task.EuclidianNorm().setWeight(1E-3);
     reg_task.update();
 
-    QPSolver qp(QPSolver::qpOASES);
-    
+    problem->setQPSolver( QPSolver::qpOASES );
     problem->print();
 
     return 0;
