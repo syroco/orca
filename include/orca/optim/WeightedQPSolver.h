@@ -47,10 +47,6 @@ namespace optim
 class WeightedQPSolver : public QPSolver
 {
 public:
-    WeightedQPSolver();
-
-    ~WeightedQPSolver();
-
     void buildOptimisationProblem();
 
     void resize();

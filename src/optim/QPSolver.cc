@@ -1,10 +1,13 @@
 #include "orca/optim/QPSolver.h"
+#include "orca/util/Logger.h"
 #include <qpOASES.hpp>
 #include <iostream>
 using namespace orca::optim;
-using namespace orca::common;
 
-struct QPSolver::SolverImpl
+// The base solver implementation
+
+template<>
+struct QPSolver::SolverImpl<QPSolver::qpOASES>
 {
     std::unique_ptr<qpOASES::SQProblem> qpoases_;
     qpOASES::Options options_;
@@ -57,7 +60,7 @@ struct QPSolver::SolverImpl
         qpoases_->setOptions( options_ );
     }
 
-    int solve(QPSolverData& data )
+    int solve(ProblemData& data )
     {
         if(!qpoases_) return qpOASES::RET_NOTHING_TO_DO;
 
@@ -119,65 +122,36 @@ struct QPSolver::SolverImpl
     }
 };
 
-QPSolver::QPSolver()
-: pimpl(new SolverImpl())
-{
 
+QPSolver::QPSolver(QPSolver::SolverType type)
+{
+    switch(type)
+    {
+        case SolverType::qpOASES:
+            pimpl = std::unique_ptr<SolverImpl<qpOASES> >(new SolverImpl<qpOASES>);
+            break;
+        default:
+            throw "Solver not implemented";
+    }
 }
 
 QPSolver::~QPSolver()
-{
-
-}
-
-void QPSolver::print() const
-{
-    MutexLock lock(this->mutex);
-    
-    std::cout << "=========================================================================================================================================" << std::endl;
-    std::cout << "H" << std::endl;
-    std::cout << data_.H_ << "\n\n";
-    std::cout << "g" << std::endl;
-    std::cout << data_.g_ << "\n\n";
-    std::cout << "A" << std::endl;
-    std::cout << data_.A_ << "\n\n";
-    std::cout << "lbA" << std::endl;
-    std::cout << data_.lbA_ << "\n\n";
-    std::cout << "ubA" << std::endl;
-    std::cout << data_.ubA_ << "\n\n";
-    std::cout << "lb" << std::endl;
-    std::cout << data_.lb_ << "\n\n";
-    std::cout << "ub" << std::endl;
-    std::cout << data_.ub_ << "\n\n";
-    std::cout << " - Nvars   (Hrows) : " << data_.H_.rows() << std::endl;
-    std::cout << " - NConstr (Arows) : " << data_.A_.rows() << std::endl;
-    std::cout << "=========================================================================================================================================" << std::endl;
-}
+{}
 
 void QPSolver::setPrintLevel(int level)
 {
-    MutexLock lock(this->mutex);
     // PL_DEBUG_ITER = -2, PL_TABULAR, PL_NONE, PL_LOW, PL_MEDIUM, PL_HIGH
     pimpl->setPrintLevel(level);
 }
 
-void QPSolver::resizeInternal(int nvar,int nconstr)
+void QPSolver::resize(int nvar,int nconstr)
 {
-    data_.resize(nvar,nconstr);
     pimpl->resize(nvar,nconstr);
 }
 
-int QPSolver::solve()
-{
-    MutexLock lock(this->mutex);
-    
-    int ret = pimpl->solve(data_);
-    pimpl->getPrimalSolution(data_.primal_solution_);
+int QPSolver::solve(ProblemData& data)
+{   
+    int ret = pimpl->solve(data);
+    pimpl->getPrimalSolution(data.primal_solution_);
     return ret;
-}
-
-const Eigen::VectorXd& QPSolver::getPrimalSolution()
-{
-    MutexLock lock(this->mutex);
-    return data_.primal_solution_;
 }

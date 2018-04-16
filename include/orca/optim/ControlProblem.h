@@ -36,6 +36,8 @@
 #include "orca/util/Utils.h"
 #include "orca/util/Logger.h"
 #include "orca/optim/ControlVariable.h"
+#include "orca/optim/ProblemData.h"
+#include "orca/optim/QPSolver.h"
 #include <map>
 #include <list>
 
@@ -66,46 +68,6 @@ namespace orca
 {
 namespace optim
 {
-
-struct ProblemData
-{
-    void resize(int nvar, int nconstr)
-    {
-        H_.conservativeResizeLike(Eigen::MatrixXd::Zero(nvar,nvar));
-        g_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
-
-        A_.conservativeResizeLike(Eigen::MatrixXd::Zero(nconstr,nvar));
-
-        lbA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr, - math::Infinity) );
-        lb_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,    - math::Infinity) );
-
-        ubA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr,  math::Infinity) );
-        ub_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,     math::Infinity) );
-
-        primal_solution_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
-    }
-
-    void reset()
-    {
-        H_.setZero();
-        g_.setZero();
-        lb_.setConstant( - math::Infinity );
-        ub_.setConstant(   math::Infinity );
-        A_.setZero();
-        lbA_.setConstant( - math::Infinity );
-        ubA_.setConstant(   math::Infinity );
-        primal_solution_.setZero();
-    }
-
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H_;
-    Eigen::VectorXd g_;
-    Eigen::VectorXd lb_;
-    Eigen::VectorXd ub_;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> A_;
-    Eigen::VectorXd lbA_;
-    Eigen::VectorXd ubA_;
-    Eigen::VectorXd primal_solution_;
-};
 
 class Problem
 {
@@ -151,6 +113,7 @@ protected:
     std::map<ControlVariable, unsigned int > size_map_;
 
     std::shared_ptr<robot::RobotDynTree> robot_;
+    ProblemData problem_data_;
 private:
     void resizeEverybody();
     void buildControlVariablesMapping();

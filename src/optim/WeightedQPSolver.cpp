@@ -8,14 +8,6 @@ using namespace orca::constraint;
 using namespace orca::math;
 using namespace orca::common;
 
-WeightedQPSolver::WeightedQPSolver()
-{
-}
-
-WeightedQPSolver::~WeightedQPSolver()
-{
-}
-
 void WeightedQPSolver::resize()
 {
     LOG_DEBUG << "[WQP] WeightedQPSolver::resize()";

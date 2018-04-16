@@ -50,8 +50,7 @@
 #include "orca/constraint/JointAccelerationLimitConstraint.h"
 #include "orca/constraint/JointTorqueLimitConstraint.h"
 
-// #include "orca/optim/QPSolver.h"
-// #include "orca/optim/WeightedQPSolver.h"
+#include "orca/optim/QPSolver.h"
 
 #include "orca/task/CartesianTask.h"
 //#include "orca/task/JointAccelerationTask.h"

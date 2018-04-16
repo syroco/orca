@@ -35,71 +35,26 @@
 
 #include <memory>
 #include "orca/math/Utils.h"
-#include "orca/common/Mutex.h"
+#include "orca/optim/ProblemData.h"
 
 namespace orca
 {
 namespace optim
 {
-struct QPSolverData
-{
-    void resize(int nvar, int nconstr)
-    {
-        H_.conservativeResizeLike(Eigen::MatrixXd::Zero(nvar,nvar));
-        g_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
-
-        A_.conservativeResizeLike(Eigen::MatrixXd::Zero(nconstr,nvar));
-
-        lbA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr, - math::Infinity) );
-        lb_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,    - math::Infinity) );
-
-        ubA_.conservativeResizeLike( Eigen::VectorXd::Constant(nconstr,  math::Infinity) );
-        ub_.conservativeResizeLike(  Eigen::VectorXd::Constant(nvar,     math::Infinity) );
-
-        primal_solution_.conservativeResizeLike(Eigen::VectorXd::Zero(nvar));
-    }
-
-    void reset()
-    {
-        H_.setZero();
-        g_.setZero();
-        lb_.setConstant( - math::Infinity );
-        ub_.setConstant(   math::Infinity );
-        A_.setZero();
-        lbA_.setConstant( - math::Infinity );
-        ubA_.setConstant(   math::Infinity );
-        primal_solution_.setZero();
-    }
-
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H_;
-    Eigen::VectorXd g_;
-    Eigen::VectorXd lb_;
-    Eigen::VectorXd ub_;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> A_;
-    Eigen::VectorXd lbA_;
-    Eigen::VectorXd ubA_;
-    Eigen::VectorXd primal_solution_;
-};
-
 
 class QPSolver
 {
 public:
-    QPSolver();
+    enum SolverType{qpOASES,osqp};
+    QPSolver(SolverType type);
     virtual ~QPSolver();
     void setPrintLevel(int level);
-    const Eigen::VectorXd& getPrimalSolution();
-    virtual void buildOptimisationProblem() = 0;
-    virtual void resize() = 0;
-    void print() const;
-    int solve();
-protected:
-    QPSolverData data_;
-    void resizeInternal(int nvar, int nconstr);
-    mutable common::MutexRecursive mutex;
+    void resize(int nvar, int nconstr);
+    int solve(orca::optim::ProblemData& data);
 private:
-    struct SolverImpl; std::shared_ptr<SolverImpl> pimpl;
+    template<SolverType type = qpOASES> struct SolverImpl;
+    std::unique_ptr<SolverImpl<> > pimpl;
 };
 
-}
-}
+} // namespace optim
+} // namespace orca
