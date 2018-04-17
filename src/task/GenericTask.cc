@@ -15,14 +15,14 @@ GenericTask::GenericTask(ControlVariable control_var)
 void GenericTask::print() const
 {
     MutexLock lock(this->mutex);
-    
+
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - Weight " << getWeight() << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
-    
+
     getEuclidianNorm().print();
-    
+
     std::cout << " - isInitialized        " << isInitialized() << '\n';
     std::cout << " - isActivated          " << isActivated() << '\n';
     //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
@@ -114,15 +114,24 @@ Eigen::VectorXd& GenericTask::f()
 void GenericTask::update()
 {
     MutexTryLock lock(mutex);
-    
+
     if(!lock.isSuccessful())
     {
         //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
         return;
     }
-    
+
+    // Checking size
+    int cv = this->problem()->getSize(this->getControlVariable());
+    if(this->cols() != cv)
+    {
+        throw std::runtime_error(util::Formatter() << "Size of task " << getName()
+                    << " (control var " << this->getControlVariable()
+                    << " should be " << cv << " but is " << this->cols());
+    }
+
     this->printStateIfErrors();
-    
+
     if(isInitialized())
     {
         this->updateAffineFunction();
