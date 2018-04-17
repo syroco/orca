@@ -2,7 +2,11 @@
 #include "orca/util/Logger.h"
 #include <qpOASES.hpp>
 #include <iostream>
-using namespace orca::optim;
+
+namespace orca
+{
+namespace optim
+{
 
 template<>
 struct QPSolver::SolverImpl<QPSolver::qpOASES>
@@ -33,7 +37,7 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
     }
 
     void setPrintLevel(int level)
-    {        
+    {
         if(!qpoases_) return;
 
         switch (level)
@@ -119,3 +123,6 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
         qpoases_->getPrimalSolution(solution.data());
     }
 };
+
+} // namespace optim
+} // namespace orca

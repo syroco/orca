@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "===== Optimisation problem" << '\n';
 
-    auto problem = std::make_shared<WeightedProblem>();
+    auto problem = std::make_shared<Problem>();
     problem->setRobotModel(robot);
 
     std::cout << "===== Cartesian Task creation" << '\n';

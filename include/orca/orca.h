@@ -37,7 +37,7 @@
 
 #include "orca/math/Utils.h"
 #include "orca/util/Utils.h"
-#include "orca/optim/ControlProblem.h"
+#include "orca/optim/WeightedProblem.h"
 
 #include "orca/common/CartesianAccelerationPID.h"
 #include "orca/common/PIDController.h"

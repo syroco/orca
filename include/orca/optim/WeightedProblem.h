@@ -62,17 +62,17 @@ namespace orca
     }
 }
 
-
-
 namespace orca
 {
 namespace optim
 {
-
+// MultiObjectiveOptimisationProblem
 class Problem
 {
 public:
-    virtual bool solve() = 0;
+    void resize();
+    void build();
+    bool solve();
 
     bool add(common::TaskBase* task_base);
     bool remove(orca::common::TaskBase* task_base);
@@ -114,7 +114,7 @@ protected:
 
     std::shared_ptr<robot::RobotDynTree> robot_;
     std::shared_ptr<QPSolver> qpsolver_;
-    ProblemData problem_data_;
+    ProblemData data_;
 private:
     void resizeEverybody();
     void buildControlVariablesMapping();
@@ -122,17 +122,6 @@ private:
     void resizeConstraints();
     void resizeSolver();
 };
-
-class WeightedProblem : public Problem
-{
-public:
-    bool solve()
-    {
-
-        return true;
-    }
-};
-
 
 } // namespace optim
 } // namespace orca

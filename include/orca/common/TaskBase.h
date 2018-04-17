@@ -36,7 +36,7 @@
 #include "orca/robot/RobotDynTree.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/common/Mutex.h"
-#include "orca/optim/ControlProblem.h"
+#include "orca/optim/WeightedProblem.h"
 
 namespace orca
 {

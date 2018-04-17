@@ -1,4 +1,4 @@
-#include "orca/optim/ControlProblem.h"
+#include "orca/optim/WeightedProblem.h"
 #include "orca/common/Wrench.h"
 #include "orca/common/TaskBase.h"
 #include "orca/task/GenericTask.h"
@@ -10,6 +10,7 @@ using namespace orca::task;
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::robot;
+using namespace orca::math;
 
 bool Problem::remove(TaskBase* task_base)
 {
@@ -26,7 +27,7 @@ bool Problem::remove(TaskBase* task_base)
             return false;
         }
     }
-    
+
     if(isConstraint(task_base) && constraintExists(task_base))
     {
         LOG_INFO << "Removing constraint " << task_base->getName();
@@ -35,6 +36,7 @@ bool Problem::remove(TaskBase* task_base)
     if(isWrench(task_base) && constraintExists(task_base))
     {
         LOG_INFO << "Removing wrench " << task_base->getName();
+        resizeEverybody();
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " not found in problem";
@@ -59,15 +61,12 @@ bool Problem::add(TaskBase* task_base)
     {
         LOG_INFO << "Adding wrench " << task_base->getName();
         wrenches_.push_back(dynamic_cast<Wrench*>(task_base));
-        buildControlVariablesMapping(); // size has changed, so we need to resize X dependent TaskBases and the solver
-        resizeTasks();
-        resizeConstraints();
+        resizeEverybody();
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " is already in problem";
     return false;
 }
-
 
 bool Problem::isTask(const TaskBase* task_base)
 {
@@ -114,7 +113,7 @@ void Problem::setQPSolver(QPSolver::SolverType qpsolver_type)
 
 void Problem::print() const
 {
-    std::cout << "Problem objects : " << std::endl;
+    std::cout << "WeightedProblem objects : " << std::endl;
     std::cout << "      Tasks" << std::endl;
     for(auto t : this->tasks_)
     {
@@ -219,7 +218,6 @@ void Problem::buildControlVariablesMapping()
     index_map_[    ControlVariable::ExternalWrenches           ] = 2 * fulldim;
     index_map_[    ControlVariable::Composite                  ] = 0;
     index_map_[    ControlVariable::None                       ] = 0;
-
 }
 
 void Problem::resizeEverybody()
@@ -234,7 +232,6 @@ void Problem::resizeSolver()
 {
 
 }
-
 
 void Problem::resizeTasks()
 {
@@ -256,6 +253,145 @@ void Problem::resizeConstraints()
         {
             LOG_DEBUG << "Resizing constraint " << constr;
             constr->resize();
+        }
+    }
+}
+
+void Problem::resize()
+{
+    LOG_DEBUG << "Problem::resize()";
+    //MutexLock lock(this->mutex);
+
+    LOG_DEBUG << "Checking if we need resising";
+
+    const int nvars = size_map_[ControlVariable::X];
+    int number_of_constraints_rows = 0;
+
+    for(auto constr : constraints_)
+    {
+        MutexLock lock(constr->mutex);
+
+        if(constr->getConstraintMatrix().isIdentity())
+        {
+            LOG_DEBUG << "Detecting lb < x < ub constraint, not adding rows" << constr;
+            // Detecting lb < x < ub constraint
+        }
+        else
+        {
+            LOG_DEBUG << "Adding constraint rows ";
+            number_of_constraints_rows += constr->rows();
+            LOG_DEBUG << "Number of rows is now  " << number_of_constraints_rows ;
+        }
+    }
+    LOG_DEBUG << "We are now at  " << data_.H_.rows() << "x" << data_.A_.rows();
+    LOG_DEBUG << "We ask to resize to  " << nvars << "x" << number_of_constraints_rows;
+    qpsolver_->resize(nvars,number_of_constraints_rows);
+}
+
+void Problem::build()
+{
+    //MutexLock lock(this->mutex);
+
+    // Reset H and g
+    data_.reset();
+
+    int iwrench = 0;
+    for(auto task : tasks_)
+    {
+        MutexLock lock(task->mutex);
+
+        int start_idx = index_map_[task->getControlVariable()];
+
+        int nrows = task->getQuadraticCost().rows();
+        int ncols = task->getQuadraticCost().cols();
+
+        if(task->getControlVariable() == ControlVariable::ExternalWrench)
+        {
+             start_idx += iwrench * 6;
+             iwrench++;
+        }
+
+
+        if(start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
+        {
+            if(task->isActivated())
+            {
+                data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
+                data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
+            }
+        }
+        else
+        {
+            // Error
+            task->print();
+            throw std::runtime_error(util::Formatter() << "Task " << task->getName() << " ptr " << task << " << block of size (" << Size(nrows,ncols) << ")"
+                      << "\nCould not fit at index (" << Size(start_idx,start_idx) << ")"
+                      << "\nBecause H size is (" << Size(data_.H_) << ")");
+        }
+    }
+
+    int iAwrench = 0;
+    iwrench = 0;
+    int row_idx = 0;
+    for(auto constr : constraints_)
+    {
+        MutexLock lock(constr->mutex);
+
+        int start_idx = index_map_[constr->getControlVariable()];
+
+        int nrows = constr->rows();
+        int ncols = constr->cols();
+
+        if(constr->getConstraintMatrix().isIdentity())
+        {
+            if(constr->getControlVariable() == ControlVariable::ExternalWrench)
+            {
+                start_idx += iwrench * 6;
+                iwrench++;
+            }
+
+            if(start_idx + nrows <= data_.lb_.size() )
+            {
+                if(constr->isActivated())
+                {
+                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
+                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
+                }
+            }
+            else
+            {
+                // Error
+                throw std::runtime_error(util::Formatter() << "Identity Constraint " << constr->getName() << " ptr " << constr << " is out of band : start_idx + nrows > data_.lb_.size()");
+            }
+        }
+        else
+        {
+            if(constr->getControlVariable() == ControlVariable::ExternalWrench)
+            {
+                start_idx += iAwrench * 6;
+                iAwrench++;
+            }
+
+            if(start_idx + nrows <= data_.lb_.size() )
+            {
+                if(constr->isActivated())
+                {
+                    data_.A_.block(row_idx,start_idx,nrows,ncols) = constr->getConstraintMatrix();
+                    data_.lbA_.segment(row_idx,nrows) = data_.lbA_.segment(row_idx,nrows).cwiseMax(constr->getLowerBound());
+                    data_.ubA_.segment(row_idx,nrows) = data_.ubA_.segment(row_idx,nrows).cwiseMin(constr->getUpperBound());
+                }
+                else
+                {
+                    data_.A_.block(row_idx,start_idx,nrows,ncols).setZero();
+                }
+                // Increment rows in A by the constraint number of rows
+                row_idx += nrows;
+            }
+            else
+            {
+                // Error
+                throw std::runtime_error(util::Formatter() << "Constraint " << constr->getName() << " ptr " << constr << " is out of band : start_idx + nrows > data_.lb_.size()");
+            }
         }
     }
 }

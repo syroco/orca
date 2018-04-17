@@ -1,5 +1,5 @@
 #include "orca/common/TaskBase.h"
-#include "orca/optim/ControlProblem.h"
+#include "orca/optim/WeightedProblem.h"
 
 using namespace orca::common;
 using namespace orca::optim;
