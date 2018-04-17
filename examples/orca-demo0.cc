@@ -139,6 +139,19 @@ int main(int argc, char const *argv[])
 
     problem->setQPSolver( QPSolver::qpOASES );
     problem->print();
+    problem->resize();
+    problem->resize();
+    problem->build();
+
+    if(problem->solve())
+    {
+        std::cout << "Solution : \n\n" << problem->getSolution() << '\n';
+    }
+    else
+    {
+        std::cout << "Could not find solution" << '\n';
+    }
+
 
     return 0;
 }

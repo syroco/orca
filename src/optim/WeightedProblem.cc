@@ -36,7 +36,7 @@ bool Problem::remove(TaskBase* task_base)
     if(isWrench(task_base) && constraintExists(task_base))
     {
         LOG_INFO << "Removing wrench " << task_base->getName();
-        resizeEverybody();
+        resize();
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " not found in problem";
@@ -61,7 +61,7 @@ bool Problem::add(TaskBase* task_base)
     {
         LOG_INFO << "Adding wrench " << task_base->getName();
         wrenches_.push_back(dynamic_cast<Wrench*>(task_base));
-        resizeEverybody();
+        resize();
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " is already in problem";
@@ -220,17 +220,9 @@ void Problem::buildControlVariablesMapping()
     index_map_[    ControlVariable::None                       ] = 0;
 }
 
-void Problem::resizeEverybody()
+void Problem::resizeSolver(int nvar,int nconstr)
 {
-    buildControlVariablesMapping();
-    resizeTasks();
-    resizeConstraints();
-    resizeSolver();
-}
-
-void Problem::resizeSolver()
-{
-
+    qpsolver_->resize(nvar,nconstr);
 }
 
 void Problem::resizeTasks()
@@ -257,14 +249,9 @@ void Problem::resizeConstraints()
     }
 }
 
-void Problem::resize()
+Size Problem::computeSize()
 {
-    LOG_DEBUG << "Problem::resize()";
-    //MutexLock lock(this->mutex);
-
-    LOG_DEBUG << "Checking if we need resising";
-
-    const int nvars = size_map_[ControlVariable::X];
+    const int number_of_variables = size_map_[ControlVariable::X];
     int number_of_constraints_rows = 0;
 
     for(auto constr : constraints_)
@@ -284,9 +271,34 @@ void Problem::resize()
         }
     }
     LOG_DEBUG << "We are now at  " << data_.H_.rows() << "x" << data_.A_.rows();
-    LOG_DEBUG << "We ask to resize to  " << nvars << "x" << number_of_constraints_rows;
-    qpsolver_->resize(nvars,number_of_constraints_rows);
+    LOG_DEBUG << "We ask to resize to  " << number_of_variables << "x" << number_of_constraints_rows;
+    return Size(number_of_variables,number_of_constraints_rows);
 }
+
+void Problem::resizeProblemData(int nvar,int nconstr)
+{
+    data_.resize(nvar,nconstr);
+}
+
+void Problem::resize()
+{
+    Size new_size = computeSize();
+    if(last_size != new_size)
+    {
+        LOG_INFO << "Resizing problem to " << new_size;
+        buildControlVariablesMapping();
+        resizeTasks();
+        resizeConstraints();
+        resizeProblemData(new_size.rows(),new_size.cols());
+        resizeSolver(new_size.rows(),new_size.cols());
+        last_size = new_size;
+    }
+    else
+    {
+        LOG_INFO << "Problem is already resized";
+    }
+}
+
 
 void Problem::build()
 {
@@ -325,8 +337,8 @@ void Problem::build()
             // Error
             task->print();
             throw std::runtime_error(util::Formatter() << "Task " << task->getName() << " ptr " << task << " << block of size (" << Size(nrows,ncols) << ")"
-                      << "\nCould not fit at index (" << Size(start_idx,start_idx) << ")"
-                      << "\nBecause H size is (" << Size(data_.H_) << ")");
+                      << "\nCould not fit at index [" << start_idx << ":" << start_idx << "]"
+                      << " because H size is (" << Size(data_.H_) << ")");
         }
     }
 
@@ -394,4 +406,14 @@ void Problem::build()
             }
         }
     }
+}
+
+bool Problem::solve()
+{
+    return qpsolver_->solve(data_) == 0;
+}
+
+const Eigen::VectorXd& Problem::getSolution() const
+{
+    return data_.primal_solution_;
 }

@@ -100,6 +100,7 @@ public:
     int getSize(ControlVariable var) const;
     int getTotalSize() const;
     void print() const;
+    const Eigen::VectorXd& getSolution() const;
 protected:
     std::list< common::Wrench* > wrenches_;
     std::list< task::GenericTask* > tasks_;
@@ -115,12 +116,14 @@ protected:
     std::shared_ptr<robot::RobotDynTree> robot_;
     std::shared_ptr<QPSolver> qpsolver_;
     ProblemData data_;
+    math::Size last_size;
 private:
-    void resizeEverybody();
+    math::Size computeSize();
     void buildControlVariablesMapping();
     void resizeTasks();
     void resizeConstraints();
-    void resizeSolver();
+    void resizeProblemData(int nvar, int nconstr);
+    void resizeSolver(int nvar,int nconstr);
 };
 
 } // namespace optim
