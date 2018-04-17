@@ -56,10 +56,6 @@ namespace orca
     {
         class GenericConstraint;
     }
-    namespace robot
-    {
-        class RobotDynTree;
-    }
 }
 
 namespace orca
@@ -70,7 +66,7 @@ namespace optim
 class Problem
 {
 public:
-    void resize();
+    void resize(int ndof);
     void build();
     bool solve();
 
@@ -81,7 +77,6 @@ public:
     bool constraintExists(const common::TaskBase* cstr);
     bool wrenchExists(const common::TaskBase* wrench);
 
-    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
     void setQPSolver(QPSolver::SolverType qpsolver_type);
     const std::list< common::Wrench* >& getWrenches() const;
     const std::list< task::GenericTask* >& getTasks() const;
@@ -113,10 +108,10 @@ protected:
     std::map<ControlVariable, unsigned int > index_map_;
     std::map<ControlVariable, unsigned int > size_map_;
 
-    std::shared_ptr<robot::RobotDynTree> robot_;
     std::shared_ptr<QPSolver> qpsolver_;
     ProblemData data_;
-    math::Size last_size;
+    int number_of_variables_ = 0;
+    int number_of_constraints_rows_ = 0;
 private:
     math::Size computeSize();
     void buildControlVariablesMapping();

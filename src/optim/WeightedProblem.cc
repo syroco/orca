@@ -3,13 +3,11 @@
 #include "orca/common/TaskBase.h"
 #include "orca/task/GenericTask.h"
 #include "orca/constraint/GenericConstraint.h"
-#include "orca/robot/RobotDynTree.h"
 
 using namespace orca::common;
 using namespace orca::task;
 using namespace orca::constraint;
 using namespace orca::optim;
-using namespace orca::robot;
 using namespace orca::math;
 
 bool Problem::remove(TaskBase* task_base)
@@ -19,6 +17,8 @@ bool Problem::remove(TaskBase* task_base)
         if(taskExists(task_base))
         {
             LOG_INFO << "Removing task " << task_base->getName();
+            tasks_.erase(std::find(tasks_.begin(),tasks_.end(),task_base));
+            resize(ndof_);
             return true;
         }
         else
@@ -31,12 +31,15 @@ bool Problem::remove(TaskBase* task_base)
     if(isConstraint(task_base) && constraintExists(task_base))
     {
         LOG_INFO << "Removing constraint " << task_base->getName();
+        constraints_.erase(std::find(constraints_.begin(),constraints_.end(),task_base));
+        resize(ndof_);
         return true;
     }
     if(isWrench(task_base) && constraintExists(task_base))
     {
         LOG_INFO << "Removing wrench " << task_base->getName();
-        resize();
+        wrenches_.erase(std::find(wrenches_.begin(),wrenches_.end(),task_base));
+        resize(ndof_);
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " not found in problem";
@@ -49,19 +52,21 @@ bool Problem::add(TaskBase* task_base)
     {
         LOG_INFO << "Adding task " << task_base->getName();
         tasks_.push_back(dynamic_cast<GenericTask*>(task_base));
+        resize(ndof_);
         return true;
     }
     if(isConstraint(task_base) && !constraintExists(task_base))
     {
         LOG_INFO << "Adding constraint " << task_base->getName();
         constraints_.push_back(dynamic_cast<GenericConstraint*>(task_base));
+        resize(ndof_);
         return true;
     }
     if(isWrench(task_base) && !constraintExists(task_base))
     {
         LOG_INFO << "Adding wrench " << task_base->getName();
         wrenches_.push_back(dynamic_cast<Wrench*>(task_base));
-        resize();
+        resize(ndof_);
         return true;
     }
     LOG_ERROR << "Task base " << task_base->getName() << " is already in problem";
@@ -98,17 +103,13 @@ bool Problem::wrenchExists(const TaskBase* task_base)
     return std::find(wrenches_.begin(),wrenches_.end(),task_base) != wrenches_.end();
 }
 
-void Problem::setRobotModel(std::shared_ptr<RobotDynTree> robot)
-{
-    this->robot_ = robot;
-    this->ndof_ = robot->getNrOfDegreesOfFreedom();
-    this->configuration_space_dim_ = this->ndof_ + 6;
-    buildControlVariablesMapping();
-}
-
 void Problem::setQPSolver(QPSolver::SolverType qpsolver_type)
 {
     this->qpsolver_ = std::make_shared<QPSolver>(qpsolver_type);
+    if(this->number_of_variables_ > 0 && this->number_of_constraints_rows_ > 0)
+    {
+        resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
+    }
 }
 
 void Problem::print() const
@@ -222,6 +223,13 @@ void Problem::buildControlVariablesMapping()
 
 void Problem::resizeSolver(int nvar,int nconstr)
 {
+    if(!qpsolver_)
+    {
+        LOG_WARNING << "QPSolver not set yet";
+        return;
+    }
+    LOG_INFO << "Resizing QPSolver to nvars " << this->number_of_variables_
+            << " nconstr " << this->number_of_constraints_rows_;
     qpsolver_->resize(nvar,nconstr);
 }
 
@@ -280,22 +288,41 @@ void Problem::resizeProblemData(int nvar,int nconstr)
     data_.resize(nvar,nconstr);
 }
 
-void Problem::resize()
+void Problem::resize(int ndof)
 {
-    Size new_size = computeSize();
-    if(last_size != new_size)
+    if(ndof <= 0)
     {
-        LOG_INFO << "Resizing problem to " << new_size;
-        buildControlVariablesMapping();
-        resizeTasks();
-        resizeConstraints();
-        resizeProblemData(new_size.rows(),new_size.cols());
-        resizeSolver(new_size.rows(),new_size.cols());
-        last_size = new_size;
+        LOG_DEBUG << "Not resizing because ndof is " << ndof;
+        return;
+    }
+    LOG_DEBUG << "Building control variable mapping with " << ndof << " dof and " << wrenches_.size() << " wrenches";
+    this->ndof_ = ndof;
+    this->configuration_space_dim_ = this->ndof_ + 6;
+    buildControlVariablesMapping();
+
+    if(tasks_.size() && constraints_.size())
+    {
+        Size last_size(this->number_of_variables_,this->number_of_constraints_rows_);
+        Size new_size = computeSize();
+        if(last_size != new_size)
+        {
+            LOG_DEBUG << "Resizing problem to " << new_size;
+            this->number_of_variables_ = new_size.rows();
+            this->number_of_constraints_rows_ = new_size.cols();
+            resizeTasks();
+            resizeConstraints();
+            resizeProblemData(this->number_of_variables_,this->number_of_constraints_rows_);
+            resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
+            last_size = new_size;
+        }
+        else
+        {
+            LOG_DEBUG << "Problem is already resized";
+        }
     }
     else
     {
-        LOG_INFO << "Problem is already resized";
+        LOG_DEBUG << "Not enough tasks or constraints to resize";
     }
 }
 

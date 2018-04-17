@@ -45,8 +45,8 @@ int main(int argc, char const *argv[])
     std::cout << "===== Optimisation problem" << '\n';
 
     auto problem = std::make_shared<Problem>();
-    problem->setRobotModel(robot);
-
+    problem->resize(robot->getNrOfDegreesOfFreedom());
+    
     std::cout << "===== Cartesian Task creation" << '\n';
 
     CartesianTask cart_task;
@@ -139,8 +139,7 @@ int main(int argc, char const *argv[])
 
     problem->setQPSolver( QPSolver::qpOASES );
     problem->print();
-    problem->resize();
-    problem->resize();
+
     problem->build();
 
     if(problem->solve())
