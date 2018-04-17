@@ -10,17 +10,6 @@ CartesianTask::CartesianTask()
 
 }
 
-void CartesianTask::resize()
-{
-    MutexLock lock(this->mutex);
-    
-    const int fulldim = this->problem()->getConfigurationSpaceDimension();
-
-    LOG_DEBUG << "[" << getName() << "] " << "Resizing to 6x" << fulldim;
-
-    EuclidianNorm().resize(6,fulldim);
-}
-
 const std::string& CartesianTask::getBaseFrame() const
 {
     MutexLock lock(this->mutex);
@@ -90,4 +79,15 @@ void CartesianTask::updateAffineFunction()
     cart_acc_bias_ = robot()->getFrameBiasAcc(this->control_frame_);
     // b = dotJ.v - AccDes
     f() = ( cart_acc_bias_ - cart_acc_des_ );
+}
+
+void CartesianTask::resize()
+{
+    MutexLock lock(this->mutex);
+
+    const int fulldim = this->robot()->getConfigurationSpaceDimension();
+
+    LOG_DEBUG << "[" << getName() << "] " << "Resizing to 6x" << fulldim;
+
+    EuclidianNorm().resize(6,fulldim);
 }

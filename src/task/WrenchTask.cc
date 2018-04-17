@@ -35,14 +35,14 @@ const std::string& WrenchTask::getControlFrame() const
 void WrenchTask::setDesired(const Vector6d& wrench_des)
 {
     MutexLock lock(this->mutex);
-    
+
     wrench_des_ = wrench_des;
 }
 
 void WrenchTask::setCurrent(const Vector6d& wrench_curr)
 {
     MutexLock lock(this->mutex);
-    
+
     wrench_.setCurrent(wrench_curr);
 }
 
@@ -64,8 +64,8 @@ void WrenchTask::updateAffineFunction()
 void WrenchTask::resize()
 {
     MutexLock lock(this->mutex);
-    
-    int fulldim = this->problem()->getConfigurationSpaceDimension(); // ndof + 6
+
+    int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6
     EuclidianNorm().resize(6,fulldim);
     E().setIdentity();
 }

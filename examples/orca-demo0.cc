@@ -131,7 +131,6 @@ int main(int argc, char const *argv[])
     std::cout << "==== Regularisation" << '\n';
 
     RegularisationTask<ControlVariable::X> reg_task; // whole vector
-
     reg_task.setName("reg_task");
     reg_task.setRobotModel(robot);
     reg_task.setProblem(problem);

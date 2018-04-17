@@ -82,7 +82,7 @@ public:
     bool wrenchExists(const common::TaskBase* wrench);
 
     void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
-    void setQPSolver(orca::optim::QPSolver::SolverType qpsolver_type);
+    void setQPSolver(QPSolver::SolverType qpsolver_type);
     const std::list< common::Wrench* >& getWrenches() const;
     const std::list< task::GenericTask* >& getTasks() const;
     const std::list< constraint::GenericConstraint* >& getConstraints() const;
@@ -113,7 +113,7 @@ protected:
     std::map<ControlVariable, unsigned int > size_map_;
 
     std::shared_ptr<robot::RobotDynTree> robot_;
-    std::shared_ptr<optim::QPSolver> qpsolver_;
+    std::shared_ptr<QPSolver> qpsolver_;
     ProblemData problem_data_;
 private:
     void resizeEverybody();

@@ -58,7 +58,7 @@ void ContactExistenceConditionConstraint::resize()
 {
     MutexLock lock(this->mutex);
 
-    const int fulldim = this->problem()->getConfigurationSpaceDimension();
+    const int fulldim = this->robot()->getConfigurationSpaceDimension();
 
     if(constraintFunction().cols() != fulldim)
     {
