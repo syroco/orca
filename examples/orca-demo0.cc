@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
 
     auto problem = std::make_shared<Problem>();
     problem->resize(robot->getNrOfDegreesOfFreedom());
-    
+
     std::cout << "===== Cartesian Task creation" << '\n';
 
     CartesianTask cart_task;
@@ -136,6 +136,16 @@ int main(int argc, char const *argv[])
     reg_task.setProblem(problem);
     reg_task.EuclidianNorm().setWeight(1E-3);
     reg_task.update();
+
+    orca::optim::Controller controller;//(Problem::Weighted , QPSolver::qpOASES);
+    controller.add(&cart_task);
+    controller.add(&reg_task);
+    controller.add(&dyn_cstr);
+    controller.add(&jnt_pos_cstr);
+    controller.add(&jnt_vel_cstr);
+
+    controller.update(0,0.001);
+    const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
 
     problem->setQPSolver( QPSolver::qpOASES );
     problem->print();

@@ -32,27 +32,44 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
-#include "orca/robot/RobotDynTree.h"
-
-#include "orca/math/Utils.h"
 #include "orca/util/Utils.h"
+#include "orca/util/Logger.h"
+#include "orca/optim/ControlVariable.h"
+#include "orca/optim/WeightedProblem.h"
+#include "orca/optim/QPSolver.h"
+#include <map>
+#include <list>
 
-#include "orca/common/CartesianAccelerationPID.h"
-#include "orca/common/PIDController.h"
-#include "orca/common/Wrench.h"
+namespace orca
+{
+namespace optim
+{
+    class Controller
+    {
+    public:
+        Controller()
+        {}
+        void update(double current_time, double dt)
+        {
 
-#include "orca/constraint/DynamicsEquationConstraint.h"
-//#include "orca/constraint/Contact.h"
-#include "orca/constraint/JointPositionLimitConstraint.h"
-#include "orca/constraint/JointVelocityLimitConstraint.h"
-#include "orca/constraint/JointAccelerationLimitConstraint.h"
-#include "orca/constraint/JointTorqueLimitConstraint.h"
+        }
+        bool add(common::TaskBase* task_base)
+        {
 
-#include "orca/optim/Controller.h"
+        }
+        bool remove(orca::common::TaskBase* task_base)
+        {
 
-#include "orca/task/CartesianTask.h"
-//#include "orca/task/JointAccelerationTask.h"
-//#include "orca/task/JointTorqueTask.h"
-#include "orca/task/RegularisationTask.h"
-//#include "orca/task/WrenchTask.h"
+        }
+        const Eigen::VectorXd& getJointTorqueCommand()
+        {
+            
+        }
+        const Eigen::VectorXd& getJointAccelerationCommand()
+        {
+
+        }
+
+    };
+} // namespace optim
+} //namespace orca
