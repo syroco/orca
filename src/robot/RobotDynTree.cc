@@ -1,6 +1,5 @@
 #include "orca/robot/RobotDynTree.h"
 #include "orca/util/Utils.h"
-
 #include "iDynTreeImpl.impl"
 #include <exception>
 #include <stdexcept>
@@ -17,7 +16,10 @@ RobotDynTree::RobotDynTree(const std::string& modelFile)
 
 bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
 {
-    bool ok = kinDynComp_.loadRobotModelFromFile(modelFile);
+    iDynTree::ModelLoader mdlLoader;
+    mdlLoader.loadModelFromFile(modelFile);
+
+    bool ok = kinDynComp_.loadRobotModel(mdlLoader.model());
     if( !ok || getNrOfDegreesOfFreedom() == 0 )
     {
         throw std::runtime_error("Could not load robot model");
@@ -236,6 +238,16 @@ const Eigen::VectorXd& RobotDynTree::getJointVel()
 {
     return eigRobotState_.jointVel;
 }
+
+
+bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
+{
+    iDynTree::Transform idyntree_link_H_frame;
+    iDynTree::fromEigen(idyntree_link_H_frame,link_H_frame);
+    auto model = this->kinDynComp_.model();
+    return model.addAdditionalFrameToLink(linkName,frameName,idyntree_link_H_frame);
+}
+
 
 const Eigen::VectorXd& RobotDynTree::generalizedBiasForces()
 {
