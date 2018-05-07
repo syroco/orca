@@ -76,14 +76,15 @@ namespace optim
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot)
         {
             robot_ = robot;
+            resizeAll();
         }
 
         void update(double current_time, double dt)
         {
             if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
             {
-                updateTasks();
-                updateConstraints();
+                updateTasks(current_time,dt);
+                updateConstraints(current_time,dt);
                 problem_->build();
                 problem_->print();
                 problem_->solve();
@@ -187,7 +188,7 @@ namespace optim
             }
         }
         
-        void updateTasks()
+        void updateTasks(double current_time, double dt)
         {
             for(auto t : tasks_)
             {
@@ -199,10 +200,11 @@ namespace optim
                                 << " (control var " << t->getControlVariable()
                                 << " should be " << cv << " but is " << t->cols());
                 }
+                t->update(current_time,dt);
             }
         }
         
-        void updateConstraints()
+        void updateConstraints(double current_time, double dt)
         {
             for(auto c : constraints_)
             {
@@ -214,6 +216,7 @@ namespace optim
                                 << " (control var " << c->getControlVariable()
                                 << " should be " << cv << " but is " << c->cols());
                 }
+                c->update(current_time,dt);
             }
         }       
         void updateWrenches()
