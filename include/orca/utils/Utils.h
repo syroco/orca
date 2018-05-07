@@ -237,12 +237,8 @@ void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Deriv
 {
     if(a.cols() == b.cols() && a.rows() == b.rows())
         return;
-    throw std::length_error(Formatter() << "Size mismatched, provided (" << a.rows() << " , " << a.cols() << "), but expected (" << a.rows() << " , " << a.cols() << ")");
+    throw std::length_error(Formatter() << "Size mismatched, provided size (" << a.rows() << " , " << a.cols() << "), but have size (" << b.rows() << " , " << b.cols() << ")");
 }
-
-
-
-
 
 } // namespace utils
 } // namespace orca

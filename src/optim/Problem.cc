@@ -24,7 +24,10 @@ Problem::~Problem()
 
 void Problem::print() const
 {
-    std::cout << "WeightedProblem objects : " << std::endl;
+    std::cout << "Problem data : " << std::endl;
+    data_.print();
+    std::cout << std::endl;
+    std::cout << "Problem objects : " << std::endl;
     std::cout << "      Tasks" << std::endl;
     for(auto t : this->tasks_)
     {
@@ -56,7 +59,7 @@ void Problem::print() const
     }
 }
 
-const std::list< std::shared_ptr<Wrench> >& Problem::getWrenches() const
+const std::list< std::shared_ptr< const Wrench> >& Problem::getWrenches() const
 {
     return wrenches_;
 }
@@ -87,18 +90,18 @@ unsigned int Problem::computeNumberOfConstraintRows( std::list<std::shared_ptr<G
     {
         if(constr->getConstraintMatrix().isIdentity())
         {
-            //LOG_DEBUG << "Detecting lb < x < ub constraint, not adding rows" << constr;
+            LOG_DEBUG << "For constraint " << constr->getName() << " : detecting lb < x < ub constraint, not adding rows";
             // Detecting lb < x < ub constraint
         }
         else
         {
-            //LOG_DEBUG << "Adding constraint rows ";
+            LOG_DEBUG << "For constraint " << constr->getName() << " : adding constraint " << constr->rows() << " rows";
             number_of_constraints_rows += constr->rows();
-            //LOG_DEBUG << "Number of rows is now  " << number_of_constraints_rows ;
+            LOG_DEBUG << "For constraint " << constr->getName() << " : number of constraint rows is now  " << number_of_constraints_rows ;
         }
     }
     //LOG_DEBUG << "We are now at  " << data_.H_.rows() << "x" << data_.A_.rows();
-    //LOG_DEBUG << "We ask to resize to  " << number_of_variables << "x" << number_of_constraints_rows;
+    LOG_DEBUG << "Total number of constraint rows : " << number_of_constraints_rows;
     return number_of_constraints_rows;
 }
 
@@ -111,12 +114,12 @@ void Problem::setProblemObjects(
     int ndof
     , std::list< std::shared_ptr< GenericTask > > tasks
     , std::list< std::shared_ptr< GenericConstraint > > constraints
-    , std::list< std::shared_ptr< Wrench > > wrenches
+    , std::list< std::shared_ptr< const Wrench > > wrenches
 )
 {
-    this->tasks_ = tasks_;
-    this->constraints_ = constraints_;
-    this->wrenches_ = wrenches_;
+    this->tasks_ = tasks;
+    this->constraints_ = constraints;
+    this->wrenches_ = wrenches;
 
     this->number_of_variables_ = this->mapping_.generate(ndof,wrenches_.size());
     this->number_of_constraints_rows_ = computeNumberOfConstraintRows(constraints_);

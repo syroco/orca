@@ -53,6 +53,11 @@ void WrenchTask::update(double current_time, double dt)
     f() = - pid_.computeCommand( wrench_->getCurrentValue() - wrench_des_ , dt);
 }
 
+std::shared_ptr<const Wrench> WrenchTask::getWrench() const
+{
+    return wrench_;
+}
+
 void WrenchTask::resize()
 {
     wrench_->resize();

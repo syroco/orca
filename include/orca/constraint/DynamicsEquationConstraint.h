@@ -49,7 +49,7 @@ public:
     void resize();
     void updateConstraintFunction(double current_time, double dt);
 protected:
-    std::list< std::shared_ptr<common::Wrench> > wrenches_;
+    std::list< std::shared_ptr< const common::Wrench> > wrenches_;
     std::map<optim::ControlVariable, unsigned int > idx_map_;
     std::map<optim::ControlVariable, unsigned int > size_map_;
     int ndof_ = 0,fulldim_ = 0;

@@ -1,10 +1,12 @@
 #include "orca/constraint/JointLimitConstraint.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/math/Utils.h"
+#include "orca/utils/Utils.h"
 
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::common;
+using namespace orca::utils;
 
 JointLimitConstraint::JointLimitConstraint(const std::string& name,ControlVariable control_var)
 : GenericConstraint(name,control_var)
@@ -12,6 +14,8 @@ JointLimitConstraint::JointLimitConstraint(const std::string& name,ControlVariab
 
 void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max)
 {
+    assertSize(min,min_);
+    assertSize(max,max_);
     min_ = min;
     max_ = max;
 }
@@ -40,8 +44,8 @@ void JointLimitConstraint::resize()
         constraintFunction().resize(dim,dim);
         constraintFunction().constraintMatrix().setIdentity();
 
-        min_.resize(dim);
-        max_.resize(dim);
+        min_.conservativeResize(dim);
+        max_.conservativeResize(dim);
 
         math::setToLowest(min_);
         math::setToHighest(max_);

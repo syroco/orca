@@ -67,6 +67,7 @@ public:
 
     common::PIDController<6>& pid();
 
+    std::shared_ptr<const common::Wrench> getWrench() const;
 protected:
     std::shared_ptr<common::Wrench> wrench_;
     Vector6d wrench_des_;

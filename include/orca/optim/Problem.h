@@ -73,14 +73,14 @@ public:
 
     void setProblemObjects(
         int ndof
-        , std::list< std::shared_ptr< task::GenericTask> > tasks
-        , std::list< std::shared_ptr< constraint::GenericConstraint> > constraints
-        , std::list< std::shared_ptr< common::Wrench> > wrenches);
+        , std::list< std::shared_ptr< orca::task::GenericTask > > tasks
+        , std::list< std::shared_ptr< orca::constraint::GenericConstraint > > constraints
+        , std::list< std::shared_ptr< const orca::common::Wrench > > wrenches );
 
     void build();
     bool solve();
 
-    const std::list< std::shared_ptr< common::Wrench> >& getWrenches() const;
+    const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
     const std::list< std::shared_ptr< constraint::GenericConstraint> >& getConstraints() const;
 
@@ -92,7 +92,7 @@ public:
     void print() const;
     const Eigen::VectorXd& getSolution() const;
 protected:
-    std::list< std::shared_ptr<common::Wrench> > wrenches_;
+    std::list< std::shared_ptr< const common::Wrench > > wrenches_;
     std::list< std::shared_ptr<task::GenericTask> > tasks_;
     std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
 

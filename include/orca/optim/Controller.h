@@ -42,7 +42,9 @@
 #include "orca/common/Wrench.h"
 #include "orca/common/TaskBase.h"
 #include "orca/task/GenericTask.h"
+#include "orca/task/WrenchTask.h"
 #include "orca/constraint/GenericConstraint.h"
+#include "orca/constraint/Contact.h"
 #include <map>
 #include <list>
 
@@ -57,9 +59,14 @@ namespace optim
             ,ResolutionStrategy resolution_strategy
             ,QPSolver::SolverType solver_type)
         : robot_(robot)
+        , resolution_strategy_(resolution_strategy)
         {
+            if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
+            {
+                throw std::runtime_error(utils::Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
+            }
             // Push at least One Level
-            problems_.push_back(std::make_shared<Problem>(solver_type));
+            problem_ = std::make_shared<Problem>(solver_type);
         }
         std::shared_ptr<robot::RobotDynTree> robot()
         {
@@ -73,25 +80,56 @@ namespace optim
 
         void update(double current_time, double dt)
         {
-            // Checking size
-            // int cv = this->problem()->getSize(this->getControlVariable());
-            // if(this->cols() != cv)
-            // {
-            //     throw std::runtime_error(Formatter() << "Size of task " << getName()
-            //                 << " (control var " << this->getControlVariable()
-            //                 << " should be " << cv << " but is " << this->cols());
-            // }
+            if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
+            {
+                updateTasks();
+                updateConstraints();
+                problem_->build();
+                problem_->print();
+                problem_->solve();
+            }
         }
+        
         bool addTask(std::shared_ptr<task::GenericTask> task)
         {
             if(!exists(task,tasks_))
             {
+                task->setRobotModel(robot_);
+                task->setProblem(problem_);
+                LOG_INFO << "Adding task " << task->getName();
                 tasks_.push_back(task);
+                resizeAll();
+                return true;
+            }
+            else
+            {
+                LOG_WARNING << "Task " << task->getName() << " is already present in the controller";
+                return false;
             }
         }
+        
+        bool addTask(std::shared_ptr<task::WrenchTask> task)
+        {
+            addWrench(task->getWrench());
+            addTask(task);
+        }
+        
         bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
         {
-
+            if(!exists(cstr,constraints_))
+            {
+                cstr->setRobotModel(robot_);
+                cstr->setProblem(problem_);
+                LOG_INFO << "Adding constraint " << cstr->getName();
+                constraints_.push_back(cstr);
+                resizeAll();
+                return true;
+            }
+            else
+            {
+                LOG_WARNING << "Constraint " << cstr->getName() << " is already present in the controller";
+                return false;
+            }
         }
 
         const Eigen::VectorXd& getJointTorqueCommand()
@@ -102,15 +140,41 @@ namespace optim
         {
 
         }
+    protected:
+        bool addWrench(std::shared_ptr<const common::Wrench> wrench)
+        {
+            if(!exists(wrench,wrenches_))
+            {
+                LOG_INFO << "Adding Wrench " << wrench->getName();
+                wrenches_.push_back(wrench);
+                resizeAll();
+                return true;
+            }
+            else
+            {
+                LOG_WARNING << "Wrench " << wrench->getName() << " is already present in the controller";
+                return false;
+            }
+        }
+        
+        void resizeAll()
+        {
+            resizeProblem();
+            resizeTasks();
+            resizeConstraints();
+        }
+        
+        void resizeProblem()
+        {
+            problem_->setProblemObjects(robot_->getNrOfDegreesOfFreedom(),tasks_,constraints_,wrenches_);
+        }
+        
         void resizeTasks()
         {
             for(auto task : tasks_)
             {
-                if(task->getControlVariable() == ControlVariable::X)
-                {
-                    LOG_DEBUG << "Resizing task " << task->getName();
-                    task->resize();
-                }
+                LOG_DEBUG << "Resizing task " << task->getName();
+                task->resize();
             }
         }
 
@@ -118,26 +182,69 @@ namespace optim
         {
             for(auto constr : constraints_)
             {
-                if(constr->getControlVariable() == ControlVariable::X)
+                LOG_DEBUG << "Resizing constraint " << constr->getName();
+                constr->resize();
+            }
+        }
+        
+        void updateTasks()
+        {
+            for(auto t : tasks_)
+            {
+                // Checking size
+                int cv = problem_->getSize(t->getControlVariable());
+                if(t->cols() != cv)
                 {
-                    LOG_DEBUG << "Resizing constraint " << constr->getName();
-                    constr->resize();
+                    throw std::runtime_error(utils::Formatter() << "Size of task " << t->getName()
+                                << " (control var " << t->getControlVariable()
+                                << " should be " << cv << " but is " << t->cols());
                 }
             }
         }
-    protected:
+        
+        void updateConstraints()
+        {
+            for(auto c : constraints_)
+            {
+                // Checking size
+                int cv = problem_->getSize(c->getControlVariable());
+                if(c->cols() != cv)
+                {
+                    throw std::runtime_error(utils::Formatter() << "Size of constraint " << c->getName()
+                                << " (control var " << c->getControlVariable()
+                                << " should be " << cv << " but is " << c->cols());
+                }
+            }
+        }       
+        void updateWrenches()
+        {
+            for(auto w : wrenches_)
+            {
+                // Checking size
+                int cv = problem_->getSize(w->getControlVariable());
+                int cols = w->getJacobian().cols();
+                if(cols != cv)
+                {
+                    throw std::runtime_error(utils::Formatter() << "Size of Wrench " << w->getName()
+                                << " (control var " << w->getControlVariable()
+                                << " should be " << cv << " but is " << cols);
+                }
+            }
+        }          
         template<class T> bool exists(const std::shared_ptr<T> t, std::list< std::shared_ptr<T> > l){
             return std::find(l.begin(),l.end(),t) != l.end();
         }
         std::list< std::shared_ptr<task::GenericTask> > tasks_;
         std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
-        std::list< std::shared_ptr<common::Wrench> > wrenches_;
+        std::list< std::shared_ptr<const common::Wrench> > wrenches_;
 
-        std::list< std::shared_ptr<optim::Problem> > problems_;
+        std::shared_ptr<optim::Problem> problem_;
         std::shared_ptr<robot::RobotDynTree> robot_;
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd joint_acceleration_command_;
+        
+        ResolutionStrategy resolution_strategy_;
     };
 } // namespace optim
 } //namespace orca

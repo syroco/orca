@@ -124,7 +124,7 @@ bool TaskBase::isActivated() const
 // }
 
 
-bool TaskBase::setProblem(std::shared_ptr<Problem> problem)//, bool insert)
+bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)//, bool insert)
 {
     if(!problem)
     {
@@ -144,7 +144,7 @@ bool TaskBase::setProblem(std::shared_ptr<Problem> problem)//, bool insert)
     return true;
 }
 
-std::shared_ptr<Problem> TaskBase::problem()
+std::shared_ptr<const Problem> TaskBase::problem()
 {
     return problem_;
 }

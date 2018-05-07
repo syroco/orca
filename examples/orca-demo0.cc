@@ -40,10 +40,18 @@ int main(int argc, char const *argv[])
     eigState.jointVel.setZero();
     // Set the first state to the robot
     robot->setRobotState(eigState.jointPos,eigState.jointVel); // Now is the robot is considered 'initialized'
-
     robot->isInitialized(); // --> returns true
 
+    // Instanciate and ORCA Controller
+    orca::optim::Controller controller(
+        robot
+        ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
+        ,QPSolver::qpOASES
+    );
+    
+    
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); // We want to control the link_7
 
     Eigen::Affine3d cart_pos_ref;
@@ -72,35 +80,30 @@ int main(int argc, char const *argv[])
     //cart_task->setServo(std::bind(CartesianAccelerationPID::getCommand,cart_acc_pid));
 
     auto dynamics_equation = std::make_shared<DynamicsEquationConstraint>("DynamicsEquation");
-
+    controller.addConstraint(dynamics_equation);
+    
     const int ndof = robot->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
+    controller.addConstraint(jnt_trq_cstr);
     Eigen::VectorXd jntTrqMax(ndof);
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax); // because not read in the URDF for now
 
     auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
-
+    controller.addConstraint(jnt_pos_cstr);
+    
     auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
+    controller.addConstraint(jnt_vel_cstr);
     Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
 
     auto global_regularisation = std::make_shared< RegularisationTask<ControlVariable::X> >("global_regularisation"); // whole vector
+    controller.addTask(global_regularisation);
     global_regularisation->euclidianNorm().setWeight(1E-3);
 
-    orca::optim::Controller controller(
-        robot
-        ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
-        ,QPSolver::qpOASES
-    );
-    controller.addTask(cart_task);
-    controller.addTask(global_regularisation);
-    controller.addConstraint(dynamics_equation);
-    controller.addConstraint(jnt_pos_cstr);
-    controller.addConstraint(jnt_vel_cstr);
-
+    
     controller.update(0,0.001);
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
 

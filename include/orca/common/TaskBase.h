@@ -85,7 +85,7 @@ namespace common
         *
         * @return bool
         */
-        virtual bool setProblem(std::shared_ptr< orca::optim::Problem > problem);//, bool insert = true);
+        virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);//, bool insert = true);
         // virtual bool insertInProblem();
         // virtual bool removeFromProblem();
 
@@ -102,7 +102,7 @@ namespace common
         mutable common::MutexRecursive mutex;
 
         std::shared_ptr<robot::RobotDynTree> robot();
-        std::shared_ptr<optim::Problem> problem();
+        std::shared_ptr<const optim::Problem> problem();
 
         bool hasProblem() const;
         bool hasRobot() const;
@@ -111,9 +111,12 @@ namespace common
     private:
         bool is_activated_ = true;
         std::string name_;
-        std::shared_ptr<optim::Problem> problem_;
+        std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotDynTree> robot_;
         optim::ControlVariable control_var_;
+        //unsigned int getHierarchicalLevel() const;
+        //void getHierarchicalLevel(unsigned int level);
+        //unsigned int hierarchical_level = 0;
     };
 } // namespace common
 } // namespace orca
