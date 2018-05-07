@@ -6,16 +6,19 @@ using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::common;
 
-GenericConstraint::GenericConstraint(ControlVariable control_var)
-: TaskBase(control_var)
+GenericConstraint::GenericConstraint(const std::string& name,ControlVariable control_var)
+: TaskBase(name,control_var)
 {
 
 }
 
+GenericConstraint::~GenericConstraint()
+{
+    
+}
+
 void GenericConstraint::print() const
 {
-    MutexLock lock(this->mutex);
-
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - Size " << getSize() << '\n';
     std::cout << " - Variable  " << getControlVariable() << '\n';
@@ -27,51 +30,33 @@ void GenericConstraint::print() const
     //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
-GenericConstraint::~GenericConstraint()
-{
-    // This cannot be in TaskBase because when invoking the destructor 'this' is actually a taskBase
-    removeFromProblem();
-}
-
 Size GenericConstraint::getSize() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.getSize();
 }
 
 int GenericConstraint::rows() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.rows();
 }
 
 int GenericConstraint::cols() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.cols();
 }
 
 const Eigen::VectorXd& GenericConstraint::getLowerBound() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.getLowerBound();
 }
 
 const Eigen::VectorXd& GenericConstraint::getUpperBound() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.getUpperBound();
 }
 
 const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_.getConstraintMatrix();
 }
 
@@ -112,25 +97,21 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
-    MutexLock lock(this->mutex);
-
     return constraint_function_;
 }
 
-void GenericConstraint::update()
+void GenericConstraint::update(double current_time, double dt)
 {
-    MutexTryLock lock(this->mutex);
+    // if(!lock.isSuccessful())
+    // {
+    //     //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
+    //     return;
+    // }
 
-    if(!lock.isSuccessful())
-    {
-        //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
-        return;
-    }
-    
     this->printStateIfErrors();
-    
+
     if(isInitialized())
     {
-        updateConstraintFunction();
+        updateConstraintFunction(current_time,dt);
     }
 }

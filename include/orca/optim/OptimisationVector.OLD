@@ -70,7 +70,7 @@ namespace optim
 
         void print() const;
 
-        const std::list<common::Wrench *>& getWrenches() const;
+        const std::list<common::WrenchTaskBase *>& getWrenches() const;
         const std::list<task::GenericTask *>& getTasks() const;
         const std::list<common::TaskBase *>& getAllCommons() const;
         const std::list<common::TaskBase *>& getAllCreatedObjects() const;
@@ -106,7 +106,7 @@ namespace optim
         std::map<ControlVariable, unsigned int > idx_map_;
         std::map<ControlVariable, unsigned int > size_map_;
 
-        std::list<common::Wrench *> wrenches_;
+        std::list<common::WrenchTaskBase *> wrenches_;
         std::list<common::TaskBase *> commons_;
         std::list<common::TaskBase *> objs_created_;
 

@@ -6,30 +6,33 @@ using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::common;
 
-JointLimitConstraint::JointLimitConstraint(ControlVariable control_var)
-: GenericConstraint(control_var)
+JointLimitConstraint::JointLimitConstraint(const std::string& name,ControlVariable control_var)
+: GenericConstraint(name,control_var)
 {}
 
 void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max)
 {
-    MutexLock lock(this->mutex);
-
     min_ = min;
     max_ = max;
 }
 
-void JointLimitConstraint::updateConstraintFunction()
+void JointLimitConstraint::updateConstraintFunction(double current_time, double dt)
 {
-    MutexLock lock(this->mutex);
-
     constraintFunction().lowerBound() = min_ ;
     constraintFunction().upperBound() = max_ ;
 }
 
+Eigen::VectorXd& JointLimitConstraint::minLimit()
+{
+    return min_;
+}
+Eigen::VectorXd& JointLimitConstraint::maxLimit()
+{
+    return max_;
+}
+
 void JointLimitConstraint::resize()
 {
-    MutexLock lock(this->mutex);
-
     const int dim = this->robot()->getNrOfDegreesOfFreedom();
 
     if(min_.size() != dim || max_.size() != dim)

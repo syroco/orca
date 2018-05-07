@@ -6,12 +6,12 @@ using namespace orca::task;
 using namespace orca::constraint;
 using namespace orca::robot;
 using namespace orca::math;
-using namespace orca::util;
+using namespace orca::utils;
 
 int main(int argc, char const *argv[])
 {
 
-    orca::util::Logger::parseArgv( argc, argv );
+    orca::utils::Logger::parseArgv( argc, argv );
 
     if(argc < 2)
     {
@@ -192,13 +192,13 @@ int main(int argc, char const *argv[])
     wrench_reg_task3.setRobotModel(robot);
     wrench_reg_task4.setRobotModel(robot);
 
-    reg_task.EuclidianNorm().setWeight(1E-3);
-    acc_reg_task.EuclidianNorm().setWeight(1E-3);
-    trq_reg_task.EuclidianNorm().setWeight(1E-3);
-    wrench_reg_task1.EuclidianNorm().setWeight(1E-3);
-    wrench_reg_task2.EuclidianNorm().setWeight(1E-3);
-    wrench_reg_task3.EuclidianNorm().setWeight(1E-3);
-    wrench_reg_task4.EuclidianNorm().setWeight(1E-3);
+    reg_task.euclidianNorm().setWeight(1E-3);
+    acc_reg_task.euclidianNorm().setWeight(1E-3);
+    trq_reg_task.euclidianNorm().setWeight(1E-3);
+    wrench_reg_task1.euclidianNorm().setWeight(1E-3);
+    wrench_reg_task2.euclidianNorm().setWeight(1E-3);
+    wrench_reg_task3.euclidianNorm().setWeight(1E-3);
+    wrench_reg_task4.euclidianNorm().setWeight(1E-3);
 
     reg_task.update();
     acc_reg_task.update();

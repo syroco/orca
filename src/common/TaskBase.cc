@@ -1,12 +1,14 @@
 #include "orca/common/TaskBase.h"
-#include "orca/optim/WeightedProblem.h"
+#include "orca/utils/Utils.h"
 
 using namespace orca::common;
 using namespace orca::optim;
 using namespace orca::robot;
+using namespace orca::utils;
 
-TaskBase::TaskBase(ControlVariable control_var)
+TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 : control_var_(control_var)
+, name_(name)
 {
 }
 
@@ -23,40 +25,33 @@ TaskBase::~TaskBase()
 //                 , const Eigen::Vector3d& gravity)
 // {
 //     MutexLock lock(this->mutex);
-// 
+//
 //     robot_->setRobotState(world_H_base,jointPos,baseVel,jointVel,gravity);
 // }
 
 void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
-    MutexLock lock(this->mutex);
-
     if(robot)
     {
         if(robot->getNrOfDegreesOfFreedom() <= 0)
         {
-            throw std::runtime_error("Robot does not seem to have any DOF");
+            throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot does not seem to have any DOF");
         }
 
         robot_ = robot;
-        if(problem_)
-            this->resize();
     }
     else
     {
-        throw std::runtime_error("Robot pointer is null");
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is null");
     }
 }
 
 bool TaskBase::loadRobotModel(const std::string& file_url)
 {
-    MutexLock lock(this->mutex);
-
     if(!robot_->loadModelFromFile(file_url))
     {
-        throw std::runtime_error("Could not load robot model");
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Could not load robot model");
     }
-    this->resize();
     return true;
 }
 
@@ -65,17 +60,8 @@ ControlVariable TaskBase::getControlVariable() const
     return control_var_;
 }
 
-void TaskBase::setName(const std::string& name)
-{
-    MutexLock lock(this->mutex);
-
-    name_ = name;
-}
-
 const std::string& TaskBase::getName() const
 {
-    MutexLock lock(this->mutex);
-
     return name_;
 }
 
@@ -86,8 +72,6 @@ std::shared_ptr<RobotDynTree> TaskBase::robot()
 
 bool TaskBase::activate()
 {
-    MutexLock lock(this->mutex);
-
     if(is_activated_)
     {
         LOG_WARNING << "[" << TaskBase::getName() << "] " << "Already activated";
@@ -104,8 +88,6 @@ bool TaskBase::activate()
 
 bool TaskBase::desactivate()
 {
-    MutexLock lock(this->mutex);
-
     if(!is_activated_)
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Contact already desactivated ";
@@ -120,49 +102,45 @@ bool TaskBase::desactivate()
 
 bool TaskBase::isActivated() const
 {
-    MutexLock lock(this->mutex);
-
     return is_activated_;
 }
 
-bool TaskBase::insertInProblem()
+// bool TaskBase::insertInProblem()
+// {
+//     if(hasProblem())
+//     {
+//         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Inserting task in problem";
+//         return problem_->add(this);
+//     }
+//
+//     throw std::runtime_error("Problem is not set");
+// }
+//
+// bool TaskBase::removeFromProblem()
+// {
+//     if(hasProblem())
+//         return problem_->remove(this);
+//     return false;
+// }
+
+
+bool TaskBase::setProblem(std::shared_ptr<Problem> problem)//, bool insert)
 {
-    if(hasProblem())
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Inserting task in problem";
-        return problem_->add(this);
-    }
-
-    throw std::runtime_error("Problem is not set");
-}
-
-bool TaskBase::removeFromProblem()
-{
-    if(hasProblem())
-        return problem_->remove(this);
-    return false;
-}
-
-
-bool TaskBase::setProblem(std::shared_ptr<Problem> problem, bool insert)
-{
-    MutexLock lock(this->mutex);
-    
     if(!problem)
     {
-        throw std::runtime_error(util::Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
     }
-    
+
     if(hasProblem())
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Problem is already set, NOT overriding";
+        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Problem is already set, replacing existing problem by the new one";
         return false;
     }
     this->problem_ = problem;
-    if(robot_)
-        this->resize();
-    if(insert)
-        problem_->add(this);
+    // if(robot_)
+    //     this->resize();
+    // if(insert)
+    //     problem_->add(this);
     return true;
 }
 
@@ -177,12 +155,12 @@ void TaskBase::printStateIfErrors() const
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Robot is not loaded";
     }
-    
+
     if(!robot_->isInitialized())
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Robot is not initialised (first state not set)";
     }
-    
+
     if(!hasProblem())
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Problem is not set";
@@ -191,8 +169,6 @@ void TaskBase::printStateIfErrors() const
 
 bool TaskBase::isInitialized() const
 {
-    MutexLock lock(this->mutex);
-    
     return hasProblem() && hasRobot() && robot_->isInitialized();
 }
 
@@ -205,4 +181,3 @@ bool TaskBase::hasRobot() const
 {
     return static_cast<bool>(robot_);
 }
-

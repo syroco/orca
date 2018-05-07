@@ -1,13 +1,16 @@
 #include "orca/robot/RobotDynTree.h"
-#include "orca/util/Utils.h"
-#include "iDynTreeImpl.impl"
+#include "orca/utils/Utils.h"
+#include "orca/math/Utils.h"
+// #include "iDynTreeImpl.impl"
 #include <exception>
 #include <stdexcept>
 
 using namespace orca::robot;
+using namespace orca::utils;
+using namespace orca::math;
 
 RobotDynTree::RobotDynTree(const std::string& modelFile)
-: robot_impl_(new iDynTreeImpl)
+// : robot_impl_(new iDynTreeImpl)
 {
     global_gravity_vector_.setZero();
     if(!modelFile.empty())
@@ -22,7 +25,7 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
     bool ok = kinDynComp_.loadRobotModel(mdlLoader.model());
     if( !ok || getNrOfDegreesOfFreedom() == 0 )
     {
-        throw std::runtime_error("Could not load robot model");
+        throw std::runtime_error(Formatter() << "Could not load model from urdf file \'" << modelFile << "\'");
         return false;
     }
 
@@ -33,20 +36,35 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
     robotData_.resize(model);
     eigRobotState_.resize(model.getNrOfDOFs());
     idynRobotState_.resize(model.getNrOfDOFs());
-    eigRobotState_.setFixedBase();
+    eigRobotState_.setFixedBaseValues();
 
     for(unsigned int i = 0 ; i < kinDynComp_.getNrOfDegreesOfFreedom() ; i++)
     {
         double min = 0,max = 0;
         if(kinDynComp_.model().getJoint(i)->hasPosLimits())
         {
-            min = kinDynComp_.model().getJoint(i)->getMinPosLimit(0);
-            max = kinDynComp_.model().getJoint(i)->getMaxPosLimit(0);
+            robotData_.eigMinJointPos[i] = kinDynComp_.model().getJoint(i)->getMinPosLimit(0);
+            robotData_.eigMaxJointPos[i] = kinDynComp_.model().getJoint(i)->getMaxPosLimit(0);
             joint_pos_limits_[i] = {min,max};
+        }
+        else
+        {
+            LOG_WARNING << "Joint " << i << " does not have position limits, settings [ -inf , +inf ]";
+            robotData_.eigMinJointPos[i] = - Infinity;
+            robotData_.eigMaxJointPos[i] =   Infinity;
         }
     }
 
     return ok;
+}
+
+const Eigen::VectorXd& RobotDynTree::getMinJointPos()
+{
+    return robotData_.eigMinJointPos;
+}
+const Eigen::VectorXd& RobotDynTree::getMaxJointPos()
+{
+    return robotData_.eigMaxJointPos;
 }
 
 void RobotDynTree::print() const
@@ -80,7 +98,7 @@ void RobotDynTree::setGravity(const Eigen::Vector3d& g)
 void RobotDynTree::setBaseFrame(const std::string& base_frame)
 {
     if(!frameExists(base_frame))
-        throw std::runtime_error("Frame is not part of the robot");
+        throw std::runtime_error(Formatter() << "Frame \'" << base_frame << "\' is not part of the robot");
     base_frame_ = base_frame;
     kinDynComp_.setFloatingBase( base_frame_ );
 }
@@ -104,7 +122,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::Vector3d& gravity)
 {
     global_gravity_vector_ = gravity;
-    
+
     if(getNrOfDegreesOfFreedom() == 0)
         throw std::runtime_error("Robot model is not loaded");
 
@@ -115,10 +133,10 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
         throw std::runtime_error("Gravity vector is zero. Please use setGravity before setting the robot state");
 
     if(jointPos.size() != getNrOfDegreesOfFreedom())
-        throw std::runtime_error(orca::util::Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
+        throw std::runtime_error(Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
 
     if(jointVel.size() != getNrOfDegreesOfFreedom())
-        throw std::runtime_error(orca::util::Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
+        throw std::runtime_error(Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << getNrOfDegreesOfFreedom());
 
     if(!is_initialized_)
     {
@@ -239,7 +257,6 @@ const Eigen::VectorXd& RobotDynTree::getJointVel()
     return eigRobotState_.jointVel;
 }
 
-
 bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
 {
     iDynTree::Transform idyntree_link_H_frame;
@@ -248,7 +265,12 @@ bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const s
     return model.addAdditionalFrameToLink(linkName,frameName,idyntree_link_H_frame);
 }
 
-
+const Eigen::VectorXd& RobotDynTree::getJointGravityTorques()
+{
+    kinDynComp_.generalizedGravityForces(robotData_.generalizedGravityTorques);
+    robotData_.eigJointGravityTorques = iDynTree::toEigen(robotData_.generalizedGravityTorques.jointTorques());
+    return robotData_.eigJointGravityTorques;
+}
 const Eigen::VectorXd& RobotDynTree::generalizedBiasForces()
 {
     kinDynComp_.generalizedBiasForces(robotData_.generalizedBiasForces);

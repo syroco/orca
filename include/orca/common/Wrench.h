@@ -41,18 +41,20 @@ namespace orca
 namespace common
 {
 
-class Wrench : public common::TaskBase
+class Wrench : public TaskBase
 {
 public:
-    Wrench();
-    
+    Wrench(const std::string& name);
+
+    virtual ~Wrench();
+
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
 
-    void setCurrent(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
+    void setCurrentValue(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
 
-    const Eigen::Matrix<double,6,1>& getCurrent();
+    const Eigen::Matrix<double,6,1>& getCurrentValue() const;
 
     const std::string& getBaseFrame() const;
 
@@ -62,11 +64,11 @@ public:
 
     const Eigen::MatrixXd& getJacobian() const;
 
-    void resize();
+    virtual void resize();
 
-    void update();
-    
-    void print() const;
+    virtual void update(double current_time, double dt);
+
+    virtual void print() const;
 
 protected:
     std::string base_ref_frame_,control_frame_;
@@ -74,6 +76,7 @@ protected:
     Eigen::MatrixXd jacobian_;
     Eigen::MatrixXd zero_;
     Eigen::Matrix<double,6,1> current_wrench_;
+    std::shared_ptr<robot::RobotDynTree> robot_;
 };
 
 }

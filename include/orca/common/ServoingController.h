@@ -32,46 +32,16 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
-#include "orca/common/Wrench.h"
-#include "orca/common/PIDController.h"
-#include "orca/task/GenericTask.h"
+#include "orca/math/Utils.h"
 
 namespace orca
 {
-namespace task
-{
-
-using math::Vector6d;
-
-class WrenchTask : public GenericTask
-{
-public:
-    WrenchTask(const std::string& name);
-
-    void setDesired(const Vector6d& wrench_at_control_frame);
-
-    void update(double current_time, double dt);
-    
-    void setBaseFrame(const std::string& base_ref_frame);
-
-    void setControlFrame(const std::string& control_frame);
-    
-    const std::string& getBaseFrame() const;
-
-    const std::string& getControlFrame() const;
-    
-    void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
-
-    void resize();
-
-    common::PIDController<6>& pid();
-
-protected:
-    std::shared_ptr<common::Wrench> wrench_;
-    Vector6d wrench_des_;
-    common::PIDController<6> pid_;
-};
-
-} // namespace task
-} // namespace orca
+    namespace common
+    {
+        template<int Dimension=Eigen::Dynamic>
+        struct ServoingController
+        {
+            virtual const Eigen::Matrix<double,Dimension,1>& getCommand() const = 0;
+        };
+    }
+}

@@ -1,5 +1,5 @@
 #include "orca/optim/QPSolver.h"
-#include "orca/util/Logger.h"
+#include "orca/utils/Logger.h"
 #include <qpOASES.hpp>
 #include <iostream>
 

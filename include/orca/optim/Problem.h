@@ -33,9 +33,10 @@
 
 #pragma once
 #include "orca/math/Utils.h"
-#include "orca/util/Utils.h"
-#include "orca/util/Logger.h"
+#include "orca/utils/Utils.h"
+#include "orca/utils/Logger.h"
 #include "orca/optim/ControlVariable.h"
+#include "orca/optim/ControlVariableMapping.h"
 #include "orca/optim/ProblemData.h"
 #include "orca/optim/QPSolver.h"
 #include <map>
@@ -62,61 +63,47 @@ namespace orca
 {
 namespace optim
 {
-// MultiObjectiveOptimisationProblem
+
 class Problem
 {
 public:
-    void resize(int ndof);
+    Problem(QPSolver::SolverType solver_type);
+
+    virtual ~Problem();
+
+    void setProblemObjects(
+        int ndof
+        , std::list< std::shared_ptr< task::GenericTask> > tasks
+        , std::list< std::shared_ptr< constraint::GenericConstraint> > constraints
+        , std::list< std::shared_ptr< common::Wrench> > wrenches);
+
     void build();
     bool solve();
 
-    bool add(common::TaskBase* task_base);
-    bool remove(orca::common::TaskBase* task_base);
+    const std::list< std::shared_ptr< common::Wrench> >& getWrenches() const;
+    const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
+    const std::list< std::shared_ptr< constraint::GenericConstraint> >& getConstraints() const;
 
-    bool taskExists(const orca::common::TaskBase* task_base);
-    bool constraintExists(const common::TaskBase* cstr);
-    bool wrenchExists(const common::TaskBase* wrench);
-
-    void setQPSolver(QPSolver::SolverType qpsolver_type);
-    const std::list< common::Wrench* >& getWrenches() const;
-    const std::list< task::GenericTask* >& getTasks() const;
-    const std::list< constraint::GenericConstraint* >& getConstraints() const;
-
-    int getConfigurationSpaceDimension() const;
-
-    bool isTask(const common::TaskBase* task_base);
-    bool isConstraint(const common::TaskBase* task_base);
-    bool isWrench(const common::TaskBase* task_base);
-
+    unsigned int getIndex(ControlVariable var) const;
+    unsigned int getSize(ControlVariable var) const;
+    unsigned int getTotalSize() const;
     const std::map<ControlVariable, unsigned int >& getIndexMap() const;
     const std::map<ControlVariable, unsigned int >& getSizeMap() const;
-
-    int getIndex(ControlVariable var) const;
-    int getSize(ControlVariable var) const;
-    int getTotalSize() const;
     void print() const;
     const Eigen::VectorXd& getSolution() const;
 protected:
-    std::list< common::Wrench* > wrenches_;
-    std::list< task::GenericTask* > tasks_;
-    std::list< constraint::GenericConstraint* > constraints_;
-    int ndof_ = 0;
-    int configuration_space_dim_ = 0;
-    bool is_floating_base_ = true;
-    int nwrenches_ = 0;
+    std::list< std::shared_ptr<common::Wrench> > wrenches_;
+    std::list< std::shared_ptr<task::GenericTask> > tasks_;
+    std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
 
-    std::map<ControlVariable, unsigned int > index_map_;
-    std::map<ControlVariable, unsigned int > size_map_;
+    ControlVariableMapping mapping_;
 
     std::shared_ptr<QPSolver> qpsolver_;
     ProblemData data_;
-    int number_of_variables_ = 0;
-    int number_of_constraints_rows_ = 0;
+    unsigned int number_of_variables_ = 0;
+    unsigned int number_of_constraints_rows_ = 0;
 private:
-    math::Size computeSize();
-    void buildControlVariablesMapping();
-    void resizeTasks();
-    void resizeConstraints();
+    unsigned int computeNumberOfConstraintRows(std::list< std::shared_ptr<constraint::GenericConstraint> > constraints) const;
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
 };

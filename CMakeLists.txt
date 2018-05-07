@@ -132,7 +132,7 @@ set(sub-dirs
     math
     robot
     task
-    util
+    utils
 )
 
 foreach(sub : ${sub-dirs})

@@ -36,14 +36,15 @@
 #include "orca/robot/RobotDynTree.h"
 
 #include "orca/math/Utils.h"
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 
 #include "orca/common/CartesianAccelerationPID.h"
 #include "orca/common/PIDController.h"
 #include "orca/common/Wrench.h"
 
 #include "orca/constraint/DynamicsEquationConstraint.h"
-//#include "orca/constraint/Contact.h"
+#include "orca/constraint/Contact.h"
+#include "orca/constraint/JointLimitConstraint.h"
 #include "orca/constraint/JointPositionLimitConstraint.h"
 #include "orca/constraint/JointVelocityLimitConstraint.h"
 #include "orca/constraint/JointAccelerationLimitConstraint.h"
@@ -52,7 +53,6 @@
 #include "orca/optim/Controller.h"
 
 #include "orca/task/CartesianTask.h"
-//#include "orca/task/JointAccelerationTask.h"
-//#include "orca/task/JointTorqueTask.h"
+#include "orca/task/JointTorqueTask.h"
 #include "orca/task/RegularisationTask.h"
-//#include "orca/task/WrenchTask.h"
+#include "orca/task/WrenchTask.h"

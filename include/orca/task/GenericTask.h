@@ -34,7 +34,7 @@
 #pragma once
 
 #include "orca/math/Utils.h"
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 #include "orca/math/WeightedEuclidianNormFunction.h"
 #include "orca/robot/RobotDynTree.h"
 #include "orca/common/TaskBase.h"
@@ -48,37 +48,33 @@ class GenericTask : public common::TaskBase
 {
 
 public:
-    GenericTask(optim::ControlVariable control_var);
+    GenericTask(const std::string& name,optim::ControlVariable control_var);
 
     virtual ~GenericTask();
 
     double getWeight() const;
-
     void setWeight(double weight);
 
     math::Size getSize() const;
-
     int cols() const;
-
     int rows() const;
 
-    const math::WeightedEuclidianNormFunction::QuadraticCost& getQuadraticCost() const;
-
-    math::WeightedEuclidianNormFunction& EuclidianNorm();
-
+    math::WeightedEuclidianNormFunction& euclidianNorm();
     const math::WeightedEuclidianNormFunction& getEuclidianNorm() const;
 
     const Eigen::MatrixXd& getE() const;
     const Eigen::VectorXd& getf() const;
 
-    virtual void update();
+    virtual void update(double current_time, double dt);
     virtual void print() const;
-    virtual void updateAffineFunction() = 0;
-    virtual void updateQuadraticCost();
+    virtual void updateAffineFunction(double current_time, double dt) = 0;
 
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();
 
+    const math::WeightedEuclidianNormFunction::QuadraticCost& getQuadraticCost() const;
+protected:
+    virtual void computeQuadraticCost();
 private:
     math::WeightedEuclidianNormFunction euclidian_norm_;
     double weight_ = 1.0;

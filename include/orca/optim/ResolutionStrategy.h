@@ -32,46 +32,28 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
-#include "orca/common/Wrench.h"
-#include "orca/common/PIDController.h"
-#include "orca/task/GenericTask.h"
+#include <iostream>
 
 namespace orca
 {
-namespace task
+namespace optim
 {
-
-using math::Vector6d;
-
-class WrenchTask : public GenericTask
-{
-public:
-    WrenchTask(const std::string& name);
-
-    void setDesired(const Vector6d& wrench_at_control_frame);
-
-    void update(double current_time, double dt);
-    
-    void setBaseFrame(const std::string& base_ref_frame);
-
-    void setControlFrame(const std::string& control_frame);
-    
-    const std::string& getBaseFrame() const;
-
-    const std::string& getControlFrame() const;
-    
-    void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
-
-    void resize();
-
-    common::PIDController<6>& pid();
-
-protected:
-    std::shared_ptr<common::Wrench> wrench_;
-    Vector6d wrench_des_;
-    common::PIDController<6> pid_;
-};
-
-} // namespace task
+    enum class ResolutionStrategy
+    {
+          OneLevelWeighted
+        , MultiLevelWeighted
+        , Generalized
+    };
+} // namespace optim
 } // namespace orca
+
+inline ::std::ostream& operator<<(::std::ostream& os, const orca::optim::ResolutionStrategy& rs)
+{
+    switch (rs)
+    {
+        case orca::optim::ResolutionStrategy::OneLevelWeighted :     os << "OneLevelWeighted"; break;
+        case orca::optim::ResolutionStrategy::MultiLevelWeighted :   os << "MultiLevelWeighted"; break;
+        case orca::optim::ResolutionStrategy::Generalized :          os << "Generalized"; break;
+    }
+    return os;
+}

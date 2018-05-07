@@ -43,7 +43,7 @@ namespace constraint
 class EqualityConstraint : public constraint::GenericConstraint
 {
 public:
-    EqualityConstraint(optim::ControlVariable control_var);
+    EqualityConstraint(const std::string& name,optim::ControlVariable control_var);
 
     const Eigen::VectorXd& getLowerBound() const override;
 
@@ -52,7 +52,7 @@ public:
     Eigen::VectorXd& bound();
 
     const Eigen::VectorXd& getBound() const;
-    
+
     void setBound(const Eigen::VectorXd& newBound);
 };
 

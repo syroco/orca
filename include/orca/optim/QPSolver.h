@@ -45,7 +45,7 @@ namespace optim
 class QPSolver
 {
 public:
-    enum SolverType{qpOASES,osqp};
+    enum SolverType { qpOASES, osqp };
     QPSolver(SolverType type);
     virtual ~QPSolver();
     void setPrintLevel(int level);
@@ -58,3 +58,14 @@ private:
 
 } // namespace optim
 } // namespace orca
+
+inline ::std::ostream& operator<<(::std::ostream& os, const orca::optim::QPSolver::SolverType& st)
+{
+    switch (st)
+    {
+        case orca::optim::QPSolver::qpOASES :   os << "qpOASES"; break;
+        case orca::optim::QPSolver::osqp :      os << "osqp"; break;
+        default:     os << "Not supported"; break;
+    }
+    return os;
+}

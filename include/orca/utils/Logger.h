@@ -5,7 +5,7 @@
 
 namespace orca
 {
-    namespace util
+    namespace utils
     {
 
         enum class LogLevel

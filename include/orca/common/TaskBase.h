@@ -36,19 +36,19 @@
 #include "orca/robot/RobotDynTree.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/common/Mutex.h"
-#include "orca/optim/WeightedProblem.h"
+#include "orca/optim/Problem.h"
 
 namespace orca
 {
-    
+
 namespace common
 {
     class TaskBase
     {
     public:
-        TaskBase(optim::ControlVariable control_var);
+        TaskBase(const std::string& name,optim::ControlVariable control_var);
         virtual ~TaskBase();
-        
+
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
         bool loadRobotModel(const std::string& file_url);
@@ -59,7 +59,7 @@ namespace common
 
         const std::string& getName() const;
 
-        virtual void update() = 0;
+        virtual void update(double current_time, double dt) = 0;
         virtual void resize() = 0;
         virtual void print() const = 0;
 
@@ -85,29 +85,29 @@ namespace common
         *
         * @return bool
         */
-        virtual bool setProblem(std::shared_ptr< orca::optim::Problem > problem, bool insert = true);
-        virtual bool insertInProblem();
-        virtual bool removeFromProblem();
-        
+        virtual bool setProblem(std::shared_ptr< orca::optim::Problem > problem);//, bool insert = true);
+        // virtual bool insertInProblem();
+        // virtual bool removeFromProblem();
+
         /**
         * @brief Insert the constraint in the QP problem
         *
         */
         bool isInitialized() const;
-        
+
         /**
         * @brief The recursive mutex to protect public fucntions
         *
         */
         mutable common::MutexRecursive mutex;
-        
+
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<optim::Problem> problem();
-        
+
         bool hasProblem() const;
         bool hasRobot() const;
         void printStateIfErrors() const;
-        
+
     private:
         bool is_activated_ = true;
         std::string name_;

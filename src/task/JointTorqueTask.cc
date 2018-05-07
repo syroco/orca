@@ -1,36 +1,35 @@
 #include "orca/task/JointTorqueTask.h"
+#include "orca/utils/Utils.h"
 
 
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
+using namespace orca::utils;
 
 
-JointTorqueTask::JointTorqueTask()
-: GenericTask(ControlVariable::JointSpaceTorque)
-, pid_(this->mutex)
+JointTorqueTask::JointTorqueTask(const std::string& name)
+: GenericTask(name,ControlVariable::JointSpaceTorque)
 {
 
 }
 
-void JointTorqueTask::setDesired(const Eigen::VectorXd& jnt_trq_des)
+void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
 {
-    MutexLock lock(this->mutex);
-    
-    jnt_trq_des_ = jnt_trq_des;
+    assertSize(desired_joint_torque,current_jnt_trq_);
+    jnt_trq_des_ = desired_joint_torque;
 }
 
-void JointTorqueTask::updateAffineFunction()
+void JointTorqueTask::updateAffineFunction(double current_time, double dt)
 {
-    f() = - pid_.computeCommand(current_jnt_trq_ - jnt_trq_des_);
+    f() = - pid_.computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
 
-void JointTorqueTask::setCurrent(const Eigen::VectorXd& jointTorque)
+void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
 {
-    MutexLock lock(this->mutex);
-    
-    current_jnt_trq_ = jointTorque;
+    assertSize(current_joint_torque,current_jnt_trq_);
+    current_jnt_trq_ = current_joint_torque;
 }
 
 PIDController<Eigen::Dynamic>& JointTorqueTask::pid()
@@ -40,13 +39,11 @@ PIDController<Eigen::Dynamic>& JointTorqueTask::pid()
 
 void JointTorqueTask::resize()
 {
-    MutexLock lock(this->mutex);
-    
     const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
 
     if(this->cols() != dof)
     {
-        EuclidianNorm().resize(dof,dof);
+        euclidianNorm().resize(dof,dof);
 
         pid_.resize(dof);
 

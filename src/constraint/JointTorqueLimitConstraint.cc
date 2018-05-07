@@ -2,6 +2,6 @@
 using namespace orca::constraint;
 using namespace orca::optim;
 
-JointTorqueLimitConstraint::JointTorqueLimitConstraint()
-: JointLimitConstraint(ControlVariable::JointSpaceTorque)
+JointTorqueLimitConstraint::JointTorqueLimitConstraint(const std::string& name)
+: JointLimitConstraint(name,ControlVariable::JointSpaceTorque)
 {}

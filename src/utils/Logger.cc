@@ -1,10 +1,10 @@
-#include "orca/util/Logger.h"
+#include "orca/utils/Logger.h"
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 
 namespace orca
 {
-    namespace util
+    namespace utils
     {
         static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("orca-log.txt", 8000, 3);
         static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
@@ -15,7 +15,10 @@ namespace orca
             //LOG_VERBOSE << "\n\n   Welcome to ORCA : an Optimisation-based Framework for Robotics Applications\n";
             setLogLevel(LogLevel::none);
         }
-
+        static void parseArgv(int argc,char ** argv)
+        {
+            parseArgv(argc,argv);
+        }
         void Logger::parseArgv(int argc, char const* argv[])
         {
             std::vector<std::string> vargv;

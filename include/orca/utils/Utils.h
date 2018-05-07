@@ -43,12 +43,13 @@
 #include <list>
 #include <functional>
 #include <thread>
+#include <map>
 #include "orca/math/Utils.h"
-#include "orca/util/Logger.h"
+#include "orca/utils/Logger.h"
 
 namespace orca
 {
-namespace util
+namespace utils
 {
 
 class PosixTimer
@@ -231,7 +232,19 @@ private:
     const unsigned long period_ms_;
 };
 
-} // namespace util
+template <typename Derived>
+void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Derived>& b)
+{
+    if(a.cols() == b.cols() && a.rows() == b.rows())
+        return;
+    throw std::length_error(Formatter() << "Size mismatched, provided (" << a.rows() << " , " << a.cols() << "), but expected (" << a.rows() << " , " << a.cols() << ")");
+}
+
+
+
+
+
+} // namespace utils
 } // namespace orca
 
 

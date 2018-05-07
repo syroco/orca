@@ -5,15 +5,13 @@ using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
 
-ContactExistenceConditionConstraint::ContactExistenceConditionConstraint()
-: EqualityConstraint(ControlVariable::JointSpaceAcceleration)
+ContactExistenceConditionConstraint::ContactExistenceConditionConstraint(const std::string& name)
+: EqualityConstraint(name,ControlVariable::JointSpaceAcceleration)
 {
 
 }
 void ContactExistenceConditionConstraint::setBaseFrame(const std::string& base_ref_frame)
 {
-    MutexLock lock(this->mutex);
-
     if(robot()->frameExists(base_ref_frame))
         base_ref_frame_ = base_ref_frame;
     else
@@ -22,8 +20,6 @@ void ContactExistenceConditionConstraint::setBaseFrame(const std::string& base_r
 
 void ContactExistenceConditionConstraint::setControlFrame(const std::string& control_frame)
 {
-    MutexLock lock(this->mutex);
-
     if(robot()->frameExists(control_frame))
         control_frame_ = control_frame;
     else
@@ -31,7 +27,7 @@ void ContactExistenceConditionConstraint::setControlFrame(const std::string& con
 }
 
 
-void ContactExistenceConditionConstraint::updateConstraintFunction()
+void ContactExistenceConditionConstraint::updateConstraintFunction(double current_time, double dt)
 {
     if(base_ref_frame_.empty())
     {
@@ -56,8 +52,6 @@ void ContactExistenceConditionConstraint::updateConstraintFunction()
 
 void ContactExistenceConditionConstraint::resize()
 {
-    MutexLock lock(this->mutex);
-
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
 
     if(constraintFunction().cols() != fulldim)

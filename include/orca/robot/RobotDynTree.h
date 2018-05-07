@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
 #include <map>
 #include <cstdlib>
@@ -83,7 +83,7 @@ struct EigenRobotState
         gravity[2] = -9.81;
     }
 
-    void setFixedBase()
+    void setFixedBaseValues()
     {
         world_H_base.setIdentity();
         jointPos.setZero();
@@ -195,7 +195,12 @@ struct RobotDataHelper
         idynJacobianFb.resize(model);
         generalizedBiasForces.resize(model);
         eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
+        generalizedGravityTorques.resize(model);
+        eigJointGravityTorques.setZero(6 + model.getNrOfDOFs());
         extForces.resize(model);
+
+        eigMinJointPos.setZero(model.getNrOfDOFs());
+        eigMaxJointPos.setZero(model.getNrOfDOFs());
 
         eigRobotAcc.setZero();
         idynRobotAcc.zero();
@@ -214,7 +219,11 @@ struct RobotDataHelper
     iDynTree::Twist frameVel;
     iDynTree::Position framePos;
     iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
+    iDynTree::FreeFloatingGeneralizedTorques generalizedGravityTorques;
     Eigen::VectorXd eigGeneralizedBiasForces;
+    Eigen::VectorXd eigJointGravityTorques;
+    Eigen::VectorXd eigMinJointPos;
+    Eigen::VectorXd eigMaxJointPos;
     EigenRobotState eigRobotState;
     iDynTreeRobotState idynRobotState;
 };
@@ -252,9 +261,12 @@ public:
     Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFreeFloatingMassMatrix();
     const Eigen::VectorXd& getJointPos();
     const Eigen::VectorXd& getJointVel();
+    const Eigen::VectorXd& getMinJointPos();
+    const Eigen::VectorXd& getMaxJointPos();
     Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
     Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFrameFreeFloatingJacobian(const std::string& frameName);
     const Eigen::VectorXd& generalizedBiasForces();
+    const Eigen::VectorXd& getJointGravityTorques();
     const iDynTree::Model& getRobotModel();
     unsigned int getNrOfJoints();
     std::string getJointName(unsigned int idx);
@@ -269,9 +281,9 @@ protected:
     std::string urdf_url_;
     Eigen::Vector3d global_gravity_vector_;
     std::map<unsigned int, std::pair<double,double> > joint_pos_limits_;
-private:
-    class iDynTreeImpl;                     // Forward declaration of the implementation class
-    std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
+// private:
+    // class iDynTreeImpl;                     // Forward declaration of the implementation class
+    // std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
 
 };
 

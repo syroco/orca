@@ -12,12 +12,12 @@ using namespace orca::constraint;
 using namespace orca::robot;
 using namespace orca::optim;
 using namespace orca::math;
-using namespace orca::util;
+using namespace orca::utils;
 using namespace orca::common;
 
 int main(int argc, char** argv)
 {
-    orca::util::Logger::setLogLevel( orca::util::LogLevel::debug  );
+    orca::utils::Logger::setLogLevel( orca::utils::LogLevel::debug  );
 
     if(argc < 2)
     {
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 
     RegularisationTask<ControlVariable::X> reg_task;
     reg_task.setRobotModel(robot);
-    reg_task.EuclidianNorm().setWeight(1E-4);
+    reg_task.euclidianNorm().setWeight(1E-4);
     reg_task.update();
 
 

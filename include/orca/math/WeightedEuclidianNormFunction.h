@@ -33,7 +33,7 @@
 
 #pragma once
 
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 #include "orca/math/AffineFunction.h"
 
 namespace orca

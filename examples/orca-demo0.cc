@@ -6,12 +6,12 @@ using namespace orca::task;
 using namespace orca::constraint;
 using namespace orca::robot;
 using namespace orca::math;
-using namespace orca::util;
+using namespace orca::utils;
 
 int main(int argc, char const *argv[])
 {
     // Parse urdf and logger level as --log_level (or -l) debug/warning etc
-    orca::util::Logger::parseArgv( argc, argv );
+    orca::utils::Logger::parseArgv( argc, argv );
 
     if(argc < 2)
     {
@@ -32,9 +32,8 @@ int main(int argc, char const *argv[])
     // This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices
     // You can use it to fill data from either real robot and simulated robot
     EigenRobotState eigState;
-    eigState.setFixedBase(); // sets world to base to identity and base velocity to zero
-    eigState.resize(robot->getNrOfDegreesOfFreedom()); // resize all the vectors/matrices to matche the robot configuration
-
+    eigState.setFixedBaseValues(); // sets world to base to identity and base velocity to zero
+    eigState.resize(robot->getNrOfDegreesOfFreedom()); // resize all the vectors/matrices to match the robot configuration
     // Set the initial state to zero (arbitrary)
     // NOTE : here we only set q,qot because this example asserts we have a fixed base robot
     eigState.jointPos.setZero();
@@ -42,18 +41,10 @@ int main(int argc, char const *argv[])
     // Set the first state to the robot
     robot->setRobotState(eigState.jointPos,eigState.jointVel); // Now is the robot is considered 'initialized'
 
-    std::cout << "===== Optimisation problem" << '\n';
+    robot->isInitialized(); // --> returns true
 
-    auto problem = std::make_shared<Problem>();
-    problem->resize(robot->getNrOfDegreesOfFreedom());
-
-    std::cout << "===== Cartesian Task creation" << '\n';
-
-    CartesianTask cart_task;
-    cart_task.setName("CartTask-EE");
-    cart_task.setRobotModel(robot); // Create and Resize the models associated to the task
-    cart_task.setProblem(problem);
-    cart_task.setControlFrame("link_7"); // We want to control the link_7
+    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    cart_task->setControlFrame("link_7"); // We want to control the link_7
 
     Eigen::Affine3d cart_pos_ref;
     cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5);
@@ -68,99 +59,50 @@ int main(int argc, char const *argv[])
     Vector6d cart_acc_ref;
     cart_acc_ref.setZero();
 
-    std::cout << "===== Cartesian Acceleration PID" << '\n';
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartPID-EE");
+    Vector6d P;
+    P << 100, 100, 100, 10, 10, 10;
+    cart_acc_pid->pid().setProportionalGain(P);
+    Vector6d D;
+    D << 0, 10, 10, 1, 1, 1;
+    cart_acc_pid->pid().setDerivativeGain(D);
+    cart_acc_pid->setControlFrame(cart_task->getControlFrame()); // Of course use the same as the cart task
+    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    // ServoingController
+    //cart_task->setServo(std::bind(CartesianAccelerationPID::getCommand,cart_acc_pid));
 
-    CartesianAccelerationPID cart_acc_pid;
-    cart_acc_pid.setName("CartPID-EE");
-    cart_acc_pid.setRobotModel(robot);
-    Vector6d P_gain;
-    P_gain << 100, 100, 100, 10, 10, 10;
-
-    Vector6d D_gain;
-    D_gain << 10, 10, 10, 1, 1, 1;
-
-    cart_acc_pid.pid().setProportionalGain(P_gain);
-    cart_acc_pid.pid().setDerivativeGain(D_gain);
-    cart_acc_pid.setControlFrame(cart_task.getControlFrame()); // Of course use the same as the cart task
-    cart_acc_pid.setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-    cart_acc_pid.update();
-
-    cart_task.setDesired(cart_acc_pid.getCommand());
-    cart_task.update(); //The state of the task is now "initialized" (computes for the first time the associated cost). It can now be used.
-
-
-    std::cout << "===== Dynamics Equation Constraint" << '\n';
-
-    DynamicsEquationConstraint dyn_cstr;
-    dyn_cstr.setName("DynamicsEquation");
-    dyn_cstr.setRobotModel(robot);
-    dyn_cstr.setProblem(problem);
-    dyn_cstr.update();
-
-    std::cout << "===== Joint limits" << '\n';
+    auto dynamics_equation = std::make_shared<DynamicsEquationConstraint>("DynamicsEquation");
 
     const int ndof = robot->getNrOfDegreesOfFreedom();
 
-    JointTorqueLimitConstraint jnt_trq_cstr;
-    jnt_trq_cstr.setName("JointTorqueLimit");
-    Eigen::VectorXd jntTrqMax;
-    jntTrqMax.resize(ndof);
+    auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
+    Eigen::VectorXd jntTrqMax(ndof);
     jntTrqMax.setConstant(200.0);
-    jntTrqMax<<200,200,200,200,120,120,120;
-    jnt_trq_cstr.setRobotModel(robot);
-    jnt_trq_cstr.setProblem(problem);
-    jnt_trq_cstr.setLimits(-jntTrqMax,jntTrqMax); // because not read in the URDF for now
-    jnt_trq_cstr.update();
+    jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax); // because not read in the URDF for now
 
-    JointPositionLimitConstraint jnt_pos_cstr;
-    jnt_pos_cstr.setName("JointPositionLimit");
-    jnt_pos_cstr.setRobotModel(robot);  // Positions limits are actually read from URDF on loading
-    jnt_pos_cstr.setProblem(problem);
-    jnt_pos_cstr.update();
+    auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
 
-    JointVelocityLimitConstraint jnt_vel_cstr;
-    Eigen::VectorXd jntVelMax;
-    jntVelMax.resize(ndof);
+    auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
+    Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
-    jnt_vel_cstr.setName("JointVelocityLimit");
-    jnt_vel_cstr.setRobotModel(robot);
-    jnt_vel_cstr.setProblem(problem);
-    jnt_vel_cstr.setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
-    jnt_vel_cstr.update();
+    jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
 
-    std::cout << "==== Regularisation" << '\n';
+    auto global_regularisation = std::make_shared< RegularisationTask<ControlVariable::X> >("global_regularisation"); // whole vector
+    global_regularisation->euclidianNorm().setWeight(1E-3);
 
-    RegularisationTask<ControlVariable::X> reg_task; // whole vector
-    reg_task.setName("reg_task");
-    reg_task.setRobotModel(robot);
-    reg_task.setProblem(problem);
-    reg_task.EuclidianNorm().setWeight(1E-3);
-    reg_task.update();
-
-    orca::optim::Controller controller;//(Problem::Weighted , QPSolver::qpOASES);
-    controller.add(&cart_task);
-    controller.add(&reg_task);
-    controller.add(&dyn_cstr);
-    controller.add(&jnt_pos_cstr);
-    controller.add(&jnt_vel_cstr);
+    orca::optim::Controller controller(
+        robot
+        ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
+        ,QPSolver::qpOASES
+    );
+    controller.addTask(cart_task);
+    controller.addTask(global_regularisation);
+    controller.addConstraint(dynamics_equation);
+    controller.addConstraint(jnt_pos_cstr);
+    controller.addConstraint(jnt_vel_cstr);
 
     controller.update(0,0.001);
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-
-    problem->setQPSolver( QPSolver::qpOASES );
-    problem->print();
-
-    problem->build();
-
-    if(problem->solve())
-    {
-        std::cout << "Solution : \n\n" << problem->getSolution() << '\n';
-    }
-    else
-    {
-        std::cout << "Could not find solution" << '\n';
-    }
-
 
     return 0;
 }

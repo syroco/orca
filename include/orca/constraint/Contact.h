@@ -46,27 +46,29 @@ class Contact : public common::TaskBase
 {
 
 public:
-    Contact();
-    bool isInitialized() const;
-    bool isActivated() const;
+    Contact(const std::string& name);
+
+    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
+
+    bool loadRobotModel(const std::string& file_url);
 
     void setName(const std::string& name);
-
-    const std::string& getBaseFrame() const;
-
-    const std::string& getControlFrame() const;
 
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
 
-    void setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
+    const std::string& getBaseFrame() const;
+
+    const std::string& getControlFrame() const;
+
+    void setCurrentWrenchValue(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
 
     bool desactivate();
 
     bool activate();
 
-    void update();
+    void update(double current_time, double dt);
 
     double getFrictionCoeff() const;
 
@@ -85,6 +87,9 @@ public:
     void setNumberOfFaces(int nfaces);
 
     void resize();
+
+    std::shared_ptr<const common::Wrench> getWrench() const;
+
 private:
     std::shared_ptr<LinearizedCoulombConstraint> friction_cone_;
     std::shared_ptr<ContactExistenceConditionConstraint> ex_condition_;

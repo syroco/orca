@@ -32,7 +32,7 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 #include "orca/robot/RobotDynTree.h"
 #include "orca/math/ConstraintFunction.h"
 #include "orca/common/TaskBase.h"
@@ -58,7 +58,7 @@ public:
      *
      * @param control_var The control variable it depends on
      */
-    GenericConstraint(optim::ControlVariable control_var);
+    GenericConstraint(const std::string& name,optim::ControlVariable control_var);
 
     /**
      * @brief Destructor. Also removes from problem if still active/inserted
@@ -66,8 +66,7 @@ public:
      */
     virtual ~GenericConstraint();
 
-    virtual void update();
-    virtual void updateConstraintFunction() = 0;
+    virtual void update(double current_time, double dt);
     virtual void resize() = 0;
     virtual void print() const;
 
@@ -122,6 +121,7 @@ public:
 
 
 protected:
+    virtual void updateConstraintFunction(double current_time, double dt) = 0;
     /**
      * @brief Replace the constraint matrix with a new one
      *

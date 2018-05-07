@@ -33,22 +33,21 @@
 
 #pragma once
 
-#include <type_traits>
 #include "orca/common/Mutex.h"
+#include "orca/common/ServoingController.h"
 #include "orca/math/Utils.h"
-#include "orca/util/Utils.h"
+#include "orca/utils/Utils.h"
 
 namespace orca
 {
     namespace common
     {
 
-        template<int Dimension>
-        class PIDController
+        template<int Dimension=Eigen::Dynamic>
+        class PIDController : ServoingController<Dimension>
         {
         public:
-            PIDController(MutexInterface& _mutex)
-            : mutex(_mutex)
+            PIDController()
             {
                 if(Dimension != Eigen::Dynamic)
                 {
@@ -65,12 +64,10 @@ namespace orca
                     windup_limit_.setConstant( math::Infinity );
                 }
             }
-            
-            
+
+
             void resize(unsigned int dim)
             {
-                MutexLock lock(this->mutex);
-                
                 if(dim > 0)
                 {
                     p_gain_.setZero(dim);
@@ -90,121 +87,77 @@ namespace orca
 
             void setProportionalGain(const Eigen::Matrix<double,Dimension,1>& P_gain)
             {
-                MutexLock lock(this->mutex);
-                
-                if(P_gain.size() == p_gain_.size())
-                {
-                    p_gain_ = P_gain;
-                }
-                else
-                {
-                    LOG_ERROR << "Size do not match, provided " << P_gain.size() << ", but expected " << p_gain_.size();
-                }
+                utils::assertSize(P_gain,p_gain_);
+                p_gain_ = P_gain;
             }
 
             const Eigen::Matrix<double,Dimension,1>& P() const
             {
-                MutexLock lock(this->mutex);
-                
                 return p_gain_;
             }
 
             void setIntegralGain(const Eigen::Matrix<double,Dimension,1>& I_gain)
             {
-                MutexLock lock(this->mutex);
-                
-                if(I_gain.size() == i_gain_.size())
-                {
-                    i_gain_ = I_gain;
-                }
-                else
-                {
-                    LOG_ERROR << "Size do not match, provided " << I_gain.size() << ", but expected " << i_gain_.size();
-                }
+                utils::assertSize(I_gain,i_gain_);
+                i_gain_ = I_gain;
             }
-            
+
             void setWindupLimit(const Eigen::Matrix<double,Dimension,1>& windup_lim)
             {
-                MutexLock lock(this->mutex);
-                
+                utils::assertSize(windup_lim,windup_limit_);
                 windup_limit_ = windup_lim;
             }
 
-            const Eigen::Matrix<double,Dimension,1>& WindupLimit()
+            const Eigen::Matrix<double,Dimension,1>& windupLimit()
             {
-                MutexLock lock(this->mutex);
-                
                 return windup_limit_;
             }
 
             const Eigen::Matrix<double,Dimension,1>& I() const
             {
-                MutexLock lock(this->mutex);
-                
                 return i_gain_;
             }
-            
-            void setDt(double dt)
-            {
-                MutexLock lock(this->mutex);
-                
-                if(dt>0)
-                    dt_ = dt;
-                else
-                    LOG_ERROR << "dt has to be >=0";
-            }
-            
+
             void setDerivativeGain(const Eigen::Matrix<double,Dimension,1>& D_gain)
             {
-                MutexLock lock(this->mutex);
-                
-                if(D_gain.size() == d_gain_.size())
-                {
-                    d_gain_ = D_gain;
-                }
-                else
-                {
-                    LOG_ERROR << "Size do not match, provided " << D_gain.size() << ", but expected " << d_gain_.size(); 
-                }
+                utils::assertSize(D_gain,d_gain_);
+                d_gain_ = D_gain;
             }
 
             const Eigen::Matrix<double,Dimension,1>& D() const
             {
-                MutexLock lock(this->mutex);
-                
                 return d_gain_;
             }
 
             const Eigen::Matrix<double,Dimension,1>& computeCommand(const Eigen::Matrix<double,Dimension,1>& Error
                                                                   , const Eigen::Matrix<double,Dimension,1>& DError
-            )
+                                                                  , double dt)
             {
-                MutexLock lock(this->mutex);
-                
-                i_error_ += dt_ * Error;
+                i_error_ += dt * Error;
                 // saturate integral_term
-                i_error_.cwiseMin(   WindupLimit() );
-                i_error_.cwiseMax( - WindupLimit() );
-                
+                i_error_.cwiseMin(   windupLimit() );
+                i_error_.cwiseMax( - windupLimit() );
+
                 cmd_.noalias() = p_gain_.asDiagonal() * Error + i_gain_.asDiagonal() * i_error_ + d_gain_.asDiagonal() * DError;
                 return cmd_;
             }
 
-            const Eigen::Matrix<double,Dimension,1>& computeCommand(const Eigen::Matrix<double,Dimension,1>& Error)
+            const Eigen::Matrix<double,Dimension,1>& computeCommand(const Eigen::Matrix<double,Dimension,1>& Error, double dt)
             {
-                MutexLock lock(this->mutex);
-                
-                i_error_ += dt_ * Error;
+                i_error_ += dt * Error;
                 // saturate integral_term
-                i_error_.cwiseMin(   WindupLimit() );
-                i_error_.cwiseMax( - WindupLimit() );
-                
-                d_error_ = Error / dt_;
-                
+                i_error_.cwiseMin(   windupLimit() );
+                i_error_.cwiseMax( - windupLimit() );
+
+                d_error_ = Error / dt;
+
                 cmd_.noalias() = p_gain_.asDiagonal() * Error + i_gain_.asDiagonal() * i_error_ + d_gain_.asDiagonal() * d_error_;
                 return cmd_;
             }
-
+            const Eigen::Matrix<double,Dimension,1>& getCommand() const
+            {
+                return cmd_;
+            }
         private:
             Eigen::Matrix<double,Dimension,1> p_gain_;
             Eigen::Matrix<double,Dimension,1> i_gain_;
@@ -213,9 +166,7 @@ namespace orca
             Eigen::Matrix<double,Dimension,1> i_error_;
             Eigen::Matrix<double,Dimension,1> d_error_;
             Eigen::Matrix<double,Dimension,1> cmd_;
-            MutexInterface& mutex;
-            double dt_ = 0;
         };
-        
+
     } // namespace common
 } // namespace orca

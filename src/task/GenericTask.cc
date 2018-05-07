@@ -6,16 +6,14 @@ using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::common;
 
-GenericTask::GenericTask(ControlVariable control_var)
-: TaskBase(control_var)
+GenericTask::GenericTask(const std::string& name,ControlVariable control_var)
+: TaskBase(name,control_var)
 {
     weight_ = 1.0;
 }
 
 void GenericTask::print() const
 {
-    MutexLock lock(this->mutex);
-
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - Weight " << getWeight() << '\n';
     std::cout << " - Size " << getSize() << '\n';
@@ -32,52 +30,40 @@ void GenericTask::print() const
 GenericTask::~GenericTask()
 {
     // This cannot be in TaskBase because when invoking the destructor 'this' is actually a taskBase
-    removeFromProblem();
+    // removeFromProblem();
 }
 
 double GenericTask::getWeight() const
 {
-    MutexLock lock(this->mutex);
-
     return weight_;
 }
 
 void GenericTask::setWeight(double weight)
 {
-    MutexLock lock(this->mutex);
-
     weight_ = weight;
 }
 
 Size GenericTask::getSize() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.getSize();
 }
 
 int GenericTask::cols() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.cols();
 }
 
 int GenericTask::rows() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.rows();
 }
 
 const WeightedEuclidianNormFunction::QuadraticCost& GenericTask::getQuadraticCost() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.getQuadraticCost();
 }
 
-WeightedEuclidianNormFunction& GenericTask::EuclidianNorm()
+WeightedEuclidianNormFunction& GenericTask::euclidianNorm()
 {
     return euclidian_norm_;
 }
@@ -89,15 +75,11 @@ const WeightedEuclidianNormFunction& GenericTask::getEuclidianNorm() const
 
 const Eigen::MatrixXd& GenericTask::getE() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.getA();
 }
 
 const Eigen::VectorXd& GenericTask::getf() const
 {
-    MutexLock lock(this->mutex);
-
     return euclidian_norm_.getb();
 }
 
@@ -111,35 +93,24 @@ Eigen::VectorXd& GenericTask::f()
     return euclidian_norm_.b();
 }
 
-void GenericTask::update()
+void GenericTask::update(double current_time, double dt)
 {
-    MutexTryLock lock(mutex);
-
-    if(!lock.isSuccessful())
-    {
-        //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
-        return;
-    }
-
-    // Checking size
-    int cv = this->problem()->getSize(this->getControlVariable());
-    if(this->cols() != cv)
-    {
-        throw std::runtime_error(util::Formatter() << "Size of task " << getName()
-                    << " (control var " << this->getControlVariable()
-                    << " should be " << cv << " but is " << this->cols());
-    }
+//     if(!lock.isSuccessful())
+//     {
+//         //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
+//         return;
+//     }
 
     this->printStateIfErrors();
 
     if(isInitialized())
     {
-        this->updateAffineFunction();
-        this->updateQuadraticCost();
+        this->updateAffineFunction(current_time, dt);
+        this->computeQuadraticCost();
     }
 }
 
-void GenericTask::updateQuadraticCost()
+void GenericTask::computeQuadraticCost()
 {
     euclidian_norm_.computeQuadraticCost();
 }

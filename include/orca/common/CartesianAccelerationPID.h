@@ -45,12 +45,13 @@ namespace orca
         class CartesianAccelerationPID : public TaskBase
         {
         public:
-            CartesianAccelerationPID();
+            CartesianAccelerationPID(const std::string& name);
 
             void setDesired(const Eigen::Matrix4d& cartesian_position_traj
                                 , const Vector6d& cartesian_velocity_traj
                                 , const Vector6d& cartesian_acceleration_traj);
-            void update();
+            void update(double current_time, double dt);
+            void resize();
             const Vector6d& getCommand() const;
             const Eigen::Matrix4d& getCartesianPositionRef() const;
             const Vector6d& getCartesianVelocityRef() const;
@@ -62,9 +63,6 @@ namespace orca
             PIDController<6>& pid();
             void print() const;
         protected:
-            void addInRegister(){}
-            void removeFromRegister(){}
-            void resize();
             std::string base_ref_frame_,control_frame_;
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
             Vector6d cart_acc_cmd_

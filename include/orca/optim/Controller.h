@@ -32,11 +32,17 @@
 // knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include "orca/util/Utils.h"
-#include "orca/util/Logger.h"
+#include "orca/utils/Utils.h"
+#include "orca/utils/Logger.h"
 #include "orca/optim/ControlVariable.h"
-#include "orca/optim/WeightedProblem.h"
+#include "orca/optim/Problem.h"
+#include "orca/optim/ResolutionStrategy.h"
 #include "orca/optim/QPSolver.h"
+#include "orca/robot/RobotDynTree.h"
+#include "orca/common/Wrench.h"
+#include "orca/common/TaskBase.h"
+#include "orca/task/GenericTask.h"
+#include "orca/constraint/GenericConstraint.h"
 #include <map>
 #include <list>
 
@@ -47,29 +53,91 @@ namespace optim
     class Controller
     {
     public:
-        Controller()
-        {}
+        Controller(std::shared_ptr<robot::RobotDynTree> robot
+            ,ResolutionStrategy resolution_strategy
+            ,QPSolver::SolverType solver_type)
+        : robot_(robot)
+        {
+            // Push at least One Level
+            problems_.push_back(std::make_shared<Problem>(solver_type));
+        }
+        std::shared_ptr<robot::RobotDynTree> robot()
+        {
+            return robot_;
+        }
+
+        void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot)
+        {
+            robot_ = robot;
+        }
+
         void update(double current_time, double dt)
         {
-
+            // Checking size
+            // int cv = this->problem()->getSize(this->getControlVariable());
+            // if(this->cols() != cv)
+            // {
+            //     throw std::runtime_error(Formatter() << "Size of task " << getName()
+            //                 << " (control var " << this->getControlVariable()
+            //                 << " should be " << cv << " but is " << this->cols());
+            // }
         }
-        bool add(common::TaskBase* task_base)
+        bool addTask(std::shared_ptr<task::GenericTask> task)
+        {
+            if(!exists(task,tasks_))
+            {
+                tasks_.push_back(task);
+            }
+        }
+        bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
         {
 
         }
-        bool remove(orca::common::TaskBase* task_base)
-        {
 
-        }
         const Eigen::VectorXd& getJointTorqueCommand()
         {
-            
+
         }
         const Eigen::VectorXd& getJointAccelerationCommand()
         {
 
         }
+        void resizeTasks()
+        {
+            for(auto task : tasks_)
+            {
+                if(task->getControlVariable() == ControlVariable::X)
+                {
+                    LOG_DEBUG << "Resizing task " << task->getName();
+                    task->resize();
+                }
+            }
+        }
 
+        void resizeConstraints()
+        {
+            for(auto constr : constraints_)
+            {
+                if(constr->getControlVariable() == ControlVariable::X)
+                {
+                    LOG_DEBUG << "Resizing constraint " << constr->getName();
+                    constr->resize();
+                }
+            }
+        }
+    protected:
+        template<class T> bool exists(const std::shared_ptr<T> t, std::list< std::shared_ptr<T> > l){
+            return std::find(l.begin(),l.end(),t) != l.end();
+        }
+        std::list< std::shared_ptr<task::GenericTask> > tasks_;
+        std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
+        std::list< std::shared_ptr<common::Wrench> > wrenches_;
+
+        std::list< std::shared_ptr<optim::Problem> > problems_;
+        std::shared_ptr<robot::RobotDynTree> robot_;
+
+        Eigen::VectorXd joint_torque_command_;
+        Eigen::VectorXd joint_acceleration_command_;
     };
 } // namespace optim
 } //namespace orca

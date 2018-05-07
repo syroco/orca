@@ -42,13 +42,13 @@ namespace constraint
 class ContactExistenceConditionConstraint : public EqualityConstraint
 {
 public:
-    ContactExistenceConditionConstraint();
+    ContactExistenceConditionConstraint(const std::string& name);
 
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
 
-    void updateConstraintFunction();
+    void updateConstraintFunction(double current_time, double dt);
 
     void resize();
 
