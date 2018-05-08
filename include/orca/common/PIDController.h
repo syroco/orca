@@ -34,7 +34,6 @@
 #pragma once
 
 #include "orca/common/Mutex.h"
-#include "orca/common/ServoingController.h"
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
 
@@ -44,7 +43,7 @@ namespace orca
     {
 
         template<int Dimension=Eigen::Dynamic>
-        class PIDController : ServoingController<Dimension>
+        class PIDController
         {
         public:
             PIDController()
@@ -154,10 +153,7 @@ namespace orca
                 cmd_.noalias() = p_gain_.asDiagonal() * Error + i_gain_.asDiagonal() * i_error_ + d_gain_.asDiagonal() * d_error_;
                 return cmd_;
             }
-            const Eigen::Matrix<double,Dimension,1>& getCommand() const
-            {
-                return cmd_;
-            }
+
         private:
             Eigen::Matrix<double,Dimension,1> p_gain_;
             Eigen::Matrix<double,Dimension,1> i_gain_;

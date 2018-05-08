@@ -33,6 +33,7 @@
 
 #pragma once
 #include "orca/math/Utils.h"
+#include "orca/common/CartesianServoController.h"
 #include "orca/common/PIDController.h"
 #include "orca/common/TaskBase.h"
 
@@ -42,7 +43,7 @@ namespace orca
     {
         using math::Vector6d;
 
-        class CartesianAccelerationPID : public TaskBase
+        class CartesianAccelerationPID : public CartesianServoController
         {
         public:
             CartesianAccelerationPID(const std::string& name);
@@ -56,14 +57,9 @@ namespace orca
             const Eigen::Matrix4d& getCartesianPositionRef() const;
             const Vector6d& getCartesianVelocityRef() const;
             const Vector6d& getCartesianAccelerationRef() const;
-            void setBaseFrame(const std::string& base_ref_frame);
-            void setControlFrame(const std::string& control_frame);
-            const std::string& getBaseFrame() const;
-            const std::string& getControlFrame() const;
-            PIDController<6>& pid();
             void print() const;
+            PIDController<6>& pid();
         protected:
-            std::string base_ref_frame_,control_frame_;
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
             Vector6d cart_acc_cmd_
                     ,cart_acc_bias_

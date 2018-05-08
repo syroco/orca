@@ -69,30 +69,30 @@ namespace optim
             }
             createNewProblem();
         }
-        
+
         void createNewProblem()
         {
             LOG_INFO << "Creating new problem at level " << problems_.size();
             auto problem = std::make_shared<Problem>(robot_,solver_type_);
-            
+
             auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
             auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
-            
+
             dynamics_equation->setRobotModel(robot_);
             dynamics_equation->setProblem(problem);
             dynamics_equation->resize();
             global_regularisation->setRobotModel(robot_);
             global_regularisation->setProblem(problem);
             global_regularisation->resize();
-            
+
             global_regularisation->euclidianNorm().setWeight(1E-5);
-            
+
             problem->addConstraint(dynamics_equation);
             problem->addTask(global_regularisation);
-            
+
             problems_.push_back(problem);
         }
-        
+
         std::shared_ptr<robot::RobotDynTree> robot()
         {
             return robot_;
@@ -101,20 +101,22 @@ namespace optim
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot)
         {
             robot_ = robot;
-
         }
 
         void update(double current_time, double dt)
         {
-            if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
+            switch (resolution_strategy_)
             {
-                updateTasks(current_time,dt);
-                updateConstraints(current_time,dt);
-                problems_.front()->build();
-                problems_.front()->print(); // TODO: remove this
-                problems_.front()->solve();
+                case ResolutionStrategy::OneLevelWeighted:
+                    updateTasks(current_time,dt);
+                    updateConstraints(current_time,dt);
+                    problems_.front()->build();
+                    problems_.front()->print(); // TODO: remove this
+                    problems_.front()->solve();
+                break;
+                default:
+                    throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
             }
-            return;
         }
 
         bool addTask(std::shared_ptr<task::GenericTask> task)
@@ -132,7 +134,7 @@ namespace optim
         bool addTask(std::shared_ptr<task::WrenchTask> task)
         {
             if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
-            {                
+            {
                 task->setRobotModel(robot_);
                 task->setProblem(problems_.front());
                 task->resize();
@@ -144,7 +146,7 @@ namespace optim
         bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
         {
             if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
-            {                
+            {
                 cstr->setRobotModel(robot_);
                 cstr->setProblem(problems_.front());
                 cstr->resize();
@@ -153,16 +155,39 @@ namespace optim
             return false;
         }
 
-        const Eigen::VectorXd& getJointTorqueCommand()
+        Eigen::VectorXd getFullSolution()
         {
-
+            switch (resolution_strategy_)
+            {
+                case ResolutionStrategy::OneLevelWeighted:
+                    return problems_.front()->getSolution(ControlVariable::X);
+                default:
+                    throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            }
         }
-        
-        const Eigen::VectorXd& getJointAccelerationCommand()
+
+        Eigen::VectorXd getJointTorqueCommand()
         {
-
+            switch (resolution_strategy_)
+            {
+                case ResolutionStrategy::OneLevelWeighted:
+                    return problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
+                default:
+                    throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            }
         }
-        
+
+        Eigen::VectorXd getJointAccelerationCommand()
+        {
+            switch (resolution_strategy_)
+            {
+                case ResolutionStrategy::OneLevelWeighted:
+                    return problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
+                default:
+                    throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            }
+        }
+
     protected:
         void updateTasks(double current_time, double dt)
         {

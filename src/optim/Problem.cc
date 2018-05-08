@@ -22,12 +22,7 @@ Problem::Problem(std::shared_ptr<RobotDynTree> robot, QPSolver::SolverType solve
 , robot_(robot)
 {
     this->ndof_ = robot->getNrOfDegreesOfFreedom();
-//     dynamics_equation_ = std::make_shared<DynamicsEquationConstraint>("DynamicsEquation");
-//     global_regularisation_ = std::make_shared<RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
-//     global_regularisation_->euclidianNorm().setWeight(1E-5);
-//     
-//     this->addConstraint(dynamics_equation_);
-//     this->addTask(global_regularisation_);
+    // initialise the problem as we have  the ndof
     resize();
 }
 
@@ -183,10 +178,10 @@ void Problem::resize()
 {
     if(ndof_ == 0)
         throw std::runtime_error(Formatter() << "Cannot resize if ndof is 0");
-    
+
     int nvars = this->mapping_.generate(ndof_,wrenches_.size());
     int nconstr = computeNumberOfConstraintRows(constraints_);
-    
+
     if(nvars != this->number_of_variables_ || nconstr != this->number_of_constraints_rows_)
     {
         LOG_INFO << "Resizing problem to (" << Size(nvars,nconstr) << ") , previously was (" << Size(nvars,nconstr) << ")";
@@ -220,9 +215,9 @@ bool Problem::solve()
     return qpsolver_->solve(data_) == 0;
 }
 
-const Eigen::VectorXd& Problem::getSolution() const
+Eigen::VectorXd Problem::getSolution(ControlVariable var) const
 {
-    return data_.primal_solution_;
+    return data_.primal_solution_.segment(getIndex(var),getSize(var));
 }
 
 unsigned int Problem::getIndex(ControlVariable var) const

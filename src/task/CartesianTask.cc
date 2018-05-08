@@ -10,6 +10,11 @@ CartesianTask::CartesianTask(const std::string& name)
 
 }
 
+void CartesianTask::setServoController(std::shared_ptr<CartesianServoController> servo)
+{
+    servo_ = servo;
+}
+
 const std::string& CartesianTask::getBaseFrame() const
 {
     return base_ref_frame_;
@@ -35,15 +40,10 @@ void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
     cart_acc_des_ = cartesian_acceleration_des;
 }
 
-
 void CartesianTask::updateAffineFunction(double current_time, double dt)
 {
-    // If no frame has been set before, use the default Floating Base.
-    if(base_ref_frame_.empty())
-    {
-        base_ref_frame_ = robot()->getBaseFrame();
-    }
-
+    servo_->update(current_time,dt);
+    setDesired(servo_->getCommand());
 
     if(base_ref_frame_ == robot()->getBaseFrame())
     {
@@ -68,4 +68,18 @@ void CartesianTask::resize()
 {
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
     euclidianNorm().resize(6,fulldim);
+    if(!servo_)
+        throw std::runtime_error("No servo controller set. Use setServoController before inserting the task in the controller");
+
+    // If no frame has been set before, use the default Floating Base.
+    if(base_ref_frame_.empty())
+    {
+        LOG_WARNING << "Calling update but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
+        setBaseFrame(robot()->getBaseFrame());
+    }
+    
+    servo_->setRobotModel(robot());
+    servo_->setBaseFrame(getBaseFrame());
+    servo_->setControlFrame(getControlFrame());
+    servo_->resize();
 }

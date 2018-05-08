@@ -34,6 +34,7 @@
 #pragma once
 
 #include "orca/task/GenericTask.h"
+#include "orca/common/CartesianServoController.h"
 
 namespace orca
 {
@@ -49,6 +50,7 @@ public:
     CartesianTask(const std::string& name);
     void updateAffineFunction(double current_time, double dt);
     void setDesired(const Vector6d& cartesian_acceleration_des);
+    void setServoController(std::shared_ptr<common::CartesianServoController> servo);
     void setBaseFrame(const std::string& base_ref_frame);
     void setControlFrame(const std::string& control_frame);
     const std::string& getBaseFrame() const;
@@ -57,6 +59,7 @@ public:
 protected:
     std::string base_ref_frame_,control_frame_;
     Vector6d cart_acc_des_,cart_acc_bias_;
+    std::shared_ptr<common::CartesianServoController> servo_;
 };
 
 }

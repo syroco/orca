@@ -51,7 +51,6 @@ int main(int argc, char const *argv[])
 
 
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); // We want to control the link_7
 
     Eigen::Affine3d cart_pos_ref;
@@ -74,10 +73,10 @@ int main(int argc, char const *argv[])
     Vector6d D;
     D << 0, 10, 10, 1, 1, 1;
     cart_acc_pid->pid().setDerivativeGain(D);
-    cart_acc_pid->setControlFrame(cart_task->getControlFrame()); // Of course use the same as the cart task
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-    // ServoingController
-    //cart_task->setServo(std::bind(CartesianAccelerationPID::getCommand,cart_acc_pid));
+
+    cart_task->setServoController(cart_acc_pid);
+    controller.addTask(cart_task);
 
     const int ndof = robot->getNrOfDegreesOfFreedom();
 
@@ -96,11 +95,15 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
 
-
-
-
     controller.update(0,0.001);
+
+    const Eigen::VectorXd& full_solution = controller.getFullSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+    const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
+
+    LOG_INFO << "Full solution : " << full_solution.transpose();
+    LOG_INFO << "Joint Acceleration command : " << trq_acc.transpose();
+    LOG_INFO << "Joint Torque command       : " << trq_cmd.transpose();
 
     return 0;
 }

@@ -81,11 +81,10 @@ public:
     void build();
     bool solve();
 
-    
     bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
     bool addTask(std::shared_ptr<task::WrenchTask> task);
     bool addTask(std::shared_ptr<task::GenericTask> task);
-    
+
     const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
     const std::list< std::shared_ptr< constraint::GenericConstraint> >& getConstraints() const;
@@ -96,10 +95,8 @@ public:
     const std::map<ControlVariable, unsigned int >& getIndexMap() const;
     const std::map<ControlVariable, unsigned int >& getSizeMap() const;
     void print() const;
-    const Eigen::VectorXd& getSolution() const;
+    Eigen::VectorXd getSolution(ControlVariable var) const;
 protected:
-    
-
     std::list< std::shared_ptr< const common::Wrench > > wrenches_;
     std::list< std::shared_ptr<task::GenericTask> > tasks_;
     std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
@@ -119,10 +116,7 @@ private:
     void resizeSolver(int nvar,int nconstr);
     void resizeTasks();
     void resizeConstraints();
-    
-    std::shared_ptr<constraint::DynamicsEquationConstraint> dynamics_equation_;
-    std::shared_ptr<task::RegularisationTask<ControlVariable::X> > global_regularisation_;
-    
+
     std::shared_ptr<robot::RobotDynTree> robot_;
 };
 

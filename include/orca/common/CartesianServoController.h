@@ -33,15 +33,23 @@
 
 #pragma once
 #include "orca/math/Utils.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
     namespace common
     {
-        template<int Dimension=Eigen::Dynamic>
-        struct ServoingController
+        class CartesianServoController : public TaskBase
         {
-            virtual const Eigen::Matrix<double,Dimension,1>& getCommand() const = 0;
+        public:
+            CartesianServoController(const std::string& name);
+            virtual const math::Vector6d& getCommand() const = 0;
+            void setBaseFrame(const std::string& base_ref_frame);
+            void setControlFrame(const std::string& control_frame);
+            const std::string& getBaseFrame() const;
+            const std::string& getControlFrame() const;
+        private:
+            std::string base_ref_frame_,control_frame_;
         };
     }
 }

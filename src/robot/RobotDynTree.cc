@@ -97,8 +97,11 @@ void RobotDynTree::setGravity(const Eigen::Vector3d& g)
 
 void RobotDynTree::setBaseFrame(const std::string& base_frame)
 {
+    if(base_frame.empty())
+        throw std::runtime_error("Provided frame is empty");
     if(!frameExists(base_frame))
         throw std::runtime_error(Formatter() << "Frame \'" << base_frame << "\' is not part of the robot");
+        
     base_frame_ = base_frame;
     kinDynComp_.setFloatingBase( base_frame_ );
 }
@@ -195,6 +198,8 @@ const std::map<unsigned int, std::pair<double,double> >& RobotDynTree::getJointP
 
 bool RobotDynTree::frameExists(const std::string& frame_name)
 {
+    if(frame_name.empty())
+        throw std::runtime_error("Provided frame is empty");
     if(kinDynComp_.getFrameIndex(frame_name) < 0)
     {
         return false;
@@ -214,16 +219,36 @@ unsigned int RobotDynTree::getNrOfJoints()
 
 Eigen::Matrix<double,4,4,Eigen::RowMajor> RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
 {
+    if(refFrameName.empty())
+        throw std::runtime_error("Provided reference frame is empty");
+    if(!frameExists(refFrameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << refFrameName << "\' is not part of the robot");
+
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     return iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
 }
 
 const Eigen::Matrix<double,6,1> RobotDynTree::getFrameVel(const std::string& frameName)
 {
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     return iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
 }
 
 Eigen::Map< const Eigen::Matrix<double,6,1> > RobotDynTree::getFrameBiasAcc(const std::string& frameName)
 {
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     return iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
 }
 
@@ -235,12 +260,27 @@ Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> >
 
 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
 {
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     kinDynComp_.getFrameFreeFloatingJacobian(frameName,robotData_.idynJacobianFb);
     return iDynTree::toEigen(robotData_.idynJacobianFb);
 }
 
 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
 {
+    if(refFrameName.empty())
+        throw std::runtime_error("Provided reference frame is empty");
+    if(!frameExists(refFrameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << refFrameName << "\' is not part of the robot");
+
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     kinDynComp_.getRelativeJacobian(kinDynComp_.getFrameIndex(refFrameName)
                                 ,kinDynComp_.getFrameIndex(frameName)
                                 ,robotData_.idynJacobianFb);
@@ -259,6 +299,11 @@ const Eigen::VectorXd& RobotDynTree::getJointVel()
 
 bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
 {
+    if(frameName.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frameName))
+        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+
     iDynTree::Transform idyntree_link_H_frame;
     iDynTree::fromEigen(idyntree_link_H_frame,link_H_frame);
     auto model = this->kinDynComp_.model();
