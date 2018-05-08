@@ -1,6 +1,6 @@
 #include "orca/constraint/LinearizedCoulombConstraint.h"
 #ifndef M_PI
-#define M_PI       3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 using namespace orca::constraint;
 using namespace orca::common;
@@ -50,7 +50,7 @@ void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
 {
     if (nfaces < 3)
     {
-        LOG_ERROR << "[orca::LinearizedCoulombFunction] Number of faces is less than 3";
+        LOG_ERROR << "Number of faces is less than 3";
         return;
     }
 
