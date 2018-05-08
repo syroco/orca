@@ -90,7 +90,7 @@ bool TaskBase::desactivate()
 {
     if(!is_activated_)
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Contact already desactivated ";
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Already desactivated";
     }
     else
     {

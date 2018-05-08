@@ -67,10 +67,9 @@ void CartesianAccelerationPID::update(double current_time, double dt)
         throw std::runtime_error("baseframe is empty");
     if(getControlFrame().empty())
         throw std::runtime_error("controlFrame is empty");
-    if(!robot())
-        throw std::runtime_error("Robot is not set");
-    if(!robot()->isInitialized())
-        throw std::runtime_error("Robot is not initialized");
+
+    printStateIfErrors();
+
     // Compute Cartesian Position Error
     cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
     cart_pos_err_ = math::diffTransform(cart_pos_curr_ , cart_pos_des_);

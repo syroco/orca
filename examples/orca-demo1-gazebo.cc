@@ -49,9 +49,9 @@ int main(int argc, char** argv)
 
     world->InsertModelString(xmltext);
 
-    LOG_INFO << "To make it work you need first to set the path to the meshes : (ex path to lwr_description)" << '\n';
-    LOG_INFO << "export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/the/package/containing_meshes" << "\n";
-    LOG_INFO << "----> otherwise Gazebo won't start !" << "\n";
+    std::cout << "To make it work you need first to set the path to the meshes : (ex path to lwr_description)" << '\n';
+    std::cout << "export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/the/package/containing_meshes" << "\n";
+    std::cout << "----> otherwise Gazebo won't start !" << "\n";
 
     for (size_t i = 0; i < 10; i++)
     {
@@ -296,9 +296,11 @@ int main(int argc, char** argv)
 
     timer.Reset();
 
-    LOG_WARNING << "Gazebo in Pause. Open the GUI in an other terminal : gzclient --verbose and unpause the simulation" << '\n';
-    LOG_WARNING << "Or enter `gz world --pause false`" << '\n';
+    std::cout << "Gazebo in Pause. Open the GUI in an other terminal : gzclient --verbose and unpause the simulation" << '\n';
+    std::cout << "Or enter `gz world --pause false`" << '\n';
+
     gazebo::event::Events::pause.Signal(true);
+
     int i=0;
     while(i++ <= 100000)
     {
@@ -338,7 +340,7 @@ int main(int argc, char** argv)
         contact3.update();
         contact4.update();
 
-        
+
         std::cout << "robot->getRelativeTransform(\"base_link\",\"link_7\")\n" << robot->getRelativeTransform("base_link","link_7") << std::endl;
 //         if(i == 2000)
 //         {
