@@ -10,6 +10,7 @@ namespace common
     struct TaskState
     {
         std::string name;
+        ControlVariable control_variable;
 
         struct Frames
         {
@@ -24,6 +25,7 @@ namespace common
             bool is_activated;
             double update_time;
             double dt;
+            double weight;
         }
         State state;
 
@@ -31,10 +33,18 @@ namespace common
         {
             int rows;
             int cols;
+
+            Eigen::MatrixXd selection_matrix;
+            Eigen::MatrixXd Weight;
+
             Eigen::MatrixXd E;
             Eigen::VectorXd f;
             Eigen::MatrixXd Hessian;
             Eigen::MatrixXd Gradient;
+
+            Eigen::VectorXd lower_bound;
+            Eigen::VectorXd upper_bound;
+            Eigen::MatrixXd constraint_matrix;
         }
         Maths maths;
 
