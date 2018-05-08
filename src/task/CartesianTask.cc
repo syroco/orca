@@ -68,7 +68,7 @@ void CartesianTask::resize()
 {
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
     euclidianNorm().resize(6,fulldim);
-    
+
     if(!servo_)
         throw std::runtime_error("No servo controller set. Use setServoController before inserting the task in the controller");
 
@@ -78,6 +78,9 @@ void CartesianTask::resize()
         LOG_WARNING << "Calling update but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
         setBaseFrame(robot()->getBaseFrame());
     }
+
+    // Do not move at first
+    cart_acc_des_.setZero();
 
     servo_->setRobotModel(robot());
     servo_->setBaseFrame(getBaseFrame());
