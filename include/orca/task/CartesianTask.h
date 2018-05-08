@@ -45,7 +45,6 @@ using math::Vector6d;
 
 class CartesianTask : public GenericTask
 {
-
 public:
     CartesianTask(const std::string& name);
     void updateAffineFunction(double current_time, double dt);
@@ -62,5 +61,5 @@ protected:
     std::shared_ptr<common::CartesianServoController> servo_;
 };
 
-}
-}
+} // namespace task
+} // namesapce orca
