@@ -3,7 +3,11 @@
 #include "orca/utils/Utils.h"
 #include "orca/common/TaskBase.h"
 #include "orca/task/GenericTask.h"
+#include "orca/task/RegularisationTask.h"
+#include "orca/task/WrenchTask.h"
 #include "orca/constraint/GenericConstraint.h"
+#include "orca/constraint/DynamicsEquationConstraint.h"
+#include "orca/robot/RobotDynTree.h"
 
 using namespace orca::common;
 using namespace orca::task;
@@ -11,10 +15,20 @@ using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::utils;
+using namespace orca::robot;
 
-Problem::Problem(QPSolver::SolverType solver_type)
+Problem::Problem(std::shared_ptr<RobotDynTree> robot, QPSolver::SolverType solver_type)
 : qpsolver_(std::make_shared<QPSolver>(solver_type))
+, robot_(robot)
 {
+    this->ndof_ = robot->getNrOfDegreesOfFreedom();
+//     dynamics_equation_ = std::make_shared<DynamicsEquationConstraint>("DynamicsEquation");
+//     global_regularisation_ = std::make_shared<RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
+//     global_regularisation_->euclidianNorm().setWeight(1E-5);
+//     
+//     this->addConstraint(dynamics_equation_);
+//     this->addTask(global_regularisation_);
+    resize();
 }
 
 Problem::~Problem()
@@ -110,22 +124,95 @@ void Problem::resizeProblemData(int nvar,int nconstr)
     data_.resize(nvar,nconstr);
 }
 
-void Problem::setProblemObjects(
-    int ndof
-    , std::list< std::shared_ptr< GenericTask > > tasks
-    , std::list< std::shared_ptr< GenericConstraint > > constraints
-    , std::list< std::shared_ptr< const Wrench > > wrenches
-)
+bool Problem::addTask(std::shared_ptr<task::GenericTask> task)
 {
-    this->tasks_ = tasks;
-    this->constraints_ = constraints;
-    this->wrenches_ = wrenches;
+    if(!exists(task,tasks_))
+    {
+        LOG_INFO << "Adding task " << task->getName();
+        tasks_.push_back(task);
+        resize();
+        return true;
+    }
+    else
+    {
+        LOG_WARNING << "Task " << task->getName() << " is already present in the problem";
+        return false;
+    }
+}
 
-    this->number_of_variables_ = this->mapping_.generate(ndof,wrenches_.size());
-    this->number_of_constraints_rows_ = computeNumberOfConstraintRows(constraints_);
+bool Problem::addTask(std::shared_ptr<WrenchTask> task)
+{
+    if(addWrench(task->getWrench()))
+        return addTask(task);
+    return false;
+}
 
-    resizeProblemData(this->number_of_variables_,this->number_of_constraints_rows_);
-    resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
+bool Problem::addWrench(std::shared_ptr<const Wrench> wrench)
+{
+    if(!exists(wrench,wrenches_))
+    {
+        LOG_INFO << "Adding Wrench " << wrench->getName();
+        wrenches_.push_back(wrench);
+        resize();
+        return true;
+    }
+    else
+    {
+        LOG_WARNING << "Wrench " << wrench->getName() << " is already present in the problem";
+        return false;
+    }
+}
+
+bool Problem::addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
+{
+    if(!exists(cstr,constraints_))
+    {
+        LOG_INFO << "Adding constraint " << cstr->getName();
+        constraints_.push_back(cstr);
+        resize();
+        return true;
+    }
+    else
+    {
+        LOG_WARNING << "Constraint " << cstr->getName() << " is already present in the problem";
+        return false;
+    }
+}
+
+void Problem::resize()
+{
+    if(ndof_ == 0)
+        throw std::runtime_error(Formatter() << "Cannot resize if ndof is 0");
+    
+    int nvars = this->mapping_.generate(ndof_,wrenches_.size());
+    int nconstr = computeNumberOfConstraintRows(constraints_);
+    
+    if(nvars != this->number_of_variables_ || nconstr != this->number_of_constraints_rows_)
+    {
+        LOG_INFO << "Resizing problem to (" << Size(nvars,nconstr) << ") , previously was (" << Size(nvars,nconstr) << ")";
+        this->number_of_variables_ = nvars;
+        this->number_of_constraints_rows_ = nconstr;
+        resizeProblemData(this->number_of_variables_,this->number_of_constraints_rows_);
+        resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
+    }
+}
+
+void Problem::resizeTasks()
+{
+    for(auto task : tasks_)
+    {
+        LOG_DEBUG << "Resizing task " << task->getName();
+        task->resize();
+    }
+}
+
+void Problem::resizeConstraints()
+{
+    for(auto constr : constraints_)
+    {
+        LOG_DEBUG << "Resizing constraint " << constr->getName();
+        constr->resize();
+    }
 }
 
 bool Problem::solve()

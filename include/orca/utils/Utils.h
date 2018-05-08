@@ -240,6 +240,10 @@ void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Deriv
     throw std::length_error(Formatter() << "Size mismatched, provided size (" << a.rows() << " , " << a.cols() << "), but have size (" << b.rows() << " , " << b.cols() << ")");
 }
 
+template<class T> bool exists(const std::shared_ptr<T> t, std::list< std::shared_ptr<T> > l){
+    return std::find(l.begin(),l.end(),t) != l.end();
+}
+
 } // namespace utils
 } // namespace orca
 

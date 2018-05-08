@@ -52,10 +52,17 @@ namespace orca
     namespace task
     {
         class GenericTask;
+        class WrenchTask;
+        template<optim::ControlVariable C> class RegularisationTask;
     }
     namespace constraint
     {
         class GenericConstraint;
+        class DynamicsEquationConstraint;
+    }
+    namespace robot
+    {
+        class RobotDynTree;
     }
 }
 
@@ -67,19 +74,18 @@ namespace optim
 class Problem
 {
 public:
-    Problem(QPSolver::SolverType solver_type);
+    Problem(std::shared_ptr<robot::RobotDynTree> robot,QPSolver::SolverType solver_type);
 
     virtual ~Problem();
-
-    void setProblemObjects(
-        int ndof
-        , std::list< std::shared_ptr< orca::task::GenericTask > > tasks
-        , std::list< std::shared_ptr< orca::constraint::GenericConstraint > > constraints
-        , std::list< std::shared_ptr< const orca::common::Wrench > > wrenches );
 
     void build();
     bool solve();
 
+    
+    bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
+    bool addTask(std::shared_ptr<task::WrenchTask> task);
+    bool addTask(std::shared_ptr<task::GenericTask> task);
+    
     const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
     const std::list< std::shared_ptr< constraint::GenericConstraint> >& getConstraints() const;
@@ -92,6 +98,8 @@ public:
     void print() const;
     const Eigen::VectorXd& getSolution() const;
 protected:
+    
+
     std::list< std::shared_ptr< const common::Wrench > > wrenches_;
     std::list< std::shared_ptr<task::GenericTask> > tasks_;
     std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
@@ -102,10 +110,20 @@ protected:
     ProblemData data_;
     unsigned int number_of_variables_ = 0;
     unsigned int number_of_constraints_rows_ = 0;
+    unsigned int ndof_ = 0;
 private:
+    void resize();
+    bool addWrench(std::shared_ptr<const common::Wrench> wrench);
     unsigned int computeNumberOfConstraintRows(std::list< std::shared_ptr<constraint::GenericConstraint> > constraints) const;
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
+    void resizeTasks();
+    void resizeConstraints();
+    
+    std::shared_ptr<constraint::DynamicsEquationConstraint> dynamics_equation_;
+    std::shared_ptr<task::RegularisationTask<ControlVariable::X> > global_regularisation_;
+    
+    std::shared_ptr<robot::RobotDynTree> robot_;
 };
 
 } // namespace optim
