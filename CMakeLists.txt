@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(orca VERSION 0.1.0)
+project(orca VERSION 2.0.0)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -15,7 +15,7 @@ if(XENOMAI_FOUND)
 endif()
 
 #################### Eigen3 ###########################
-find_package(Eigen3 3.2.92 QUIET)
+find_package(Eigen3 3.2.92 QUIET NO_MODULE)
 
 if(NOT Eigen3_FOUND)
     if(EIGEN3_INCLUDE_DIR)
@@ -51,7 +51,9 @@ endif()
 
 #################### iDynTree #########################
 find_package(iDynTree QUIET)
+#################### catkin #########################
 find_package(catkin QUIET)
+
 if(NOT iDynTree_FOUND)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
 
@@ -156,8 +158,6 @@ target_compile_features(orca PUBLIC
     cxx_lambdas
     cxx_nullptr
 )
-set_target_properties(orca PROPERTIES CXX_STANDARD 11)
-set_target_properties(orca PROPERTIES CXX_STANDARD_REQUIRED ON)
 
 if(XENOMAI_FOUND)
     target_compile_definitions(orca PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
