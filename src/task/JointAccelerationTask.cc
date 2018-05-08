@@ -48,7 +48,8 @@ void JointAccelerationTask::resize()
         E().setIdentity();
         pid_.resize(dof);
 
-        jnt_pos_des_.setZero( dof );
+        jnt_pos_des_.resize( dof );
+        jnt_pos_des_ = robot()->getJointPos();
         jnt_vel_des_.setZero( dof );
         jnt_acc_des_.setZero( dof );
     }
