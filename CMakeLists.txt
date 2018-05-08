@@ -15,7 +15,7 @@ if(XENOMAI_FOUND)
 endif()
 
 #################### Eigen3 ###########################
-find_package(Eigen3 3.2.92 QUIET NO_MODULE)
+find_package(Eigen3 3.2.92 QUIET)
 
 if(NOT Eigen3_FOUND)
     if(EIGEN3_INCLUDE_DIR)
@@ -106,8 +106,8 @@ endif()
 
 if(catkin_FOUND)
     catkin_package(
-        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
-        LIBRARIES orca ${iDynTree_LIBRARIES}
+        INCLUDE_DIRS include #${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
+        LIBRARIES orca #${iDynTree_LIBRARIES}
     )
 endif()
 
