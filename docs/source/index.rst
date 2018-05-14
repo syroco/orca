@@ -112,7 +112,15 @@ one may want to define
     :maxdepth: 2
 
     tools/*
-
+    
+.. toctree:: 
+    :name: tutos
+    :caption: Tutorials
+    :glob:
+    :maxdepth: 2
+    
+    tutos/*
+ 
 .. image:: _static/isir.png
     :width: 100px
     :align: left
