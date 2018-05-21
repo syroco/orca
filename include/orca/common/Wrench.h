@@ -64,13 +64,14 @@ public:
 
     const Eigen::MatrixXd& getJacobian() const;
 
-    virtual void resize();
-
-    virtual void update(double current_time, double dt);
-
     virtual void print() const;
 
 protected:
+    virtual void onResize();
+    virtual void onStart(){}
+    virtual void onUpdate(double current_time, double dt);
+    virtual void onStop(){}
+private:
     std::string base_ref_frame_,control_frame_;
     Eigen::MatrixXd jacobian_transpose_;
     Eigen::MatrixXd jacobian_;

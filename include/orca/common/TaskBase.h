@@ -35,7 +35,6 @@
 
 #include "orca/robot/RobotDynTree.h"
 #include "orca/optim/ControlVariable.h"
-#include "orca/common/Mutex.h"
 #include "orca/optim/Problem.h"
 
 namespace orca
@@ -46,6 +45,8 @@ namespace common
     class TaskBase
     {
     public:
+        enum State {Init,Resized,Starting,Running,ShuttingDown,Stopped,Error};
+
         TaskBase(const std::string& name,optim::ControlVariable control_var);
         virtual ~TaskBase();
 
@@ -55,13 +56,13 @@ namespace common
 
         optim::ControlVariable getControlVariable() const;
 
-        void setName(const std::string& name);
-
         const std::string& getName() const;
 
-        virtual void update(double current_time, double dt) = 0;
-        virtual void resize() = 0;
-        virtual void print() const = 0;
+        virtual bool start(double current_time);
+        virtual void update(double current_time, double dt);
+        virtual bool stop(double current_time);
+        virtual void resize();
+        virtual void print() const;
 
         /**
          * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
@@ -85,32 +86,38 @@ namespace common
         *
         * @return bool
         */
-        virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);//, bool insert = true);
-        // virtual bool insertInProblem();
-        // virtual bool removeFromProblem();
-
-        /**
-        * @brief Insert the constraint in the QP problem
-        *
-        */
-        bool isInitialized() const;
-
-        /**
-        * @brief The recursive mutex to protect public fucntions
-        *
-        */
-        mutable common::MutexRecursive mutex;
+        virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);
 
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<const optim::Problem> problem();
 
         bool hasProblem() const;
         bool hasRobot() const;
-        void printStateIfErrors() const;
-
+        bool isRobotInitialized() const;
+        State getState() const;
+        void setRampDuration(double ramp_time);
+        double getRampDuration() const;
+        double getCurrentRampValue() const;
+        
+        double getStartTime() const;
+        double getStopTime() const;
+    protected:
+        virtual void onResize() = 0;
+        virtual void onStart() = 0;
+        virtual bool rampUp(double time_since_start);
+        void setRampValue(double new_val);
+        virtual void onUpdate(double current_time, double dt) = 0;
+        virtual bool rampDown(double time_since_stop);
+        virtual void onStop() = 0;
     private:
+        void checkIfUpdatable() const;
         bool is_activated_ = true;
-        std::string name_;
+        State state_ = Init;
+        double start_time_ = 0;
+        double stop_time_ = 0;
+        double ramp_duration_ = .5;
+        double ramp_value_ = 0;
+        const std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotDynTree> robot_;
         optim::ControlVariable control_var_;

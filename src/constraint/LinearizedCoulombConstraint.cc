@@ -61,7 +61,7 @@ void LinearizedCoulombConstraint::setNumberOfFaces(int nfaces)
     }
 }
 
-void LinearizedCoulombConstraint::resize()
+void LinearizedCoulombConstraint::onResize()
 {
     if(number_of_faces_ != constraintFunction().rows())
     {
@@ -71,7 +71,7 @@ void LinearizedCoulombConstraint::resize()
     }
 }
 
-void LinearizedCoulombConstraint::updateConstraintFunction(double current_time, double dt)
+void LinearizedCoulombConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     const double angleIncr = 2. * M_PI/(double)number_of_faces_;
 

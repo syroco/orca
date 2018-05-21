@@ -21,7 +21,12 @@ void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
     jnt_trq_des_ = desired_joint_torque;
 }
 
-void JointTorqueTask::updateAffineFunction(double current_time, double dt)
+void JointTorqueTask::onStart()
+{
+    jnt_trq_des_.setZero();
+}
+
+void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
 {
     f() = - pid_.computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
@@ -37,7 +42,7 @@ PIDController<Eigen::Dynamic>& JointTorqueTask::pid()
     return pid_;
 }
 
-void JointTorqueTask::resize()
+void JointTorqueTask::onResize()
 {
     const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
 

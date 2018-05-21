@@ -66,8 +66,6 @@ public:
      */
     virtual ~GenericConstraint();
 
-    virtual void update(double current_time, double dt);
-    virtual void resize() = 0;
     virtual void print() const;
 
     /**
@@ -121,7 +119,9 @@ public:
 
 
 protected:
-    virtual void updateConstraintFunction(double current_time, double dt) = 0;
+    virtual void onResize() = 0;
+    virtual void onUpdate(double current_time, double dt);
+    virtual void onUpdateConstraintFunction(double current_time, double dt) = 0;
     /**
      * @brief Replace the constraint matrix with a new one
      *

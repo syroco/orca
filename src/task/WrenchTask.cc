@@ -46,8 +46,12 @@ PIDController<6>& WrenchTask::pid()
 {
     return pid_;
 }
+void WrenchTask::onStart()
+{
+    wrench_des_.setZero();
+}
 
-void WrenchTask::update(double current_time, double dt)
+void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 {
     wrench_->update(current_time,dt);
     f() = - pid_.computeCommand( wrench_->getCurrentValue() - wrench_des_ , dt);
@@ -58,7 +62,7 @@ std::shared_ptr<const Wrench> WrenchTask::getWrench() const
     return wrench_;
 }
 
-void WrenchTask::resize()
+void WrenchTask::onResize()
 {
     wrench_->resize();
     const int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6

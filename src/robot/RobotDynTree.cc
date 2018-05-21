@@ -101,7 +101,7 @@ void RobotDynTree::setBaseFrame(const std::string& base_frame)
         throw std::runtime_error("Provided frame is empty");
     if(!frameExists(base_frame))
         throw std::runtime_error(Formatter() << "Frame \'" << base_frame << "\' is not part of the robot");
-        
+
     base_frame_ = base_frame;
     kinDynComp_.setFloatingBase( base_frame_ );
 }

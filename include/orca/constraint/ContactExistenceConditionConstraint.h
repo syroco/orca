@@ -48,10 +48,11 @@ public:
 
     void setControlFrame(const std::string& control_frame);
 
-    void updateConstraintFunction(double current_time, double dt);
-
-    void resize();
-
+protected:
+    void onStart();
+    void onUpdateConstraintFunction(double current_time, double dt);
+    void onStop(){}
+    void onResize();
 private:
     math::Vector6d frame_bias_acc_;
     Eigen::MatrixXd jacobian_;

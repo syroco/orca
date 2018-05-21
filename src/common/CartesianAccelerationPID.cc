@@ -22,10 +22,10 @@ const Vector6d& CartesianAccelerationPID::getCartesianAccelerationRef() const
     return cart_acc_des_;
 }
 
-void CartesianAccelerationPID::resize()
+void CartesianAccelerationPID::onResize()
 {
     cart_pos_curr_.setZero();
-    cart_pos_des_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
+    cart_pos_des_.setZero();
     cart_acc_cmd_.setZero();
     cart_acc_bias_.setZero();
     cart_acc_des_.setZero();
@@ -60,15 +60,18 @@ PIDController<6>& CartesianAccelerationPID::pid()
     return pid_;
 }
 
-void CartesianAccelerationPID::update(double current_time, double dt)
+void CartesianAccelerationPID::onStart()
+{
+    cart_pos_des_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
+}
+
+void CartesianAccelerationPID::onUpdate(double current_time, double dt)
 {
     // If no frame has been set before, use the default Floating Base.
     if(getBaseFrame().empty())
         throw std::runtime_error("baseframe is empty");
     if(getControlFrame().empty())
         throw std::runtime_error("controlFrame is empty");
-
-    printStateIfErrors();
 
     // Compute Cartesian Position Error
     cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
@@ -80,6 +83,11 @@ void CartesianAccelerationPID::update(double current_time, double dt)
 
     // Compute Cartesian Acceleration Command
     cart_acc_cmd_ = cart_acc_des_ + pid_.computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
+}
+
+void CartesianAccelerationPID::onStop()
+{
+
 }
 
 const Vector6d& CartesianAccelerationPID::getCommand() const

@@ -39,19 +39,22 @@ namespace orca
 {
 namespace task
 {
-    template<optim::ControlVariable C> struct RegularisationTask : public GenericTask
+    template<optim::ControlVariable C> class RegularisationTask : public GenericTask
     {
+    public:
         const double DefaultWeight = 1.E-4;
 
         RegularisationTask(const std::string& name)
         : GenericTask(name,C)
         {}
-
-        void updateAffineFunction(double current_time, double dt)
-        {
-        }
-
-        void resize()
+    protected:
+        void onStart()
+        {}
+        void onUpdateAffineFunction(double current_time, double dt)
+        {}
+        void onStop()
+        {}
+        void onResize()
         {
             const int sizeofvar = this->problem()->getSize(this->getControlVariable());
             int old_cols = euclidianNorm().cols();

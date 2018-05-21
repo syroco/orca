@@ -67,9 +67,7 @@ public:
     bool desactivate();
 
     bool activate();
-
-    void update(double current_time, double dt);
-
+    
     double getFrictionCoeff() const;
 
     double getMargin() const;
@@ -86,10 +84,13 @@ public:
 
     void setNumberOfFaces(int nfaces);
 
-    void resize();
-
     std::shared_ptr<const common::Wrench> getWrench() const;
-
+    
+protected:
+    void onResize();
+    void onStart();
+    void onUpdate(double current_time, double dt);
+    void onStop();
 private:
     std::shared_ptr<LinearizedCoulombConstraint> friction_cone_;
     std::shared_ptr<ContactExistenceConditionConstraint> ex_condition_;

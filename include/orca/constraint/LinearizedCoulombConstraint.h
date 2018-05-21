@@ -65,8 +65,11 @@ public:
     void setConeOrientation(const Eigen::Matrix3d& R);
     const Eigen::Matrix3d& getConeOrientation() const;
     void setNumberOfFaces(int nfaces);
-    void updateConstraintFunction(double current_time, double dt);
-    void resize();
+protected:
+    virtual void onStart(){}
+    virtual void onUpdateConstraintFunction(double current_time, double dt);
+    virtual void onStop(){}
+    virtual void onResize();
 private:
     double friction_coeff_ = 1;                                          ///< the friction coefficient
     double margin_ = 0;                                      ///< margin on the cone. Positive means tighter

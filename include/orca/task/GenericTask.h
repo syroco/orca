@@ -65,17 +65,20 @@ public:
     const Eigen::MatrixXd& getE() const;
     const Eigen::VectorXd& getf() const;
 
-    virtual void update(double current_time, double dt);
     virtual void print() const;
-    virtual void updateAffineFunction(double current_time, double dt) = 0;
 
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();
 
     const math::WeightedEuclidianNormFunction::QuadraticCost& getQuadraticCost() const;
 protected:
-    virtual void computeQuadraticCost();
+    virtual bool rampUp(double time_since_start);
+    virtual void onUpdateAffineFunction(double current_time, double dt) = 0;
+    virtual void onStop();
+    virtual bool rampDown(double time_since_stop);
 private:
+    virtual void onUpdate(double current_time, double dt);
+    virtual void computeQuadraticCost();
     math::WeightedEuclidianNormFunction euclidian_norm_;
     double weight_ = 1.0;
 };

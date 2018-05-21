@@ -20,8 +20,15 @@ void ContactExistenceConditionConstraint::setControlFrame(const std::string& con
     control_frame_ = control_frame;
 }
 
+void ContactExistenceConditionConstraint::onStart()
+{
+    if(base_ref_frame_.empty())
+    {
+        base_ref_frame_ = robot()->getBaseFrame();
+    }
+}
 
-void ContactExistenceConditionConstraint::updateConstraintFunction(double current_time, double dt)
+void ContactExistenceConditionConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     frame_bias_acc_ = - robot()->getFrameBiasAcc(control_frame_);
 
@@ -39,7 +46,7 @@ void ContactExistenceConditionConstraint::updateConstraintFunction(double curren
     this->setBound( frame_bias_acc_.head(3) );
 }
 
-void ContactExistenceConditionConstraint::resize()
+void ContactExistenceConditionConstraint::onResize()
 {
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
 
@@ -47,10 +54,5 @@ void ContactExistenceConditionConstraint::resize()
     {
         constraintFunction().resize( 3 , fulldim);
         jacobian_.setZero(6,fulldim);
-    }
-    
-    if(base_ref_frame_.empty())
-    {
-        base_ref_frame_ = robot()->getBaseFrame();
     }
 }

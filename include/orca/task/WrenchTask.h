@@ -51,24 +51,24 @@ public:
 
     void setDesired(const Vector6d& wrench_at_control_frame);
 
-    void update(double current_time, double dt);
-    
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
-    
+
     const std::string& getBaseFrame() const;
 
     const std::string& getControlFrame() const;
-    
-    void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
 
-    void resize();
+    void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
 
     common::PIDController<6>& pid();
 
     std::shared_ptr<const common::Wrench> getWrench() const;
 protected:
+    virtual void onStart();
+    virtual void onUpdateAffineFunction(double current_time, double dt);
+    virtual void onResize();
+private:
     std::shared_ptr<common::Wrench> wrench_;
     Vector6d wrench_des_;
     common::PIDController<6> pid_;

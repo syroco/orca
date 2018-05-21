@@ -29,8 +29,12 @@ PIDController<Eigen::Dynamic>& JointAccelerationTask::pid()
 {
     return pid_;
 }
+void JointAccelerationTask::onStart()
+{
+    jnt_pos_des_ = robot()->getJointPos();
+}
 
-void JointAccelerationTask::updateAffineFunction(double current_time, double dt)
+void JointAccelerationTask::onUpdateAffineFunction(double current_time, double dt)
 {
     const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
@@ -38,7 +42,7 @@ void JointAccelerationTask::updateAffineFunction(double current_time, double dt)
     f() = - (jnt_acc_des_ + pid_.computeCommand( jnt_pos_des_ - current_jnt_pos , jnt_vel_des_ - current_jnt_vel , dt) );
 }
 
-void JointAccelerationTask::resize()
+void JointAccelerationTask::onResize()
 {
     const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
 
@@ -48,8 +52,7 @@ void JointAccelerationTask::resize()
         E().setIdentity();
         pid_.resize(dof);
 
-        jnt_pos_des_.resize( dof );
-        jnt_pos_des_ = robot()->getJointPos();
+        jnt_pos_des_.setZero( dof );
         jnt_vel_des_.setZero( dof );
         jnt_acc_des_.setZero( dof );
     }

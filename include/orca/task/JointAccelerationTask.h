@@ -50,14 +50,12 @@ public:
                 , const Eigen::VectorXd& jnt_vel_des
                 , const Eigen::VectorXd& jnt_acc_des);
 
-    void updateAffineFunction(double current_time, double dt);
-
-    void resize();
-
     common::PIDController<Eigen::Dynamic>& pid();
-
 protected:
-
+    virtual void onUpdateAffineFunction(double current_time, double dt);
+    virtual void onResize();
+    virtual void onStart();
+private:
     Eigen::VectorXd jnt_pos_des_,jnt_vel_des_,jnt_acc_des_;
     common::PIDController<Eigen::Dynamic> pid_;
 };

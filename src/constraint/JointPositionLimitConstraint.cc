@@ -27,21 +27,16 @@ void JointPositionLimitConstraint::setHorizon(double horizon)
     horizon_ = horizon;
 }
 
-void JointPositionLimitConstraint::updateConstraintFunction(double current_time, double dt)
+void JointPositionLimitConstraint::onStart()
+{
+    setJointLimitsFromRobotModel();
+}
+
+void JointPositionLimitConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
 
     constraintFunction().lowerBound().noalias() = 2. * ( minLimit() - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
     constraintFunction().upperBound().noalias() = 2. * ( maxLimit() - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
-}
-
-void JointPositionLimitConstraint::resize()
-{
-    const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
-    if(minLimit().size() != dof || maxLimit().size() != dof)
-    {
-        JointLimitConstraint::resize();
-        setJointLimitsFromRobotModel();
-    }
 }

@@ -20,7 +20,12 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
     max_ = max;
 }
 
-void JointLimitConstraint::updateConstraintFunction(double current_time, double dt)
+void JointLimitConstraint::onStart()
+{
+    
+}
+
+void JointLimitConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     constraintFunction().lowerBound() = min_ ;
     constraintFunction().upperBound() = max_ ;
@@ -35,7 +40,7 @@ Eigen::VectorXd& JointLimitConstraint::maxLimit()
     return max_;
 }
 
-void JointLimitConstraint::resize()
+void JointLimitConstraint::onResize()
 {
     const int dim = this->robot()->getNrOfDegreesOfFreedom();
 

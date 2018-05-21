@@ -45,10 +45,8 @@ public:
 
     void setHorizon(double horizon);
 
-    void updateConstraintFunction(double current_time, double dt);
-
-    void resize();
-
+protected:
+    virtual void onUpdateConstraintFunction(double current_time, double dt);
 private:
     double horizon_ = 3;
 };

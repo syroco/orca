@@ -47,11 +47,13 @@ public:
 
     virtual void setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max);
 
-    virtual void updateConstraintFunction(double current_time, double dt);
-
-    virtual void resize();
     Eigen::VectorXd& minLimit();
     Eigen::VectorXd& maxLimit();
+protected:
+    virtual void onStart();
+    virtual void onUpdateConstraintFunction(double current_time, double dt);
+    virtual void onStop(){}
+    virtual void onResize();
 private:
     Eigen::VectorXd min_,max_;
 };

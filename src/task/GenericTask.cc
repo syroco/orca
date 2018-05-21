@@ -9,33 +9,25 @@ using namespace orca::common;
 GenericTask::GenericTask(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
 {
-    weight_ = 1.0;
+
+}
+
+GenericTask::~GenericTask()
+{
+
 }
 
 void GenericTask::print() const
 {
-    std::cout << "[" << TaskBase::getName() << "]" << '\n';
-    std::cout << " - Weight " << getWeight() << '\n';
-    std::cout << " - Size " << getSize() << '\n';
-    std::cout << " - Variable  " << getControlVariable() << '\n';
-
+    TaskBase::print();
     getEuclidianNorm().print();
-
-    std::cout << " - isInitialized        " << isInitialized() << '\n';
-    std::cout << " - isActivated          " << isActivated() << '\n';
-    //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
-}
-
-
-GenericTask::~GenericTask()
-{
-    // This cannot be in TaskBase because when invoking the destructor 'this' is actually a taskBase
-    // removeFromProblem();
+    std::cout << " - Weight " << getWeight() << '\n';
+    std::cout << " - Ramp   " << getCurrentRampValue() << '\n';
 }
 
 double GenericTask::getWeight() const
 {
-    return weight_;
+    return getCurrentRampValue() * weight_;
 }
 
 void GenericTask::setWeight(double weight)
@@ -93,21 +85,43 @@ Eigen::VectorXd& GenericTask::f()
     return euclidian_norm_.b();
 }
 
-void GenericTask::update(double current_time, double dt)
+bool GenericTask::rampUp(double time_since_start)
 {
-//     if(!lock.isSuccessful())
-//     {
-//         //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
-//         return;
-//     }
-
-    this->printStateIfErrors();
-
-    if(isInitialized())
+    if(time_since_start >= getRampDuration())
     {
-        this->updateAffineFunction(current_time, dt);
-        this->computeQuadraticCost();
+        setRampValue( 1 );
+        return true;
     }
+    else
+    {
+        setRampValue( time_since_start *( getWeight() / getRampDuration() ) );;
+        return false;
+    }
+}
+
+void GenericTask::onUpdate(double current_time, double dt)
+{
+    this->onUpdateAffineFunction(current_time, dt);
+    this->computeQuadraticCost();
+}
+
+bool GenericTask::rampDown(double time_since_start)
+{
+    if(time_since_start >= getRampDuration())
+    {
+        setRampValue( 0 );
+        return true;
+    }
+    else
+    {
+        setRampValue( - time_since_start *( getWeight() / getRampDuration() ) );
+        return false;
+    }
+}
+
+void GenericTask::onStop()
+{
+
 }
 
 void GenericTask::computeQuadraticCost()

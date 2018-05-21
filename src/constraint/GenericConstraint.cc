@@ -14,20 +14,13 @@ GenericConstraint::GenericConstraint(const std::string& name,ControlVariable con
 
 GenericConstraint::~GenericConstraint()
 {
-    
+
 }
 
 void GenericConstraint::print() const
 {
-    std::cout << "[" << TaskBase::getName() << "]" << '\n';
-    std::cout << " - Size " << getSize() << '\n';
-    std::cout << " - Variable  " << getControlVariable() << '\n';
-
+    TaskBase::print();
     getConstraintFunction().print();
-
-    std::cout << " - isInitialized        " << isInitialized() << '\n';
-    std::cout << " - isActivated          " << isActivated() << '\n';
-    //std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
 }
 
 Size GenericConstraint::getSize() const
@@ -100,18 +93,7 @@ const ConstraintFunction& GenericConstraint::getConstraintFunction() const
     return constraint_function_;
 }
 
-void GenericConstraint::update(double current_time, double dt)
+void GenericConstraint::onUpdate(double current_time, double dt)
 {
-    // if(!lock.isSuccessful())
-    // {
-    //     //LOG_VERBOSE << "[" << TaskBase::getName() << "] " << "Mutex is locked, skipping updating";
-    //     return;
-    // }
-
-    this->printStateIfErrors();
-
-    if(isInitialized())
-    {
-        updateConstraintFunction(current_time,dt);
-    }
+    onUpdateConstraintFunction(current_time,dt);
 }

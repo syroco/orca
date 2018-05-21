@@ -46,9 +46,12 @@ class DynamicsEquationConstraint : public EqualityConstraint
 public:
     DynamicsEquationConstraint(const std::string& name);
 
-    void resize();
-    void updateConstraintFunction(double current_time, double dt);
 protected:
+    void onStart(){}
+    void onUpdateConstraintFunction(double current_time, double dt);
+    void onStop(){}
+    void onResize();
+private:
     std::list< std::shared_ptr< const common::Wrench> > wrenches_;
     std::map<optim::ControlVariable, unsigned int > idx_map_;
     std::map<optim::ControlVariable, unsigned int > size_map_;

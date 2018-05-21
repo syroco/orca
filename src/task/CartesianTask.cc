@@ -40,7 +40,12 @@ void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
     cart_acc_des_ = cartesian_acceleration_des;
 }
 
-void CartesianTask::updateAffineFunction(double current_time, double dt)
+void CartesianTask::onStart()
+{
+    servo_->start(0);
+}
+
+void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
 {
     servo_->update(current_time,dt);
     setDesired(servo_->getCommand());
@@ -64,7 +69,7 @@ void CartesianTask::updateAffineFunction(double current_time, double dt)
     f() = ( cart_acc_bias_ - cart_acc_des_ );
 }
 
-void CartesianTask::resize()
+void CartesianTask::onResize()
 {
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
     euclidianNorm().resize(6,fulldim);

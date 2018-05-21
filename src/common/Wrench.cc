@@ -70,7 +70,7 @@ const Eigen::MatrixXd& Wrench::getJacobian() const
     return zero_;
 }
 
-void Wrench::update(double current_time, double dt)
+void Wrench::onUpdate(double current_time, double dt)
 {
     if(base_ref_frame_.empty())
     {
@@ -95,7 +95,7 @@ void Wrench::update(double current_time, double dt)
     jacobian_transpose_ = jacobian_.transpose();
 }
 
-void Wrench::resize()
+void Wrench::onResize()
 {
     int fulldim = robot()->getConfigurationSpaceDimension();
 

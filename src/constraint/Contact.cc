@@ -41,11 +41,25 @@ const std::string& Contact::getControlFrame() const
     return wrench_->getControlFrame();
 }
 
-void Contact::update(double current_time, double dt)
+void Contact::onStart()
+{
+    ex_condition_->start(0);
+    friction_cone_->start(0);
+    wrench_->start(0);
+}
+
+void Contact::onUpdate(double current_time, double dt)
 {
     wrench_->update(current_time,dt);
     friction_cone_->update(current_time,dt);
     ex_condition_->update(current_time,dt);
+}
+
+void Contact::onStop()
+{
+    ex_condition_->stop(0);
+    friction_cone_->stop(0);
+    wrench_->stop(0);
 }
 
 double Contact::getFrictionCoeff() const
@@ -125,7 +139,7 @@ std::shared_ptr<const Wrench> Contact::getWrench() const
     return wrench_;
 }
 
-void Contact::resize()
+void Contact::onResize()
 {
     ex_condition_->resize();
     friction_cone_->resize();

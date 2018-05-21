@@ -51,8 +51,6 @@ namespace orca
             void setDesired(const Eigen::Matrix4d& cartesian_position_traj
                                 , const Vector6d& cartesian_velocity_traj
                                 , const Vector6d& cartesian_acceleration_traj);
-            void update(double current_time, double dt);
-            void resize();
             const Vector6d& getCommand() const;
             const Eigen::Matrix4d& getCartesianPositionRef() const;
             const Vector6d& getCartesianVelocityRef() const;
@@ -60,6 +58,11 @@ namespace orca
             void print() const;
             PIDController<6>& pid();
         protected:
+            void onResize();
+            void onStart();
+            void onUpdate(double current_time, double dt);
+            void onStop();
+        private:
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
             Vector6d cart_acc_cmd_
                     ,cart_acc_bias_

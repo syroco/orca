@@ -10,7 +10,7 @@ DynamicsEquationConstraint::DynamicsEquationConstraint(const std::string& name)
 
 }
 
-void DynamicsEquationConstraint::resize()
+void DynamicsEquationConstraint::onResize()
 {
     wrenches_ = this->problem()->getWrenches();
     idx_map_ = this->problem()->getIndexMap();
@@ -24,7 +24,7 @@ void DynamicsEquationConstraint::resize()
     constraintFunction().resize(fulldim_,optim_vector_size);
 }
 
-void DynamicsEquationConstraint::updateConstraintFunction(double current_time, double dt)
+void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     int acc_idx = idx_map_[ControlVariable::GeneralisedAcceleration];
     int acc_size = size_map_[ControlVariable::GeneralisedAcceleration];
@@ -44,8 +44,7 @@ void DynamicsEquationConstraint::updateConstraintFunction(double current_time, d
     int i=0;
     for(auto w : wrenches_)
     {
-        if(w->isActivated())
-            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
+        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
         i++;
     }
 

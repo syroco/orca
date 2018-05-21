@@ -80,10 +80,9 @@ namespace optim
 
             dynamics_equation->setRobotModel(robot_);
             dynamics_equation->setProblem(problem);
-            dynamics_equation->resize();
+            
             global_regularisation->setRobotModel(robot_);
             global_regularisation->setProblem(problem);
-            global_regularisation->resize();
 
             global_regularisation->euclidianNorm().setWeight(1E-5);
 
@@ -125,7 +124,6 @@ namespace optim
             {
                 task->setRobotModel(robot_);
                 task->setProblem(problems_.front());
-                task->resize();
                 return problems_.front()->addTask(task);
             }
             return false;
@@ -137,7 +135,6 @@ namespace optim
             {
                 task->setRobotModel(robot_);
                 task->setProblem(problems_.front());
-                task->resize();
                 return problems_.front()->addTask(task);
             }
             return false;
@@ -149,7 +146,6 @@ namespace optim
             {
                 cstr->setRobotModel(robot_);
                 cstr->setProblem(problems_.front());
-                cstr->resize();
                 return problems_.front()->addConstraint(cstr);
             }
             return false;
