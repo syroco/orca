@@ -69,11 +69,18 @@ namespace optim
             }
             createNewProblem();
         }
-
+        void setPrintLevel(int level)
+        {
+            for(auto problem : problems_)
+            {
+                problem->qpSolver()->setPrintLevel(level);
+            }
+        }
         void createNewProblem()
         {
             LOG_INFO << "Creating new problem at level " << problems_.size();
             auto problem = std::make_shared<Problem>(robot_,solver_type_);
+            problem->qpSolver()->setPrintLevel(0);
 
             auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
             auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");

@@ -96,6 +96,7 @@ public:
     const std::map<ControlVariable, unsigned int >& getSizeMap() const;
     void print() const;
     Eigen::VectorXd getSolution(ControlVariable var) const;
+    std::shared_ptr<QPSolver> qpSolver();
 protected:
     std::list< std::shared_ptr< const common::Wrench > > wrenches_;
     std::list< std::shared_ptr<task::GenericTask> > tasks_;

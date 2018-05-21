@@ -90,6 +90,10 @@ void Problem::resizeSolver(int nvar,int nconstr)
     qpsolver_->resize(nvar,nconstr);
 }
 
+std::shared_ptr<QPSolver> Problem::qpSolver()
+{
+    return qpsolver_;
+}
 
 unsigned int Problem::computeNumberOfConstraintRows( std::list<std::shared_ptr<GenericConstraint> > constraints) const
 {
