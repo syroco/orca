@@ -61,7 +61,7 @@ namespace orca
             void onResize();
             void onStart();
             void onUpdate(double current_time, double dt);
-            void onStop();
+            void onStop(){}
         private:
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
             Vector6d cart_acc_cmd_

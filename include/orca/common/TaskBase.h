@@ -98,7 +98,7 @@ namespace common
         void setRampDuration(double ramp_time);
         double getRampDuration() const;
         double getCurrentRampValue() const;
-        
+
         double getStartTime() const;
         double getStopTime() const;
     protected:
@@ -125,5 +125,22 @@ namespace common
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
     };
+
+
+    inline ::std::ostream& operator<<(::std::ostream& os, const TaskBase::State& s)
+    {
+        switch (s)
+        {
+            case TaskBase::Init: os << "Init"; break;
+            case TaskBase::Resized: os << "Resized"; break;
+            case TaskBase::Starting: os << "Starting"; break;
+            case TaskBase::Running: os << "Running"; break;
+            case TaskBase::ShuttingDown: os << "ShuttingDown"; break;
+            case TaskBase::Stopped: os << "Stopped"; break;
+            case TaskBase::Error: os << "Error"; break;
+            default: break;
+        }
+        return os;
+    }
 } // namespace common
 } // namespace orca

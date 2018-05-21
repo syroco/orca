@@ -95,7 +95,23 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
 
-    controller.update(0,0.001);
+
+    double dt = 0.001;
+    double current_time = 0;
+
+    controller.startAll(current_time);
+
+    for (; current_time < 2.0; current_time +=dt)
+    {
+        controller.update(current_time,dt);
+    }
+
+    controller.stopAll(current_time);
+
+    for (; current_time < 4.0; current_time +=dt)
+    {
+        controller.update(current_time,dt);
+    }
 
     const Eigen::VectorXd& full_solution = controller.getFullSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();

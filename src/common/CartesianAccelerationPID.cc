@@ -85,11 +85,6 @@ void CartesianAccelerationPID::onUpdate(double current_time, double dt)
     cart_acc_cmd_ = cart_acc_des_ + pid_.computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
 }
 
-void CartesianAccelerationPID::onStop()
-{
-
-}
-
 const Vector6d& CartesianAccelerationPID::getCommand() const
 {
     return cart_acc_cmd_;

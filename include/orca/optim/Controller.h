@@ -80,7 +80,7 @@ namespace optim
 
             dynamics_equation->setRobotModel(robot_);
             dynamics_equation->setProblem(problem);
-            
+
             global_regularisation->setRobotModel(robot_);
             global_regularisation->setProblem(problem);
 
@@ -110,7 +110,6 @@ namespace optim
                     updateTasks(current_time,dt);
                     updateConstraints(current_time,dt);
                     problems_.front()->build();
-                    problems_.front()->print(); // TODO: remove this
                     problems_.front()->solve();
                 break;
                 default:
@@ -181,6 +180,36 @@ namespace optim
                     return problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
                 default:
                     throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            }
+        }
+
+        void startAll(double current_time)
+        {
+            for(auto problem : problems_)
+            {
+                for(auto t : problem->getTasks())
+                {
+                    t->start(current_time);
+                }
+                for(auto c : problem->getConstraints())
+                {
+                    c->start(current_time);
+                }
+            }
+        }
+
+        void stopAll(double current_time)
+        {
+            for(auto problem : problems_)
+            {
+                for(auto t : problem->getTasks())
+                {
+                    t->stop(current_time);
+                }
+                for(auto c : problem->getConstraints())
+                {
+                    c->stop(current_time);
+                }
             }
         }
 

@@ -141,6 +141,10 @@ const std::string& TaskBase::getName() const
 
 std::shared_ptr<RobotDynTree> TaskBase::robot()
 {
+    if(!robot_)
+    {
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not set");
+    }
     return robot_;
 }
 
@@ -163,7 +167,7 @@ bool TaskBase::start(double current_time)
 
 void TaskBase::update(double current_time, double dt)
 {
-    this->checkIfUpdatable();
+    //this->checkIfUpdatable();
 
     switch (state_)
     {
@@ -191,7 +195,7 @@ void TaskBase::update(double current_time, double dt)
             break;
         }
         default:
-            LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
+            //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
 }
@@ -275,6 +279,10 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 
 std::shared_ptr<const Problem> TaskBase::problem()
 {
+    if(!problem_)
+    {
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is not set");
+    }
     return problem_;
 }
 
