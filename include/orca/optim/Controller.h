@@ -101,6 +101,8 @@ namespace optim
 
         std::shared_ptr<robot::RobotDynTree> robot()
         {
+            if(!robot_)
+                throw std::runtime_error(utils::Formatter() << "Robot is not set");
             return robot_;
         }
 
