@@ -222,6 +222,24 @@ namespace optim
             }
         }
 
+        bool allStopped()
+        {
+            for(auto problem : problems_)
+            {
+                for(auto t : problem->getTasks())
+                {
+                    if(t->getState() != common::TaskBase::Stopped)
+                        return false;
+                }
+                for(auto c : problem->getConstraints())
+                {
+                    if(c->getState() != common::TaskBase::Stopped)
+                        return false;
+                }
+            }
+            return true;
+        }
+
     protected:
         void updateTasks(double current_time, double dt)
         {

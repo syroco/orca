@@ -107,12 +107,16 @@ int main(int argc, char const *argv[])
     }
 
     controller.stopAll(current_time);
-
-    for (; current_time < 4.0; current_time +=dt)
+    
+    LOG_DEBUG << "Waiting for all components to stop";
+    while(!controller.allStopped())
     {
+        
+        current_time += dt;
         controller.update(current_time,dt);
     }
-
+    LOG_DEBUG << "All components are stopped";
+    
     const Eigen::VectorXd& full_solution = controller.getFullSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
     const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
