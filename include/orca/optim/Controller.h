@@ -67,7 +67,7 @@ namespace optim
             {
                 throw std::runtime_error(utils::Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
             }
-            createNewProblem();
+            insertNewProblem();
         }
         void setPrintLevel(int level)
         {
@@ -75,28 +75,6 @@ namespace optim
             {
                 problem->qpSolver()->setPrintLevel(level);
             }
-        }
-        void createNewProblem()
-        {
-            LOG_INFO << "Creating new problem at level " << problems_.size();
-            auto problem = std::make_shared<Problem>(robot_,solver_type_);
-            problem->qpSolver()->setPrintLevel(0);
-
-            auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
-            auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
-
-            dynamics_equation->setRobotModel(robot_);
-            dynamics_equation->setProblem(problem);
-
-            global_regularisation->setRobotModel(robot_);
-            global_regularisation->setProblem(problem);
-
-            global_regularisation->euclidianNorm().setWeight(1E-5);
-
-            problem->addConstraint(dynamics_equation);
-            problem->addTask(global_regularisation);
-
-            problems_.push_back(problem);
         }
 
         std::shared_ptr<robot::RobotDynTree> robot()
@@ -241,6 +219,29 @@ namespace optim
         }
 
     protected:
+        void insertNewProblem()
+        {
+            LOG_INFO << "Creating new problem at level " << problems_.size();
+            auto problem = std::make_shared<Problem>(robot_,solver_type_);
+            problem->qpSolver()->setPrintLevel(0);
+
+            auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
+            auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
+
+            dynamics_equation->setRobotModel(robot_);
+            dynamics_equation->setProblem(problem);
+
+            global_regularisation->setRobotModel(robot_);
+            global_regularisation->setProblem(problem);
+
+            global_regularisation->euclidianNorm().setWeight(1E-5);
+
+            problem->addConstraint(dynamics_equation);
+            problem->addTask(global_regularisation);
+
+            problems_.push_back(problem);
+        }
+        
         void updateTasks(double current_time, double dt)
         {
             for(auto problem : problems_)
@@ -279,9 +280,6 @@ namespace optim
             }
         }
 
-//         std::list< std::shared_ptr<task::GenericTask> > all_tasks_;
-//         std::list< std::shared_ptr<constraint::GenericConstraint> > all_constraints_;
-//         std::list< std::shared_ptr<const common::Wrench> > all_wrenches_;
         std::list< std::shared_ptr<Problem> > problems_;
 
         std::shared_ptr<robot::RobotDynTree> robot_;
