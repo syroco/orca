@@ -1,5 +1,5 @@
 # Plog - portable, simple and extensible C++ logging library
-Pretty powerful logging library in about 1000 lines of code [![Build Status](https://travis-ci.org/SergiusTheBest/plog.svg?branch=master)](https://travis-ci.org/SergiusTheBest/plog) [![Build status](https://ci.appveyor.com/api/projects/status/rna5gwhqjb13wovr/branch/master?svg=true)](https://ci.appveyor.com/project/SergiusTheBest/plog/branch/master)
+Pretty powerful logging library in about 1000 lines of code [![Build Status](https://travis-ci.org/SergiusTheBest/plog.svg?branch=master)](https://travis-ci.org/SergiusTheBest/plog) [![Build status](https://ci.appveyor.com/api/projects/status/rna5gwhqjb13wovr/branch/master?svg=true)](https://ci.appveyor.com/project/SergiusTheBest/plog/branch/master) [![CircleCI](https://circleci.com/gh/SergiusTheBest/plog.svg?style=svg)](https://circleci.com/gh/SergiusTheBest/plog)
 
 - [Introduction](#introduction)
   - [Hello log!](#hello-log)
@@ -44,6 +44,7 @@ Pretty powerful logging library in about 1000 lines of code [![Build Status](htt
   - [Unicode](#unicode)
   - [Wide string support](#wide-string-support)
   - [Performance](#performance)
+  - [Printf style formatting](#printf-style-formatting)
 - [Extending](#extending)
   - [Custom data type](#custom-data-type)
   - [Custom appender](#custom-appender)
@@ -94,7 +95,7 @@ And its output:
 - Easy to use
 - Headers only
 - No 3rd-party dependencies
-- Cross-platform: Windows, Linux, Mac OS X, Android (gcc, clang, msvc, mingw, mingw-w64, c++builder)
+- Cross-platform: Windows, Linux, FreeBSD, macOS, Android, RTEMS (gcc, clang, msvc, mingw, mingw-w64, icc, c++builder)
 - Thread and type safe
 - Formatters: [TXT](#txtformatter), [CSV](#csvformatter), [FuncMessage](#funcmessageformatter)
 - Appenders: [RollingFile](#rollingfileappender), [Console](#consoleappender), [ColorConsole](#colorconsoleappender), [Android](#androidappender), [EventLog](#eventlogappender), [DebugOutput](#debugoutputappender)
@@ -869,6 +870,14 @@ Assume 20 microsec per a log call then 500 log calls per a second will slow down
 
 *Refer to [Performance](samples/Performance) for a complete sample.*
 
+## Printf style formatting
+With the help of [fmtlib](https://github.com/fmtlib/fmt) printf style formatting can be used in plog:
+
+```cpp
+LOGI << fmt::sprintf("%d %s", 10, "test");
+LOGI << fmt::format("{0} {1}", 12, "test");
+```
+
 # Extending
 Plog can be easily extended to support new:
 
@@ -1002,7 +1011,17 @@ Plog is licensed under the [MPL version 2.0](http://mozilla.org/MPL/2.0/). You c
 
 # Version history
 
-## Version 1.1.4 (TBD)
+## Version 1.1.5 (TBD)
+
+## Version 1.1.4 (26 Mar 2018)
+- New: Add `-Wundef` support
+- New #87: Add [RTEMS](https://www.rtems.org) support
+- New #84: Add Intel C++ Compiler support
+- New #83: Add FreeBSD support
+- New #79: Add `-Wnon-virtual-dtor` support
+- New #66: Support ostream operator<< on windows as well as wostream
+- Fix #68: Fix compilation for Android
+- Fix: Fix compiling with cmake 2.8
 
 ## Version 1.1.3 (09 Aug 2017)
 - New: Introduce `PLOG_ENABLE_WCHAR_INPUT` macro to control wide string support

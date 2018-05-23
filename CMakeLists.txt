@@ -186,16 +186,9 @@ target_include_directories(orca PRIVATE ${qpOASES_INCLUDE_DIRS})
 
 target_include_directories(
       orca PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/plog-1.1.3/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/plog-1.1.4/include>
       $<INSTALL_INTERFACE:include>
   )
-
-target_include_directories(
-      orca PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/json-2.1.1/include>
-      $<INSTALL_INTERFACE:include>
-  )
-
 
 target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
 target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
