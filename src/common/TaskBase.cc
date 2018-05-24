@@ -9,21 +9,36 @@ using namespace orca::utils;
 TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 : control_var_(control_var)
 , name_(name)
-{
-}
+{}
 
 TaskBase::~TaskBase()
 {
 
 }
 
+void TaskBase::link(std::shared_ptr<common::TaskBase> e)
+{
+    if(std::find(linked_elements_.begin(),linked_elements_.end(),e) == linked_elements_.end())
+    {
+        linked_elements_.push_back(e);
+    }
+    else
+        LOG_ERROR << "Cannot link task " << e->getName() << " because it already exists";
+}
+
+bool TaskBase::isActivated() const
+{
+    return state_ == Activated;
+}
+
 void TaskBase::print() const
 {
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - State " << getState() << '\n';
-    std::cout << " - Variable  " << getControlVariable() << '\n';
+    std::cout << " - Control variable  " << getControlVariable() << '\n';
     std::cout << " - hasProblem         " << hasProblem() << '\n';
     std::cout << " - hasRobot           " << hasRobot() << '\n';
+    std::cout << " - hasWrench           " << hasWrench() << '\n';
     std::cout << " - isRobotInitialized " << isRobotInitialized() << '\n';
     std::cout << " - isActivated        " << isActivated() << '\n';
 }
@@ -96,6 +111,16 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
     }
     // Copy the new robot model
     robot_ = robot;
+    
+    // Create the wrench if you depend on ExternalWrench
+    if(getControlVariable() == ControlVariable::ExternalWrench)
+    {
+        wrench_ = std::make_shared<Wrench>(name_ + "_wrench",robot_);
+    }
+    
+    for(auto e : linked_elements_)
+        e->setRobotModel(robot_);
+    
     if(hasProblem())
     {
         // Resize if we have all the parameters
@@ -117,16 +142,9 @@ void TaskBase::resize()
 {
     // Calling the user callback
     this->onResize();
+    for(auto e : linked_elements_)
+        e->resize();
     state_ = Resized;
-}
-
-bool TaskBase::loadRobotModel(const std::string& file_url)
-{
-    if(!robot_->loadModelFromFile(file_url))
-    {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Could not load robot model");
-    }
-    return true;
 }
 
 ControlVariable TaskBase::getControlVariable() const
@@ -142,25 +160,48 @@ const std::string& TaskBase::getName() const
 std::shared_ptr<RobotDynTree> TaskBase::robot()
 {
     if(!robot_)
-    {
         throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not set");
-    }
     return robot_;
 }
 
-bool TaskBase::start(double current_time)
+
+std::shared_ptr<const RobotDynTree> TaskBase::getRobot() const
 {
-    if(state_ == Resized || state_ == Stopped)
+    if(!robot_)
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not set");
+    return robot_;
+}
+
+std::shared_ptr< Wrench > TaskBase::wrench()
+{
+    if(!wrench_)
     {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << "Starting at time " << current_time;
-        start_time_ = current_time;
-        state_ = Starting;
-        onStart();
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+            << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
+            << "This task control variabe is " << getControlVariable());
+    }
+    return wrench_;
+}
+
+bool TaskBase::activate()
+{
+    if(state_ == Resized || state_ == Deactivated)
+    {
+        LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
+        
+        state_ = Activating;
+        this->activation_requested_ = true;
+        
+        if(hasWrench())
+            wrench_->activate();
+    
+        for(auto t : linked_elements_)
+            t->activate();
         return true;
     }
     else
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not start because state is " << state_;
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not activate because state is " << state_;
         return false;
     }
 }
@@ -171,25 +212,42 @@ void TaskBase::update(double current_time, double dt)
 
     switch (state_)
     {
-        case Starting:
+        case Init:
+            break;
+        case Activating:
         {
+            if(this->activation_requested_)
+            {
+                this->activation_requested_ = false;
+                start_time_ = current_time;
+                onActivation();
+            }
             if(this->rampUp(current_time - start_time_))
             {
-                state_ = Running;
+                state_ = Activated;
                 LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
             }
             break;
         }
-        case Running:
+        case Activated:
         {
+            if(hasWrench())
+                wrench_->update(current_time,dt);
             this->onUpdate(current_time, dt);
             break;
         }
-        case ShuttingDown:
+        case Deactivating:
         {
+            if(this->deactivation_requested_)
+            {
+                this->deactivation_requested_ = false;
+                stop_time_ = current_time;
+                
+            }
             if(this->rampDown(current_time - stop_time_))
             {
-                state_ = Stopped;
+                state_ = Deactivated;
+                onDeactivation();
                 LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
             }
             break;
@@ -198,58 +256,35 @@ void TaskBase::update(double current_time, double dt)
             //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
+    
+    if(hasWrench())
+        wrench_->update(current_time,dt);
+    
+    for(auto t : linked_elements_)
+        t->update(current_time,dt);
 }
 
-bool TaskBase::stop(double current_time)
+bool TaskBase::deactivate()
 {
-    if(state_ == Running)
+    if(state_ == Activated)
     {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << "Stopping at time " << current_time;
-        stop_time_ = current_time;
-        state_ = ShuttingDown;
-        onStop();
+        LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
+        
+        state_ = Deactivating;
+        this->deactivation_requested_ = true;
+        
+        if(hasWrench())
+            wrench_->deactivate();
+    
+        for(auto t : linked_elements_)
+            t->deactivate();
         return true;
     }
     else
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not stop because state is " << state_;
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not deactivate because state is " << state_;
         return false;
     }
-}
-
-bool TaskBase::activate()
-{
-    if(is_activated_)
-    {
-        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Already activated";
-        return true;
-    }
-    else
-    {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << "Activating";
-        is_activated_ = true;
-        return true;
-    }
-    return false;
-}
-
-bool TaskBase::desactivate()
-{
-    if(!is_activated_)
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Already desactivated";
-    }
-    else
-    {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << "Desactivating";
-        is_activated_ = false;
-    }
-    return true;
-}
-
-bool TaskBase::isActivated() const
-{
-    return is_activated_;
 }
 
 bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
@@ -269,6 +304,10 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
         return false;
     }
     this->problem_ = problem;
+    
+    for(auto e : linked_elements_)
+        e->setProblem(problem_);
+    
     if(hasRobot())
     {
         // Resize if we have all the parameters
@@ -277,7 +316,7 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
     return true;
 }
 
-std::shared_ptr<const Problem> TaskBase::problem()
+std::shared_ptr<const Problem> TaskBase::getProblem() const
 {
     if(!problem_)
     {
@@ -312,4 +351,20 @@ bool TaskBase::hasProblem() const
 bool TaskBase::hasRobot() const
 {
     return static_cast<bool>(robot_);
+}
+
+bool TaskBase::hasWrench() const
+{
+    return static_cast<bool>(wrench_);
+}
+
+std::shared_ptr<const Wrench> TaskBase::getWrench() const
+{
+    if(!wrench_)
+    {
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+            << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
+            << "This task control variabe is " << getControlVariable());
+    }
+    return wrench_;
 }

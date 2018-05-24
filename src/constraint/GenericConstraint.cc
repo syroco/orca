@@ -9,7 +9,7 @@ using namespace orca::common;
 GenericConstraint::GenericConstraint(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
 {
-
+    this->setRampDuration(0);
 }
 
 GenericConstraint::~GenericConstraint()

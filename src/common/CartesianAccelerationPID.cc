@@ -60,7 +60,7 @@ PIDController<6>& CartesianAccelerationPID::pid()
     return pid_;
 }
 
-void CartesianAccelerationPID::onStart()
+void CartesianAccelerationPID::onActivation()
 {
     cart_pos_des_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
 }

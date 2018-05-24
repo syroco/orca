@@ -29,7 +29,7 @@ PIDController<Eigen::Dynamic>& JointAccelerationTask::pid()
 {
     return pid_;
 }
-void JointAccelerationTask::onStart()
+void JointAccelerationTask::onActivation()
 {
     jnt_pos_des_ = robot()->getJointPos();
 }

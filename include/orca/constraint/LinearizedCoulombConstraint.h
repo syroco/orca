@@ -66,9 +66,9 @@ public:
     const Eigen::Matrix3d& getConeOrientation() const;
     void setNumberOfFaces(int nfaces);
 protected:
-    virtual void onStart(){}
+    virtual void onActivation(){}
     virtual void onUpdateConstraintFunction(double current_time, double dt);
-    virtual void onStop(){}
+    virtual void onDeactivation(){}
     virtual void onResize();
 private:
     double friction_coeff_ = 1;                                          ///< the friction coefficient

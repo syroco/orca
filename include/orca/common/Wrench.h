@@ -34,20 +34,27 @@
 #pragma once
 
 #include "orca/robot/RobotDynTree.h"
-#include "orca/common/TaskBase.h"
 
 namespace orca
 {
 namespace common
 {
 
-class Wrench : public TaskBase
+class Wrench
 {
 public:
-    Wrench(const std::string& name);
+    Wrench(const std::string& name,std::shared_ptr<robot::RobotDynTree> robot);
 
     virtual ~Wrench();
 
+    const std::string& getName() const;
+    
+    bool isActivated() const;
+    
+    void activate();
+    
+    void deactivate();
+    
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
@@ -66,18 +73,19 @@ public:
 
     virtual void print() const;
 
+    virtual void update(double current_time, double dt);
 protected:
-    virtual void onResize();
-    virtual void onStart(){}
-    virtual void onUpdate(double current_time, double dt);
-    virtual void onStop(){}
+    virtual void resize();
 private:
     std::string base_ref_frame_,control_frame_;
     Eigen::MatrixXd jacobian_transpose_;
     Eigen::MatrixXd jacobian_;
-    Eigen::MatrixXd zero_;
+    Eigen::MatrixXd jac_zero_;
     Eigen::Matrix<double,6,1> current_wrench_;
+    Eigen::Matrix<double,6,1> wrench_zero_;
     std::shared_ptr<robot::RobotDynTree> robot_;
+    bool is_activated_ = true;
+    const std::string& name_;
 };
 
 }

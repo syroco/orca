@@ -170,48 +170,48 @@ namespace optim
             }
         }
 
-        void startAll(double current_time)
+        void activateAll(double current_time)
         {
             for(auto problem : problems_)
             {
                 for(auto t : problem->getTasks())
                 {
-                    t->start(current_time);
+                    t->activate();
                 }
                 for(auto c : problem->getConstraints())
                 {
-                    c->start(current_time);
+                    c->activate();
                 }
             }
         }
 
-        void stopAll(double current_time)
+        void deactivateAll(double current_time)
         {
             for(auto problem : problems_)
             {
                 for(auto t : problem->getTasks())
                 {
-                    t->stop(current_time);
+                    t->deactivate();
                 }
                 for(auto c : problem->getConstraints())
                 {
-                    c->stop(current_time);
+                    c->deactivate();
                 }
             }
         }
 
-        bool allStopped()
+        bool allDeactivated()
         {
             for(auto problem : problems_)
             {
                 for(auto t : problem->getTasks())
                 {
-                    if(t->getState() != common::TaskBase::Stopped)
+                    if(t->getState() != common::TaskBase::Deactivated)
                         return false;
                 }
                 for(auto c : problem->getConstraints())
                 {
-                    if(c->getState() != common::TaskBase::Stopped)
+                    if(c->getState() != common::TaskBase::Deactivated)
                         return false;
                 }
             }

@@ -74,7 +74,7 @@ public:
 protected:
     virtual bool rampUp(double time_since_start);
     virtual void onUpdateAffineFunction(double current_time, double dt) = 0;
-    virtual void onStop();
+    virtual void onDeactivation();
     virtual bool rampDown(double time_since_stop);
 private:
     virtual void onUpdate(double current_time, double dt);

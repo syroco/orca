@@ -6,7 +6,7 @@ using namespace orca::constraint;
 using namespace orca::common;
 
 LinearizedCoulombConstraint::LinearizedCoulombConstraint(const std::string& name)
-: GenericConstraint(name,optim::ControlVariable::ExternalWrench)
+: GenericConstraint(name,optim::ControlVariable::None)
 {
     R_cone_.setIdentity();
     this->resize();

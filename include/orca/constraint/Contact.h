@@ -33,7 +33,6 @@
 
 #pragma once
 
-#include "orca/common/Wrench.h"
 #include "orca/constraint/LinearizedCoulombConstraint.h"
 #include "orca/constraint/ContactExistenceConditionConstraint.h"
 
@@ -48,12 +47,6 @@ class Contact : public common::TaskBase
 public:
     Contact(const std::string& name);
 
-    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
-
-    bool loadRobotModel(const std::string& file_url);
-
-    void setName(const std::string& name);
-
     void setBaseFrame(const std::string& base_ref_frame);
 
     void setControlFrame(const std::string& control_frame);
@@ -63,10 +56,6 @@ public:
     const std::string& getControlFrame() const;
 
     void setCurrentWrenchValue(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor);
-
-    bool desactivate();
-
-    bool activate();
     
     double getFrictionCoeff() const;
 
@@ -83,19 +72,16 @@ public:
     const Eigen::Matrix3d& getConeOrientation() const;
 
     void setNumberOfFaces(int nfaces);
-
-    std::shared_ptr<const common::Wrench> getWrench() const;
     
 protected:
-    void onResize();
-    void onStart();
-    void onUpdate(double current_time, double dt);
-    void onStop();
+    void onResize(){}
+    void onActivation(){}
+    void onUpdate(double current_time, double dt){}
+    void onDeactivation(){}
 private:
     std::shared_ptr<LinearizedCoulombConstraint> friction_cone_;
     std::shared_ptr<ContactExistenceConditionConstraint> ex_condition_;
-    std::shared_ptr<common::Wrench> wrench_;
 };
 
-}
-}
+} // namespace constraint
+} // namespace orca

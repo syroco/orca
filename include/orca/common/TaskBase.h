@@ -36,6 +36,7 @@
 #include "orca/robot/RobotDynTree.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
+#include "orca/common/Wrench.h"
 
 namespace orca
 {
@@ -45,42 +46,22 @@ namespace common
     class TaskBase
     {
     public:
-        enum State {Init,Resized,Starting,Running,ShuttingDown,Stopped,Error};
+        enum State {Init,Resized,Deactivated,Activating,Activated,Deactivating,Error};
 
-        TaskBase(const std::string& name,optim::ControlVariable control_var);
+        TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
-
+        bool isActivated() const;
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
-
-        bool loadRobotModel(const std::string& file_url);
-
+        
         optim::ControlVariable getControlVariable() const;
 
         const std::string& getName() const;
 
-        virtual bool start(double current_time);
+        virtual bool activate();
         virtual void update(double current_time, double dt);
-        virtual bool stop(double current_time);
+        virtual bool deactivate();
         virtual void resize();
         virtual void print() const;
-
-        /**
-         * @brief Activates the constraint in the solver. Otherwise its -inf < 0.x < inf
-         *
-         */
-        virtual bool activate();
-
-        /**
-         * @brief Check if the constraint is active in the solver
-         *
-         * @return bool
-         */
-        virtual bool isActivated() const;
-        /**
-         * @brief Desactivates the constraint : in the solver it is seen as -inf < 0.x < inf
-         *
-         */
-        virtual bool desactivate();
         /**
         * @brief Check if the constraint is inserted in the problem
         *
@@ -88,11 +69,9 @@ namespace common
         */
         virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);
 
-        std::shared_ptr<robot::RobotDynTree> robot();
-        std::shared_ptr<const optim::Problem> problem();
-
         bool hasProblem() const;
         bool hasRobot() const;
+        bool hasWrench() const;
         bool isRobotInitialized() const;
         State getState() const;
         void setRampDuration(double ramp_time);
@@ -101,26 +80,39 @@ namespace common
 
         double getStartTime() const;
         double getStopTime() const;
+        
+        std::shared_ptr<const optim::Problem> getProblem()const;
+        std::shared_ptr<const common::Wrench> getWrench() const;
+        std::shared_ptr<const robot::RobotDynTree> getRobot() const;
+        
+        void link(std::shared_ptr<common::TaskBase> e);
     protected:
+        std::shared_ptr<robot::RobotDynTree> robot();
+        std::shared_ptr<common::Wrench> wrench();
+        
         virtual void onResize() = 0;
-        virtual void onStart() = 0;
+        virtual void onActivation() = 0;
         virtual bool rampUp(double time_since_start);
         void setRampValue(double new_val);
         virtual void onUpdate(double current_time, double dt) = 0;
         virtual bool rampDown(double time_since_stop);
-        virtual void onStop() = 0;
+        virtual void onDeactivation() = 0;
     private:
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;
         double start_time_ = 0;
         double stop_time_ = 0;
-        double ramp_duration_ = .5;
+        double ramp_duration_ = 0;
         double ramp_value_ = 0;
+        bool activation_requested_ = false;
+        bool deactivation_requested_ = false;
         const std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotDynTree> robot_;
+        std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
+        std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
@@ -133,10 +125,10 @@ namespace common
         {
             case TaskBase::Init: os << "Init"; break;
             case TaskBase::Resized: os << "Resized"; break;
-            case TaskBase::Starting: os << "Starting"; break;
-            case TaskBase::Running: os << "Running"; break;
-            case TaskBase::ShuttingDown: os << "ShuttingDown"; break;
-            case TaskBase::Stopped: os << "Stopped"; break;
+            case TaskBase::Activating: os << "Activating"; break;
+            case TaskBase::Activated: os << "Activated"; break;
+            case TaskBase::Deactivating: os << "Deactivating"; break;
+            case TaskBase::Deactivated: os << "Deactivated"; break;
             case TaskBase::Error: os << "Error"; break;
             default: break;
         }

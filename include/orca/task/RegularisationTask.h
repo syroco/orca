@@ -48,15 +48,15 @@ namespace task
         : GenericTask(name,C)
         {}
     protected:
-        void onStart()
+        void onActivation()
         {}
         void onUpdateAffineFunction(double current_time, double dt)
         {}
-        void onStop()
+        void onDeactivation()
         {}
         void onResize()
         {
-            const int sizeofvar = this->problem()->getSize(this->getControlVariable());
+            const int sizeofvar = this->getProblem()->getSize(this->getControlVariable());
             int old_cols = euclidianNorm().cols();
 
             if(old_cols != sizeofvar)

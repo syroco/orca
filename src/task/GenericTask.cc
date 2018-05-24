@@ -9,7 +9,7 @@ using namespace orca::common;
 GenericTask::GenericTask(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
 {
-
+    this->setRampDuration(0.5);
 }
 
 GenericTask::~GenericTask()
@@ -119,7 +119,7 @@ bool GenericTask::rampDown(double time_since_start)
     }
 }
 
-void GenericTask::onStop()
+void GenericTask::onDeactivation()
 {
 
 }

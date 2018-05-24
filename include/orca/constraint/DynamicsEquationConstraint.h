@@ -47,9 +47,9 @@ public:
     DynamicsEquationConstraint(const std::string& name);
 
 protected:
-    void onStart(){}
+    void onActivation(){}
     void onUpdateConstraintFunction(double current_time, double dt);
-    void onStop(){}
+    void onDeactivation(){}
     void onResize();
 private:
     std::list< std::shared_ptr< const common::Wrench> > wrenches_;

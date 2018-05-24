@@ -27,7 +27,7 @@ void JointPositionLimitConstraint::setHorizon(double horizon)
     horizon_ = horizon;
 }
 
-void JointPositionLimitConstraint::onStart()
+void JointPositionLimitConstraint::onActivation()
 {
     setJointLimitsFromRobotModel();
 }

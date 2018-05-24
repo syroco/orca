@@ -99,17 +99,17 @@ int main(int argc, char const *argv[])
     double dt = 0.001;
     double current_time = 0;
 
-    controller.startAll(current_time);
+    controller.activateAll(current_time);
 
     for (; current_time < 2.0; current_time +=dt)
     {
         controller.update(current_time,dt);
     }
 
-    controller.stopAll(current_time);
+    controller.deactivateAll(current_time);
     
     LOG_DEBUG << "Waiting for all components to stop";
-    while(!controller.allStopped())
+    while(!controller.allDeactivated())
     {
         
         current_time += dt;

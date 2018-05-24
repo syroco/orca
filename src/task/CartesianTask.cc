@@ -1,4 +1,5 @@
 #include "orca/task/CartesianTask.h"
+#include "orca/common/CartesianAccelerationPID.h"
 
 using namespace orca::task;
 using namespace orca::optim;
@@ -7,12 +8,13 @@ using namespace orca::common;
 CartesianTask::CartesianTask(const std::string& name)
 : GenericTask(name,ControlVariable::GeneralisedAcceleration)
 {
-
+    setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
 void CartesianTask::setServoController(std::shared_ptr<CartesianServoController> servo)
 {
     servo_ = servo;
+    this->link(servo_);
 }
 
 const std::string& CartesianTask::getBaseFrame() const
@@ -28,11 +30,13 @@ const std::string& CartesianTask::getControlFrame() const
 void CartesianTask::setBaseFrame(const std::string& base_ref_frame)
 {
     base_ref_frame_ = base_ref_frame;
+    servo_->setBaseFrame(base_ref_frame);
 }
 
 void CartesianTask::setControlFrame(const std::string& control_frame)
 {
     control_frame_ = control_frame;
+    servo_->setControlFrame(control_frame);
 }
 
 void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
@@ -40,14 +44,13 @@ void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
     cart_acc_des_ = cartesian_acceleration_des;
 }
 
-void CartesianTask::onStart()
+void CartesianTask::onActivation()
 {
-    servo_->start(0);
+    
 }
 
 void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    servo_->update(current_time,dt);
     setDesired(servo_->getCommand());
 
     if(base_ref_frame_ == robot()->getBaseFrame())
@@ -86,9 +89,4 @@ void CartesianTask::onResize()
 
     // Do not move at first
     cart_acc_des_.setZero();
-
-    servo_->setRobotModel(robot());
-    servo_->setBaseFrame(getBaseFrame());
-    servo_->setControlFrame(getControlFrame());
-    servo_->resize();
 }

@@ -20,7 +20,7 @@ void ContactExistenceConditionConstraint::setControlFrame(const std::string& con
     control_frame_ = control_frame;
 }
 
-void ContactExistenceConditionConstraint::onStart()
+void ContactExistenceConditionConstraint::onActivation()
 {
     if(base_ref_frame_.empty())
     {

@@ -63,9 +63,8 @@ public:
 
     common::PIDController<6>& pid();
 
-    std::shared_ptr<const common::Wrench> getWrench() const;
 protected:
-    virtual void onStart();
+    virtual void onActivation();
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:

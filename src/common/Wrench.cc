@@ -1,21 +1,38 @@
 #include "orca/common/Wrench.h"
-#include "orca/optim/ControlVariable.h"
 #include "orca/utils/Utils.h"
 
 using namespace orca::common;
-using namespace orca::optim;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Wrench::Wrench(const std::string& name)
-: TaskBase(name,ControlVariable::ExternalWrench)
+Wrench::Wrench(const std::string& name, std::shared_ptr<RobotDynTree> robot)
+: name_(name)
+, robot_(robot)
 {
-
+    resize();
 }
 
 Wrench::~Wrench()
-{
+{}
 
+const std::string& Wrench::getName() const
+{
+    return name_;
+}
+
+bool Wrench::isActivated() const
+{
+    return is_activated_;
+}
+
+void Wrench::activate()
+{
+    is_activated_ = true;
+}
+
+void Wrench::deactivate()
+{
+    is_activated_ = false;
 }
 
 void Wrench::setCurrentValue(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
@@ -26,24 +43,25 @@ void Wrench::setCurrentValue(const Eigen::Matrix<double,6,1>& current_wrench_fro
 
 const Eigen::Matrix<double,6,1>& Wrench::getCurrentValue() const
 {
-    return current_wrench_;
+    if(is_activated_)
+        return current_wrench_;
+    return wrench_zero_;
 }
-
 
 void Wrench::setBaseFrame(const std::string& base_ref_frame)
 {
-    if(robot()->frameExists(base_ref_frame))
+    if(robot_->frameExists(base_ref_frame))
         base_ref_frame_ = base_ref_frame;
     else
-        LOG_ERROR << "[" << getName() << "] Could not set base frame to " << base_ref_frame;
+        LOG_ERROR << "[" << getName() << "] Frame " << base_ref_frame << " does not exists";
 }
 
 void Wrench::setControlFrame(const std::string& control_frame)
 {
-    if(robot()->frameExists(control_frame))
+    if(robot_->frameExists(control_frame))
         control_frame_ = control_frame;
     else
-        LOG_ERROR << "[" << getName() << "] Could not set control frame to " << control_frame;
+        LOG_ERROR << "[" << getName() << "] Frame " << control_frame << " does not exists";;
 }
 
 const std::string& Wrench::getBaseFrame() const
@@ -58,23 +76,23 @@ const std::string& Wrench::getControlFrame() const
 
 const Eigen::MatrixXd& Wrench::getJacobianTranspose() const
 {
-    if(isActivated())
+    if(is_activated_)
         return jacobian_transpose_;
-    return zero_;
+    return jac_zero_;
 }
 
 const Eigen::MatrixXd& Wrench::getJacobian() const
 {
-    if(isActivated())
+    if(is_activated_)
         return jacobian_;
-    return zero_;
+    return jac_zero_;
 }
 
-void Wrench::onUpdate(double current_time, double dt)
+void Wrench::update(double current_time, double dt)
 {
     if(base_ref_frame_.empty())
     {
-        base_ref_frame_ = robot()->getBaseFrame();
+        base_ref_frame_ = robot_->getBaseFrame();
         LOG_WARNING << "[" << getName() << "] baseFrame is not set, setting it up to the robot base frame " << base_ref_frame_;
     }
 
@@ -83,27 +101,28 @@ void Wrench::onUpdate(double current_time, double dt)
         throw std::runtime_error(Formatter() << "[" << getName() << "] controlFrame is not set");
     }
 
-    if(base_ref_frame_ == robot()->getBaseFrame())
+    if(base_ref_frame_ == robot_->getBaseFrame())
     {
-        jacobian_ = robot()->getFrameFreeFloatingJacobian(control_frame_);
+        jacobian_ = robot_->getFrameFreeFloatingJacobian(control_frame_);
     }
     else
     {
-        const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
-        jacobian_.block(0,6,6,dof) = robot()->getRelativeJacobian(base_ref_frame_,control_frame_);
+        const unsigned int dof = robot_->getNrOfDegreesOfFreedom();
+        jacobian_.block(0,6,6,dof) = robot_->getRelativeJacobian(base_ref_frame_,control_frame_);
     }
     jacobian_transpose_ = jacobian_.transpose();
 }
 
-void Wrench::onResize()
+void Wrench::resize()
 {
-    int fulldim = robot()->getConfigurationSpaceDimension();
+    int fulldim = robot_->getConfigurationSpaceDimension();
 
     if(jacobian_transpose_.rows() != fulldim || jacobian_transpose_.cols() != 6)
     {
         current_wrench_.setZero();
+        wrench_zero_.setZero();
         jacobian_transpose_.setZero(fulldim,6);
-        zero_.setZero(fulldim,6);
+        jac_zero_.setZero(fulldim,6);
         jacobian_.setZero(6,fulldim);
     }
 }

@@ -54,7 +54,7 @@ public:
     const std::string& getBaseFrame() const;
     const std::string& getControlFrame() const;
 protected:
-    virtual void onStart();
+    virtual void onActivation();
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:

@@ -20,7 +20,7 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
     max_ = max;
 }
 
-void JointLimitConstraint::onStart()
+void JointLimitConstraint::onActivation()
 {
     
 }

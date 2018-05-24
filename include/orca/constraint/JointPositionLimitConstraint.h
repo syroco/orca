@@ -47,7 +47,7 @@ public:
     void setHorizon(double horizon);
 
 protected:
-    virtual void onStart();
+    virtual void onActivation();
     virtual void onUpdateConstraintFunction(double current_time, double dt);
 private:
     double horizon_ = 3;

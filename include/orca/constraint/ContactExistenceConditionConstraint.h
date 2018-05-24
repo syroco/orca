@@ -49,9 +49,9 @@ public:
     void setControlFrame(const std::string& control_frame);
 
 protected:
-    void onStart();
+    void onActivation();
     void onUpdateConstraintFunction(double current_time, double dt);
-    void onStop(){}
+    void onDeactivation(){}
     void onResize();
 private:
     math::Vector6d frame_bias_acc_;

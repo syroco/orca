@@ -21,7 +21,7 @@ void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
     jnt_trq_des_ = desired_joint_torque;
 }
 
-void JointTorqueTask::onStart()
+void JointTorqueTask::onActivation()
 {
     jnt_trq_des_.setZero();
 }
