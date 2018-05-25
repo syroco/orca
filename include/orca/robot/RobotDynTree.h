@@ -229,7 +229,7 @@ struct RobotDataHelper
 };
 
 
-struct RobotDynTree
+class RobotDynTree
 {
 public:
     RobotDynTree(const std::string& modelFile="");
