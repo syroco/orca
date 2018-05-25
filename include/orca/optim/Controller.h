@@ -285,7 +285,7 @@ namespace optim
 
         ResolutionStrategy resolution_strategy_;
         QPSolver::SolverType solver_type_;
-        const std::string& name_;
+        const std::string name_;
     };
 } // namespace optim
 } //namespace orca
