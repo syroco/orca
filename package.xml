@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>orca</name>
   <version>2.0.0</version>
   <description>Optimisation-based framework for Robotics Applications</description>
 
-  <maintainer email="info@fuzzylogicrobotics.com">Antoine Hoarau</maintainer>
-  <author email="hoarau@isir.upmc.fr">Antoine Hoarau</author>
+  <maintainer email="info@fuzzylogicrobotics.com">Fuzzy Logic Robotics</maintainer>
+  <author email="hoarau.robotics@gmail.com">Antoine Hoarau</author>
+  <author email="rlober@gmail.com">Ryan Lober</author>
 
   <license>CeCILL-C</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rtt</build_depend>
-  <run_depend>rtt</run_depend>
+  <depend>rtt</depend>
+  <depend>class_loader</depend>
 
 </package>
