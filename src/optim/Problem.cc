@@ -196,24 +196,6 @@ void Problem::resize()
     }
 }
 
-void Problem::resizeTasks()
-{
-    for(auto task : tasks_)
-    {
-        LOG_DEBUG << "Resizing task " << task->getName();
-        task->resize();
-    }
-}
-
-void Problem::resizeConstraints()
-{
-    for(auto constr : constraints_)
-    {
-        LOG_DEBUG << "Resizing constraint " << constr->getName();
-        constr->resize();
-    }
-}
-
 bool Problem::solve()
 {
     return qpsolver_->solve(data_) == 0;

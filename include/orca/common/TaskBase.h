@@ -60,7 +60,6 @@ namespace common
         virtual bool activate();
         virtual void update(double current_time, double dt);
         virtual bool deactivate();
-        virtual void resize();
         virtual void print() const;
         /**
         * @brief Check if the constraint is inserted in the problem
@@ -87,6 +86,7 @@ namespace common
         
         void link(std::shared_ptr<common::TaskBase> e);
     protected:
+        virtual void resize();
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<common::Wrench> wrench();
         

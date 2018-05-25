@@ -115,9 +115,6 @@ private:
     unsigned int computeNumberOfConstraintRows(std::list< std::shared_ptr<constraint::GenericConstraint> > constraints) const;
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
-    void resizeTasks();
-    void resizeConstraints();
-
     std::shared_ptr<robot::RobotDynTree> robot_;
 };
 
