@@ -12,9 +12,7 @@ TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 {}
 
 TaskBase::~TaskBase()
-{
-
-}
+{}
 
 void TaskBase::link(std::shared_ptr<common::TaskBase> e)
 {
@@ -35,10 +33,10 @@ void TaskBase::print() const
 {
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
     std::cout << " - State " << getState() << '\n';
-    std::cout << " - Control variable  " << getControlVariable() << '\n';
+    std::cout << " - Control variable   " << getControlVariable() << '\n';
     std::cout << " - hasProblem         " << hasProblem() << '\n';
     std::cout << " - hasRobot           " << hasRobot() << '\n';
-    std::cout << " - hasWrench           " << hasWrench() << '\n';
+    std::cout << " - hasWrench          " << hasWrench() << '\n';
     std::cout << " - isRobotInitialized " << isRobotInitialized() << '\n';
     std::cout << " - isActivated        " << isActivated() << '\n';
 }
@@ -315,7 +313,7 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 
     if(hasProblem())
     {
-        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Problem is already set, replacing existing problem by the new one";
+        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Problem is already set";
         return false;
     }
     this->problem_ = problem;
