@@ -281,7 +281,7 @@ void TaskBase::update(double current_time, double dt)
 
 bool TaskBase::deactivate()
 {
-    if(state_ == Activated)
+    if(state_ == Activated || state_ == Init || state_ == Resized)
     {
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
         
