@@ -383,5 +383,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
+.vs
 # End of https://www.gitignore.io/api/c,qt,lua,ros,osx,c++,linux,python,windows,kdevelop4,qtcreator
