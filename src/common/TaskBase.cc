@@ -14,7 +14,7 @@ TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 TaskBase::~TaskBase()
 {}
 
-void TaskBase::link(std::shared_ptr<common::TaskBase> e)
+void TaskBase::link(std::shared_ptr<TaskBase> e)
 {
     if(std::find(linked_elements_.begin(),linked_elements_.end(),e) == linked_elements_.end())
     {

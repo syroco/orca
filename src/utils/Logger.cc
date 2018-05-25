@@ -15,31 +15,34 @@ namespace orca
             //LOG_VERBOSE << "\n\n   Welcome to ORCA : an Optimisation-based Framework for Robotics Applications\n";
             setLogLevel(LogLevel::none);
         }
-        static void parseArgv(int argc,char ** argv)
+        void Logger::parseArgv(int argc,char ** argv)
         {
-            parseArgv(argc,argv);
+			std::vector<std::string> vargv;
+			for (int i = 0; i < argc; i++)
+				vargv.push_back(argv[i]);
+            parseArgv(vargv);
         }
         void Logger::parseArgv(int argc, char const* argv[])
         {
             std::vector<std::string> vargv;
-            for (size_t i = 0; i < argc; i++)
-            {
+            for (int i = 0; i < argc; i++)
                 vargv.push_back(argv[i]);
-            }
-
-            for (size_t i = 0; i < argc; i++)
-            {
-                if(vargv[i] == "-l" || vargv[i] == "--log_level")
-                {
-                    if(i + 1 < argc)
-                    {
-                        Logger::setLogLevel(argv[i+1]);
-                    }
-                }
-            }
+			parseArgv(vargv);
         }
-        
-        void Logger::setLogLevel(const std::string& log_level)
+		void Logger::parseArgv(const std::vector<std::string>& v)
+		{
+			for (size_t i = 0; i < v.size(); i++)
+			{
+				if (v[i] == "-l" || v[i] == "--log_level")
+				{
+					if (i + 1 < v.size())
+					{
+						Logger::setLogLevel(v[i + 1]);
+					}
+				}
+			}
+		}
+		void Logger::setLogLevel(const std::string& log_level)
         {
             if(log_level == "verbose")
                 Logger::setLogLevel( LogLevel::verbose  );
@@ -57,12 +60,12 @@ namespace orca
                 Logger::setLogLevel( LogLevel::none  );
         }
         
-        void Logger::setLogLevel(int log_level)
+		void Logger::setLogLevel(int log_level)
         {
             Logger::setLogLevel(static_cast<LogLevel>(log_level));
         }
         
-        void Logger::setLogLevel(LogLevel log_level)
+		void Logger::setLogLevel(LogLevel log_level)
         {
             plog::get()->setMaxSeverity(static_cast<plog::Severity>(log_level));
         }

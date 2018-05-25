@@ -123,7 +123,7 @@ void Problem::resizeProblemData(int nvar,int nconstr)
     data_.resize(nvar,nconstr);
 }
 
-Problem::ReturnValue Problem::addTask(std::shared_ptr<task::GenericTask> task)
+Problem::ReturnValue Problem::addTask(std::shared_ptr<GenericTask> task)
 {
     // TODO: Add more checks for more return values
     
@@ -169,7 +169,7 @@ bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
     return false;
 }
 
-Problem::ReturnValue Problem::addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr)
+Problem::ReturnValue Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
 {
     if(!exists(cstr,constraints_))
     {

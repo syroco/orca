@@ -70,15 +70,15 @@ public:
     {
         _start = high_resolution_clock::now();
     }
-    long long elapsedNs() const
+    double elapsedNs() const
     {
-        return std::chrono::duration_cast<nanoseconds>(high_resolution_clock::now() - _start).count();
+        return static_cast<double>(std::chrono::duration_cast<nanoseconds>(high_resolution_clock::now() - _start).count());
     }
-    long long elapsedMs() const
+    double elapsedMs() const
     {
         return nsToMs * elapsedNs();
     }
-    long long elapsed() const
+    double elapsed() const
     {
         return nsToS * elapsedNs();
     }

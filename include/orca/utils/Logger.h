@@ -22,11 +22,12 @@ namespace orca
         struct Logger
         {
             Logger();
-            static void setLogLevel(LogLevel log_level);
-            static void setLogLevel(int log_level);
-            static void setLogLevel(const std::string& log_level);
-            static void parseArgv(int argc,char ** argv);
-            static void parseArgv(int argc,char const* argv[]);
+            void setLogLevel(LogLevel log_level);
+            void setLogLevel(int log_level);
+            void setLogLevel(const std::string& log_level);
+            void parseArgv(int argc,char ** argv);
+			void parseArgv(const std::vector<std::string>& v);
+            void parseArgv(int argc,char const* argv[]);
         };
     }
 }
