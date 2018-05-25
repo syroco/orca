@@ -44,7 +44,8 @@ int main(int argc, char const *argv[])
 
     // Instanciate and ORCA Controller
     orca::optim::Controller controller(
-        robot
+        "controller"
+        ,robot
         ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
         ,QPSolver::qpOASES
     );

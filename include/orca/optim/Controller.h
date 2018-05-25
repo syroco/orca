@@ -56,10 +56,12 @@ namespace optim
     class Controller
     {
     public:
-        Controller(std::shared_ptr<robot::RobotDynTree> robot
+        Controller(const std::string& name
+            , std::shared_ptr<robot::RobotDynTree> robot
             ,ResolutionStrategy resolution_strategy
             ,QPSolver::SolverType solver_type)
-        : robot_(robot)
+        : name_(name)
+        , robot_(robot)
         , resolution_strategy_(resolution_strategy)
         , solver_type_(solver_type)
         {
@@ -75,6 +77,11 @@ namespace optim
             {
                 problem->qpSolver()->setPrintLevel(level);
             }
+        }
+
+        const std::string& getName()
+        {
+            return name_;
         }
 
         std::shared_ptr<robot::RobotDynTree> robot()
@@ -278,7 +285,7 @@ namespace optim
 
         ResolutionStrategy resolution_strategy_;
         QPSolver::SolverType solver_type_;
-
+        const std::string& name_;
     };
 } // namespace optim
 } //namespace orca
