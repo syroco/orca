@@ -33,10 +33,11 @@
 
 #pragma once
 
+#include "orca/utils/Utils.h"
+
 #include "orca/robot/RobotDynTree.h"
 
 #include "orca/math/Utils.h"
-#include "orca/utils/Utils.h"
 
 #include "orca/common/CartesianAccelerationPID.h"
 #include "orca/common/PIDController.h"

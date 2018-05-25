@@ -22,20 +22,35 @@ namespace orca
         struct Logger
         {
             Logger();
-            void setLogLevel(LogLevel log_level);
-            void setLogLevel(int log_level);
-            void setLogLevel(const std::string& log_level);
-            void parseArgv(int argc,char ** argv);
-			void parseArgv(const std::vector<std::string>& v);
-            void parseArgv(int argc,char const* argv[]);
+            static void setLogLevel(LogLevel log_level);
+			static void setLogLevel(int log_level);
+			static void setLogLevel(const std::string& log_level);
+			static void parseArgv(int argc,char ** argv);
+			static void parseArgv(const std::vector<std::string>& v);
+			static void parseArgv(int argc,char const* argv[]);
         };
     }
 }
 
 #ifdef _WIN32
-#include "orca/optim/ControlVariable.h"
+#include <Eigen/Dense>
+#include <sstream>
 namespace plog
 {
-    Record& operator<<(Record& record, const orca::optim::ControlVariable& t);
+	template <typename Derived>
+	Record& operator<<(Record& record, const Eigen::MatrixBase<Derived>& a)
+	{
+		std::stringstream ss;
+		ss << a;
+		return record << ss.str();
+	}
+	template <typename Derived>
+	Record& operator<<(Record& record, const Eigen::Transpose<const Derived>& a)
+	{
+		std::stringstream ss;
+		ss << a;
+		return record << ss.str();
+	}
 }
 #endif
+
