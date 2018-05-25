@@ -358,8 +358,7 @@ namespace iDynTree {
     template <>
     double SparseMatrix<iDynTree::RowMajor>::operator()(unsigned int row, unsigned int col) const
     {
-        assert(row >= 0 && row < rows()
-               && col >= 0 && col < columns());
+        assert(row < rows() && col < columns());
 
         unsigned index = 0;
         double value = 0;
@@ -372,8 +371,7 @@ namespace iDynTree {
     template <>
     double& SparseMatrix<iDynTree::RowMajor>::operator()(unsigned int row, unsigned int col)
     {
-        assert(row >= 0 && row < rows()
-               && col >= 0 && col < columns());
+        assert(row < rows() && col < columns());
 
         unsigned index = 0;
         if (valueIndexForOuterAndInnerIndices(row, col, index)) {
@@ -510,8 +508,7 @@ namespace iDynTree {
     template <>
     double SparseMatrix<iDynTree::ColumnMajor>::operator()(unsigned int row, unsigned int col) const
     {
-        assert(row >= 0 && row < rows()
-               && col >= 0 && col < columns());
+        assert(row < rows() && col < columns());
 
         unsigned index = 0;
         double value = 0;
@@ -524,8 +521,7 @@ namespace iDynTree {
     template <>
     double& SparseMatrix<iDynTree::ColumnMajor>::operator()(unsigned int row, unsigned int col)
     {
-        assert(row >= 0 && row < rows()
-               && col >= 0 && col < columns());
+        assert(row < rows() && col < columns());
 
         unsigned index = 0;
         if (valueIndexForOuterAndInnerIndices(col, row, index)) {
