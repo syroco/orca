@@ -45,6 +45,7 @@ namespace common
 {
     class TaskBase
     {
+        friend optim::Problem;
     public:
         enum State {Init,Resized,Deactivated,Activating,Activated,Deactivating,Error};
 

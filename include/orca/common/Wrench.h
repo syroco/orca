@@ -43,7 +43,9 @@ namespace common
 class Wrench
 {
 public:
-    Wrench(const std::string& name,std::shared_ptr<robot::RobotDynTree> robot);
+    Wrench(const std::string& name);
+
+    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
     virtual ~Wrench();
 

@@ -68,17 +68,17 @@ void Problem::print() const
     }
 }
 
-const std::list< std::shared_ptr< const Wrench> >& Problem::getWrenches() const
+const std::list< std::shared_ptr< const Wrench > >& Problem::getWrenches() const
 {
     return wrenches_;
 }
 
-const std::list< std::shared_ptr<GenericTask> >& Problem::getTasks() const
+const std::list< std::shared_ptr< GenericTask > >& Problem::getTasks() const
 {
     return tasks_;
 }
 
-const std::list< std::shared_ptr<GenericConstraint> >& Problem::getConstraints() const
+const std::list< std::shared_ptr< GenericConstraint > >& Problem::getConstraints() const
 {
     return constraints_;
 }
@@ -95,11 +95,11 @@ std::shared_ptr<QPSolver> Problem::qpSolver()
     return qpsolver_;
 }
 
-unsigned int Problem::computeNumberOfConstraintRows( std::list<std::shared_ptr<GenericConstraint> > constraints) const
+unsigned int Problem::computeNumberOfConstraintRows() const
 {
     int number_of_constraints_rows = 0;
 
-    for(auto constr : constraints)
+    for(auto constr : getConstraints())
     {
         if(constr->getConstraintMatrix().isIdentity())
         {
@@ -123,36 +123,42 @@ void Problem::resizeProblemData(int nvar,int nconstr)
     data_.resize(nvar,nconstr);
 }
 
-bool Problem::addTask(std::shared_ptr<task::GenericTask> task)
+Problem::ReturnValue Problem::addTask(std::shared_ptr<task::GenericTask> task)
 {
+    // TODO: Add more checks for more return values
+    
     if(!exists(task,tasks_))
     {
         LOG_INFO << "Adding task " << task->getName();
         tasks_.push_back(task);
-        resize();
-        return true;
+        if(task->hasWrench())
+        {
+            if(addWrench(task->getWrench()))
+            {
+                resize();
+                return SizeChanged;
+            }
+            else 
+            {
+                return Error;
+            }
+        }
+        return Success;
     }
     else
     {
         LOG_WARNING << "Task " << task->getName() << " is already present in the problem";
-        return false;
+        return TaskExists;
     }
+    return Error;
 }
 
-bool Problem::addTask(std::shared_ptr<WrenchTask> task)
-{
-    if(addWrench(task->getWrench()))
-        return addTask(task);
-    return false;
-}
-
-bool Problem::addWrench(std::shared_ptr<const Wrench> wrench)
+bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
 {
     if(!exists(wrench,wrenches_))
     {
         LOG_INFO << "Adding Wrench " << wrench->getName();
         wrenches_.push_back(wrench);
-        resize();
         return true;
     }
     else
@@ -160,22 +166,35 @@ bool Problem::addWrench(std::shared_ptr<const Wrench> wrench)
         LOG_WARNING << "Wrench " << wrench->getName() << " is already present in the problem";
         return false;
     }
+    return false;
 }
 
-bool Problem::addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
+Problem::ReturnValue Problem::addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr)
 {
     if(!exists(cstr,constraints_))
     {
         LOG_INFO << "Adding constraint " << cstr->getName();
         constraints_.push_back(cstr);
-        resize();
-        return true;
+        if(cstr->hasWrench())
+        {
+            if(addWrench(cstr->getWrench()))
+            {
+                resize();
+                return SizeChanged;
+            }
+            else
+            {
+                return Error;
+            }
+        }
+        return Success;
     }
     else
     {
         LOG_WARNING << "Constraint " << cstr->getName() << " is already present in the problem";
-        return false;
+        return ConstraintExists;
     }
+    return Error;
 }
 
 void Problem::resize()
@@ -184,7 +203,7 @@ void Problem::resize()
         throw std::runtime_error(Formatter() << "Cannot resize if ndof is 0");
 
     int nvars = this->mapping_.generate(ndof_,wrenches_.size());
-    int nconstr = computeNumberOfConstraintRows(constraints_);
+    int nconstr = computeNumberOfConstraintRows();
 
     if(nvars != this->number_of_variables_ || nconstr != this->number_of_constraints_rows_)
     {
@@ -193,6 +212,11 @@ void Problem::resize()
         this->number_of_constraints_rows_ = nconstr;
         resizeProblemData(this->number_of_variables_,this->number_of_constraints_rows_);
         resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
+
+        for(auto t : tasks_)
+            t->resize();
+        for(auto c : constraints_)
+            c->resize();
     }
 }
 

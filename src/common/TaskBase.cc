@@ -115,7 +115,8 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
     // Create the wrench if you depend on ExternalWrench
     if(getControlVariable() == ControlVariable::ExternalWrench)
     {
-        wrench_ = std::make_shared<Wrench>(name_ + "_wrench",robot_);
+        wrench_ = std::make_shared<Wrench>(name_ + "_wrench");
+        wrench_->setRobotModel(robot_);
     }
     
     for(auto e : linked_elements_)
@@ -141,10 +142,24 @@ bool TaskBase::rampDown(double time_since_stop)
 void TaskBase::resize()
 {
     // Calling the user callback
+    // NOTE: the need to resize the task is handled in the the user callback
+    // i.e verify if new_size != current_size, which is specific to said task 
     this->onResize();
     for(auto e : linked_elements_)
         e->resize();
-    state_ = Resized;
+    
+    switch (state_)
+    {
+        case Init:
+            state_ = Resized;
+            break;
+        default:
+            // NOTE: If the task is running, then just call instantaneous resize
+            // and do not change the state. 
+            // Otherwise you would have to activate() again the task
+            // which is not what user expect
+            break;
+    }
 }
 
 ControlVariable TaskBase::getControlVariable() const

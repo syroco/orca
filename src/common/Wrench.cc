@@ -5,10 +5,13 @@ using namespace orca::common;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Wrench::Wrench(const std::string& name, std::shared_ptr<RobotDynTree> robot)
+Wrench::Wrench(const std::string& name)
 : name_(name)
-, robot_(robot)
+{}
+
+void Wrench::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
+    robot_ = robot;
     resize();
 }
 

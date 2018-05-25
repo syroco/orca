@@ -110,18 +110,7 @@ namespace optim
             {
                 task->setRobotModel(robot_);
                 task->setProblem(problems_.front());
-                return problems_.front()->addTask(task);
-            }
-            return false;
-        }
-
-        bool addTask(std::shared_ptr<task::WrenchTask> task)
-        {
-            if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
-            {
-                task->setRobotModel(robot_);
-                task->setProblem(problems_.front());
-                return problems_.front()->addTask(task);
+                return problems_.front()->addTask(task) != Problem::Error;
             }
             return false;
         }
@@ -132,7 +121,7 @@ namespace optim
             {
                 cstr->setRobotModel(robot_);
                 cstr->setProblem(problems_.front());
-                return problems_.front()->addConstraint(cstr);
+                return problems_.front()->addConstraint(cstr) != Problem::Error;
             }
             return false;
         }

@@ -74,6 +74,8 @@ namespace optim
 class Problem
 {
 public:
+    enum ReturnValue {Error,Success,TaskExists,ConstraintExists,SizeChanged};
+    
     Problem(std::shared_ptr<robot::RobotDynTree> robot,QPSolver::SolverType solver_type);
 
     virtual ~Problem();
@@ -81,9 +83,8 @@ public:
     void build();
     bool solve();
 
-    bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
-    bool addTask(std::shared_ptr<task::WrenchTask> task);
-    bool addTask(std::shared_ptr<task::GenericTask> task);
+    ReturnValue addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr);
+    ReturnValue addTask(std::shared_ptr< task::GenericTask> task);
 
     const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
@@ -99,8 +100,8 @@ public:
     std::shared_ptr<QPSolver> qpSolver();
 protected:
     std::list< std::shared_ptr< const common::Wrench > > wrenches_;
-    std::list< std::shared_ptr<task::GenericTask> > tasks_;
-    std::list< std::shared_ptr<constraint::GenericConstraint> > constraints_;
+    std::list< std::shared_ptr< task::GenericTask > > tasks_;
+    std::list< std::shared_ptr< constraint::GenericConstraint > > constraints_;
 
     ControlVariableMapping mapping_;
 
@@ -111,8 +112,8 @@ protected:
     unsigned int ndof_ = 0;
 private:
     void resize();
-    bool addWrench(std::shared_ptr<const common::Wrench> wrench);
-    unsigned int computeNumberOfConstraintRows(std::list< std::shared_ptr<constraint::GenericConstraint> > constraints) const;
+    bool addWrench(std::shared_ptr< const common::Wrench > wrench);
+    unsigned int computeNumberOfConstraintRows() const;
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
     std::shared_ptr<robot::RobotDynTree> robot_;
