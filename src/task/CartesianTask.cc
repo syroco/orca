@@ -11,6 +11,11 @@ CartesianTask::CartesianTask(const std::string& name)
     setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
+std::shared_ptr<CartesianServoController> CartesianTask::servoController()
+{
+    return servo_;
+}
+
 void CartesianTask::setServoController(std::shared_ptr<CartesianServoController> servo)
 {
     servo_ = servo;
