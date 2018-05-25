@@ -325,12 +325,14 @@ namespace iDynTree {
     double SparseMatrix<ordering>::operator()(unsigned int, unsigned int) const
     {
         assert(false);
+        return 0;
     }
 
     template <iDynTree::MatrixStorageOrdering ordering>
     double& SparseMatrix<ordering>::operator()(unsigned int, unsigned int)
     {
         assert(false);
+        return 0;
     }
 
     template <iDynTree::MatrixStorageOrdering ordering>
@@ -892,27 +894,27 @@ namespace iDynTree {
         return &m_matrix == &((&it)->m_matrix) //check that we are pointing to the same matrix
         && m_index == it.m_index;
     }
-    
+
     template <iDynTree::MatrixStorageOrdering ordering>
     typename SparseMatrix<ordering>::ConstIterator::reference SparseMatrix<ordering>::ConstIterator::operator*()
     {
         return m_currentTriplet;
     }
-    
+
     template <iDynTree::MatrixStorageOrdering ordering>
     typename SparseMatrix<ordering>::ConstIterator::pointer SparseMatrix<ordering>::ConstIterator::operator->()
     {
         return &m_currentTriplet;
     }
-    
+
     template <iDynTree::MatrixStorageOrdering ordering>
-    
+
     bool SparseMatrix<ordering>::ConstIterator::isValid() const
     {
         return m_index >= 0
         && true; //TODO: check if we are < than end or >= begin
     }
-    
+
 }
 
 // MARK: - Explicit instantiation of available templates
