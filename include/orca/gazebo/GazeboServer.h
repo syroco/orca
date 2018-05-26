@@ -2,11 +2,13 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/common/common.hh>
 #include <gazebo/physics/physics.hh>
-#include <gazebo/gazebo_client.hh>
+#include <gazebo/sensors/sensors.hh>
+#include <gazebo/sensors/SensorsIface.hh>
+#include <gazebo/sensors/SensorManager.hh>
 #include <sdf/parser_urdf.hh>
 #include <fstream>
 #include <thread>
-#include "orca/robot/RobotDynTree.h"
+#include <Eigen/Dense>
 
 namespace orca
 {
@@ -21,7 +23,16 @@ public:
         ::gazebo::printVersion();
         ::gazebo::setupServer({"--verbose"});
         world_ = ::gazebo::loadWorld(world_name);
+        world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
+        world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
+
     }
+    
+    virtual ~GazeboServer()
+    {
+        ::gazebo::shutdown();
+    }
+    
     double getDt()
     {
         #if GAZEBO_MAJOR_VERSION > 8
@@ -43,7 +54,7 @@ public:
         doc.Parse(urdf_str.c_str());
         return insertModelFromTinyXML(&doc);
     }
-    
+
     int getModelCount()
     {
         #if GAZEBO_MAJOR_VERSION > 8
@@ -52,7 +63,7 @@ public:
         return world_->GetModelCount();
         #endif
     }
-    
+
     std::vector<std::string> getModelNames()
     {
         std::vector<std::string> names;
@@ -64,10 +75,10 @@ public:
         for(auto model : world_->GetModels())
             names.push_back(model->GetName());
         #endif
-        
+
         return names;
     }
-    
+
     bool modelExists(const std::string& model_name)
     {
         #if GAZEBO_MAJOR_VERSION > 8
@@ -77,10 +88,57 @@ public:
         #endif
         return static_cast<bool>(model);
     }
-    
-    virtual ~GazeboServer()
+
+    const Eigen::Vector3d& getGravity()
     {
-        ::gazebo::shutdown();
+        #if GAZEBO_MAJOR_VERSION > 8
+
+        gravity_vector_[0] = world_->Gravity()[0];
+        gravity_vector_[1] = world_->Gravity()[1];
+        gravity_vector_[2] = world_->Gravity()[2];
+
+        #else
+
+        gravity_vector_[0] = world_->GetPhysicsEngine()->GetGravity()[0];
+        gravity_vector_[1] = world_->GetPhysicsEngine()->GetGravity()[1];
+        gravity_vector_[2] = world_->GetPhysicsEngine()->GetGravity()[2];
+
+        #endif
+        return gravity_vector_;
+    }
+    std::vector<std::string> getModelJointNames(const std::string& model_name)
+    {
+        std::vector<std::string> joint_names;
+        auto model = getModelByName(model_name);
+        if(!model)
+            return joint_names;
+        for(auto j : model->GetJoints())
+            joint_names.push_back(j->GetName());
+        return joint_names;
+    }
+
+    ::gazebo::physics::Joint_V getJointsFromNames(const std::string& model_name,const std::vector<std::string>& joint_names)
+    {
+        ::gazebo::physics::Joint_V jv;
+        auto model = getModelByName(model_name);
+        if(!model)
+            return jv;
+        for(auto n : joint_names)
+        {
+            auto joint = model->GetJoint(n);
+            if(joint)
+                jv.push_back(joint);
+        }
+        return jv;
+    }
+    
+    ::gazebo::physics::ModelPtr getModelByName(const std::string& model_name)
+    {
+        #if GAZEBO_MAJOR_VERSION > 8
+            return world_->ModelByName(model_name);
+        #else
+            return world_->GetModel(model_name);
+        #endif
     }
 private:
     bool insertModelFromTinyXML(TiXmlDocument* doc)
@@ -96,11 +154,11 @@ private:
             std::cerr << "Could not get the <robot> tag in the URDF " << '\n';
             return false;
         }
-        
+
         std::string robot_name;
         if(!getRobotNameFromTinyXML(robotElement,robot_name))
             return false;
-        
+
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
         doc->Accept( &printer );
@@ -128,22 +186,18 @@ private:
         for (size_t i = 0; i < max_trials; i++)
         {
             std::cout << "Runing the world (" << i+1 << "/" << max_trials << ") ... " << std::endl;
-            
+
             ::gazebo::runWorld(world_,1);
-            
+
             std::cout << "Now verifying if the model is correctly loaded..." << std::endl;
-            
-            #if GAZEBO_MAJOR_VERSION > 8
-            auto model = world_->ModelByName(robot_name);
-            #else
-            auto model = world_->GetModel(robot_name);
-            #endif
-            if(model)
+
+            if(getModelByName(robot_name))
             {
                 do_exit = true;
                 if(th.joinable())
                     th.join();
                 std::cout << "Model " << robot_name << " successfully loaded" << std::endl;
+                countExistingSensors();
                 return true;
             }
             std::cout << "Model not yet loaded" << std::endl;
@@ -151,7 +205,34 @@ private:
         }
         return false;
     }
-    
+
+    //     std::shared_ptr<RobotDynTree> robot(new RobotDynTree(urdf_url));
+    //     robot->setBaseFrame("base_link");
+    //
+    //     // Build the same with Gazebo joints
+    //     std::vector<std::string> joint_idx;
+    //     for(int i=0 ; i < robot->getNrOfJoints() ; ++i)
+    //     {
+    //         auto joint = gz_model->GetJoint( robot->getJointName(i) );
+    //
+    //         if(joint)
+    //         {
+    //             std::cout << "iDynTree adding joint " << i << " name " << robot->getJointName(i) << '\n';
+    //             joint_idx.push_back(robot->getJointName(i) );
+    //         }
+    //         else
+    //         {
+    //             std::cout << "Not adding joint " << robot->getJointName(i) << '\n';
+    //         }
+    //
+    //     }
+    //
+    //     if(joint_idx.size() != robot->getNrOfDegreesOfFreedom())
+    //     {
+    //         std::cout << "Could not add the " << robot->getNrOfDegreesOfFreedom() << " joints, only " << joint_idx.size() << '\n';
+    //         return -1;
+    //     }
+
     bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& robot_name)
     {
         if(robotElement)
@@ -171,7 +252,7 @@ private:
             std::cerr << "Provided robot element is invalid" << '\n';
             return false;
         }
-        
+
         if (robot_name.empty())
         {
             std::cerr << "Robot name is empty" << '\n';
@@ -179,10 +260,67 @@ private:
         }
         return true;
     }
+    void worldUpdateBegin()
+    {
+        int tmp_sensor_count = 0;
+        #if GAZEBO_MAJOR_VERSION > 8
+            for(auto model : world_->Models())
+                tmp_sensor_count += model->GetSensorCount();
+        #else
+            for(auto model : world_->GetModels())
+                tmp_sensor_count += model->GetSensorCount();
+        #endif
+        do{
+            if(tmp_sensor_count > n_sensors_)
+            {
+                if (!::gazebo::sensors::load())
+                {
+                    std::cerr << "Unable to load sensors\n";
+                    break;
+                }
+                if (!::gazebo::sensors::init())
+                {
+                    std::cerr << "Unable to initialize sensors\n";
+                    break;
+                }
+                ::gazebo::sensors::run_once(true);
+                ::gazebo::sensors::run_threads();
+                n_sensors_ = tmp_sensor_count;
+            }else{
+                // NOTE: same number, we do nothing, less it means we removed a model
+                n_sensors_ = tmp_sensor_count;
+            }
+        }while(false);
+
+        if(n_sensors_ > 0)
+        {
+            ::gazebo::sensors::run_once();
+        }
+    }
+
+    void worldUpdateEnd()
+    {
+        
+    }
+    
+    void countExistingSensors()
+    {
+        n_sensors_ = 0;
+        #if GAZEBO_MAJOR_VERSION > 8
+        for(auto model : world_->Models())
+            n_sensors_ += model->GetSensorCount();
+        #else
+        for(auto model : world_->GetModels())
+            n_sensors_ += model->GetSensorCount();
+        #endif
+    }
 
     double dt_ = 0.001;
     ::gazebo::physics::WorldPtr world_;
-    ::gazebo::physics::ModelPtr model_;
+    ::gazebo::event::ConnectionPtr world_begin_;
+    ::gazebo::event::ConnectionPtr world_end_;
+    Eigen::Vector3d gravity_vector_;
+    int n_sensors_ = 0;
 };
 
 } // namespace gazebo
