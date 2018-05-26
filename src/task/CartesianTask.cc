@@ -11,12 +11,12 @@ CartesianTask::CartesianTask(const std::string& name)
     setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
-std::shared_ptr<CartesianServoController> CartesianTask::servoController()
+std::shared_ptr<CartesianAccelerationPID> CartesianTask::servoController()
 {
     return servo_;
 }
 
-void CartesianTask::setServoController(std::shared_ptr<CartesianServoController> servo)
+void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
     servo_ = servo;
     this->link(servo_);
@@ -51,7 +51,7 @@ void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
 
 void CartesianTask::onActivation()
 {
-    
+
 }
 
 void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
