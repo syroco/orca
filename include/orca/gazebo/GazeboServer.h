@@ -9,6 +9,7 @@
 #include <fstream>
 #include <thread>
 #include <Eigen/Dense>
+#include "orca/gazebo/GazeboModel.h"
 
 namespace orca
 {
@@ -18,21 +19,29 @@ namespace gazebo
 class GazeboServer
 {
 public:
-    GazeboServer(const std::string& world_name = "worlds/empty.world")
+    GazeboServer(bool load_default_values=true
+        ,const std::string& world_name = "worlds/empty.world"
+        ,std::vector<std::string> server_options = {"--verbose"})
     {
         ::gazebo::printVersion();
-        ::gazebo::setupServer({"--verbose"});
-        world_ = ::gazebo::loadWorld(world_name);
+        if(load_default_values)
+            load(world_name,server_options);
         world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
         world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
-
     }
-    
+
+    bool load(const std::string& world_name = "worlds/empty.world",std::vector<std::string> server_options = {"--verbose"})
+    {
+        ::gazebo::setupServer({"--verbose"});
+        world_ = ::gazebo::loadWorld(world_name);
+        return static_cast<bool>(world_);
+    }
+
     virtual ~GazeboServer()
     {
         ::gazebo::shutdown();
     }
-    
+
     double getDt()
     {
         #if GAZEBO_MAJOR_VERSION > 8
@@ -42,13 +51,15 @@ public:
         #endif
         return dt_;
     }
-    bool insertModelFromURDFFile(const std::string& urdf_url)
+
+    ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url)
     {
         TiXmlDocument doc(urdf_url);
         doc.LoadFile();
         return insertModelFromTinyXML(&doc);
     }
-    bool insertModelFromURDFString(const std::string& urdf_str)
+
+    ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str)
     {
         TiXmlDocument doc;
         doc.Parse(urdf_str.c_str());
@@ -131,7 +142,7 @@ public:
         }
         return jv;
     }
-    
+
     ::gazebo::physics::ModelPtr getModelByName(const std::string& model_name)
     {
         #if GAZEBO_MAJOR_VERSION > 8
@@ -140,24 +151,28 @@ public:
             return world_->GetModel(model_name);
         #endif
     }
+    ::gazebo::physics::WorldPtr getWorld()
+    {
+        return world_;
+    }
 private:
-    bool insertModelFromTinyXML(TiXmlDocument* doc)
+    ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc)
     {
         if(!doc)
         {
             std::cerr << "Document provided is null" << '\n';
-            return false;
+            return 0;
         }
         TiXmlElement* robotElement = doc->FirstChildElement("robot");
         if(!robotElement)
         {
             std::cerr << "Could not get the <robot> tag in the URDF " << '\n';
-            return false;
+            return 0;
         }
 
         std::string robot_name;
         if(!getRobotNameFromTinyXML(robotElement,robot_name))
-            return false;
+            return 0;
 
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
@@ -183,6 +198,7 @@ private:
         });
 
         int max_trials = 10;
+        ::gazebo::physics::ModelPtr model;
         for (size_t i = 0; i < max_trials; i++)
         {
             std::cout << "Runing the world (" << i+1 << "/" << max_trials << ") ... " << std::endl;
@@ -191,19 +207,20 @@ private:
 
             std::cout << "Now verifying if the model is correctly loaded..." << std::endl;
 
-            if(getModelByName(robot_name))
+            model = getModelByName(robot_name);
+            if(model)
             {
                 do_exit = true;
                 if(th.joinable())
                     th.join();
                 std::cout << "Model " << robot_name << " successfully loaded" << std::endl;
                 countExistingSensors();
-                return true;
+                return model;
             }
             std::cout << "Model not yet loaded" << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        return false;
+        return 0;
     }
 
     //     std::shared_ptr<RobotDynTree> robot(new RobotDynTree(urdf_url));
@@ -300,9 +317,9 @@ private:
 
     void worldUpdateEnd()
     {
-        
+
     }
-    
+
     void countExistingSensors()
     {
         n_sensors_ = 0;

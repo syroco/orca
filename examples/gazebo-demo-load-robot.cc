@@ -1,4 +1,5 @@
 #include <orca/gazebo/GazeboServer.h>
+#include <orca/gazebo/GazeboModel.h>
 
 using namespace orca::gazebo;
 
@@ -16,7 +17,7 @@ int main(int argc, char** argv)
     auto dt = gz.getDt();
     std::cout << "Simulation dt is " << dt << '\n';
 
-    gz.insertModelFromURDFFile(urdf_url);
+    auto gzModel = GazeboModel(gz.insertModelFromURDFFile(urdf_url));
 //     const double sim_step_dt = world->GetPhysicsEngine()->GetMaxStepSize();
 //     std::cout << "sim_step_dt " << sim_step_dt << '\n';
 //
