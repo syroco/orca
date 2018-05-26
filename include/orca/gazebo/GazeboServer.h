@@ -6,10 +6,11 @@
 #include <gazebo/sensors/SensorsIface.hh>
 #include <gazebo/sensors/SensorManager.hh>
 #include <sdf/parser_urdf.hh>
+#include <sdf/parser.hh>
+#include <sdf/sdf.hh>
 #include <fstream>
 #include <thread>
-#include <Eigen/Dense>
-#include "orca/gazebo/GazeboModel.h"
+#include "orca/gazebo/Utils.h"
 
 #if GAZEBO_MAJOR_VERSION < 6
 struct g_vectorStringDup
@@ -96,29 +97,35 @@ public:
         return dt_;
     }
 
-    void stepOnce()
+    void runOnce()
     {
         assertWorldLoaded();
         ::gazebo::runWorld(world_, 1);
     }
-    
-    void loopForever()
+
+    void run()
     {
         assertWorldLoaded();
         ::gazebo::runWorld(world_, 0);
-    }   
-    ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url,std::string model_name="")
+    }
+    ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url
+        , Eigen::Vector3d init_pos = Eigen::Vector3d::Zero()
+        , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
+        , std::string model_name="")
     {
         TiXmlDocument doc(urdf_url);
         doc.LoadFile();
-        return insertModelFromTinyXML(&doc,model_name);
+        return insertModelFromTinyXML(&doc,init_pos,init_rot,model_name);
     }
 
-    ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str,std::string model_name="")
+    ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str
+        , Eigen::Vector3d init_pos = Eigen::Vector3d::Zero()
+        , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
+        , std::string model_name="")
     {
         TiXmlDocument doc;
         doc.Parse(urdf_str.c_str());
-        return insertModelFromTinyXML(&doc,model_name);
+        return insertModelFromTinyXML(&doc,init_pos,init_rot,model_name);
     }
 
     int getModelCount()
@@ -217,7 +224,10 @@ private:
         if(!world_)
             throw std::runtime_error("[GazeboServer] World is not loaded");
     }
-    ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc,std::string model_name="")
+    ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc
+        , Eigen::Vector3d init_pos = Eigen::Vector3d::Zero()
+        , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
+        , std::string model_name="")
     {
         if(!doc)
         {
@@ -231,7 +241,7 @@ private:
             return 0;
         }
 
-        
+
         if(model_name.empty())
         {
             // Extract model name from URDF
@@ -244,15 +254,34 @@ private:
             if(!setRobotNameToTinyXML(robotElement,model_name))
                 return 0;
         }
-        
+
         std::cout << "[GazeboServer] Trying to insert model \'" << model_name << "\'" << std::endl;
 
+        sdf::URDF2SDF urdf_to_sdf;
+        TiXmlDocument sdf_xml = urdf_to_sdf.InitModelDoc(doc);
+        // NOTE : from parser_urdf.cc
+        //          URDF is compatible with version 1.4. The automatic conversion script
+        //          will up-convert URDF to SDF.
+        //          sdf->SetAttribute("version", "1.4");
+        // I'm setting it to the current sdf version to avoid warnings
+        sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
+        
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
-        doc->Accept( &printer );
-        std::string xmltext = printer.CStr();
-
-        world_->InsertModelString(xmltext);
+        sdf_xml.Accept( &printer );
+        std::string xml_str = printer.CStr();
+        sdf::SDF _sdf;
+        _sdf.SetFromString(xml_str);
+        
+        // Set the initial position
+        ignition::math::Pose3d init_pose(convVec3(init_pos),convQuat(init_rot));
+        // WARNING: These elemts should always exist, so i'm not checking is they are null
+        _sdf.Root()->GetElement("model")->GetElement("pose")->Set<ignition::math::Pose3d>(init_pose);
+        
+        //std::cout << "[GazeboServer] Converted to sdf :\n" << _sdf.ToString() << '\n';
+        
+        
+        world_->InsertModelSDF(_sdf);
 
         std::atomic<bool> do_exit(false);
         auto th = std::thread([&]()
@@ -323,7 +352,7 @@ private:
         }
         return true;
     }
-    
+
     bool setRobotNameToTinyXML(TiXmlElement* robotElement, std::string& model_name)
     {
         std::string dummy;
@@ -334,7 +363,7 @@ private:
         robotElement->SetAttribute("name", model_name);
         return true;
     }
-    
+
     void worldUpdateBegin()
     {
         int tmp_sensor_count = 0;

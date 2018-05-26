@@ -4,14 +4,13 @@
 #include <gazebo/gazebo.hh>
 #include <gazebo/physics/physics.hh>
 #include <gazebo/common/common.hh>
-// Eigen
-#include <Eigen/Geometry>
+#include "orca/gazebo/Utils.h"
 
 namespace orca
 {
 namespace gazebo
 {
-
+    
 class GazeboModel
 {
 public:
@@ -206,7 +205,7 @@ public:
     {
         return ndof_;
     }
-    
+
     void printState() const
     {
         std::cout << "[GazeboModel \'" << getName() << "\'] State :\n" << '\n';
@@ -246,18 +245,10 @@ protected:
 
 
         #if GAZEBO_MAJOR_VERSION > 8
-            auto pose = model_->RelativePose();
-            current_world_to_base_.translation() = Eigen::Vector3d(pose.Pos().X(),pose.Pos().Y(),pose.Pos().Z());
-            current_world_to_base_.linear() = Eigen::Quaterniond(pose.Rot().W(),pose.Rot().X(),pose.Rot().Y(),pose.Rot().Z()).toRotationMatrix();
-
-            auto base_vel_lin = model_->RelativeLinearVel();
-            auto base_vel_ang = model_->RelativeAngularVel();
-            current_base_vel_[0] = base_vel_lin[0];
-            current_base_vel_[1] = base_vel_lin[1];
-            current_base_vel_[2] = base_vel_lin[2];
-            current_base_vel_[3] = base_vel_ang[0];
-            current_base_vel_[4] = base_vel_ang[1];
-            current_base_vel_[5] = base_vel_ang[2];
+            current_world_to_base_ = convPose(model_->RelativePose());
+            
+            current_base_vel_.head(3) = convVec3(model_->RelativeLinearVel());
+            current_base_vel_.tail(3) = convVec3(model_->RelativeAngularVel());
         #else
             auto pose = model_->GetRelativePose();
             current_world_to_base_.translation() = Eigen::Vector3d(pose.pos.x,pose.pos.y,pose.pos.z);

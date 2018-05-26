@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 
     auto gz_model = GazeboModel(gz.insertModelFromURDFFile(urdf_url));
 
-    gz.stepOnce();
+    gz.runOnce();
     
     std::cout << "Model \'" << gz_model.getName() << "\' State :\n" << '\n';
     std::cout << "- Gravity "                   << gz_model.getGravity().transpose()                << '\n';
