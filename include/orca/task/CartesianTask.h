@@ -34,7 +34,7 @@
 #pragma once
 
 #include "orca/task/GenericTask.h"
-#include "orca/common/CartesianServoController.h"
+#include "orca/common/CartesianAccelerationPID.h"
 
 namespace orca
 {
@@ -48,12 +48,12 @@ class CartesianTask : public GenericTask
 public:
     CartesianTask(const std::string& name);
     void setDesired(const Vector6d& cartesian_acceleration_des);
-    void setServoController(std::shared_ptr<common::CartesianServoController> servo);
+    void setServoController(std::shared_ptr<common::CartesianAccelerationPID> servo);
     void setBaseFrame(const std::string& base_ref_frame);
     void setControlFrame(const std::string& control_frame);
     const std::string& getBaseFrame() const;
     const std::string& getControlFrame() const;
-    std::shared_ptr<common::CartesianServoController> servoController();
+    std::shared_ptr<common::CartesianAccelerationPID> servoController();
 protected:
     virtual void onActivation();
     virtual void onUpdateAffineFunction(double current_time, double dt);
@@ -61,7 +61,7 @@ protected:
 private:
     std::string base_ref_frame_,control_frame_;
     Vector6d cart_acc_des_,cart_acc_bias_;
-    std::shared_ptr<common::CartesianServoController> servo_;
+    std::shared_ptr<common::CartesianAccelerationPID> servo_;
 };
 
 } // namespace task
