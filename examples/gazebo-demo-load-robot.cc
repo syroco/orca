@@ -16,6 +16,16 @@ int main(int argc, char** argv)
 
     auto gz_model = GazeboModel(gz.insertModelFromURDFFile(urdf_url));
 
+    gz.stepOnce();
+    
+    std::cout << "Model " << gz_model.getName() << " complete state :\n" << '\n';
+    std::cout << "- Gravity "                   << gz_model.getGravity().transpose()                << '\n';
+    std::cout << "- Base velocity\n"            << gz_model.getBaseVelocity().transpose()           << '\n';
+    std::cout << "- Tworld->base\n"             << gz_model.getWorldToBaseTransform().matrix()      << '\n';
+    std::cout << "- Joint positions "           << gz_model.getJointPositions().transpose()         << '\n';
+    std::cout << "- Joint velocities "          << gz_model.getJointVelocities().transpose()        << '\n';
+    std::cout << "- Joint external torques "    << gz_model.getJointExternalTorques().transpose()   << '\n';
+
 //     const double sim_step_dt = world->GetPhysicsEngine()->GetMaxStepSize();
 //     std::cout << "sim_step_dt " << sim_step_dt << '\n';
 //

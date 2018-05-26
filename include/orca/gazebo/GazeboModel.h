@@ -16,14 +16,14 @@ class GazeboModel
 {
 public:
     GazeboModel(const std::string& name)
+    : GazeboModel()
     {
-        gravity_vector_.setZero();
         load(name);
     }
 
     GazeboModel(::gazebo::physics::ModelPtr model)
+    : GazeboModel()
     {
-        gravity_vector_.setZero();
         load(model);
     }
 
@@ -107,7 +107,7 @@ public:
                     && joint->LowerLimit(0u) != 0
                     && !std::isnan(joint->LowerLimit(0u))
                     && !std::isnan(joint->UpperLimit(0u))
-                    #else
+                #else
                     && joint->GetLowerLimit(0u) != joint->GetUpperLimit(0u)
                     && joint->GetLowerLimit(0u).Radian() != 0
                     && !std::isnan(joint->GetLowerLimit(0u).Radian())
@@ -138,7 +138,7 @@ public:
             return false;
         }
 
-        std::cout << "[" << getName() << "] "<< "Actuated joints" << '\n';
+        std::cout << "[" << model->GetName() << "] "<< "Actuated joints" << '\n';
         for(auto n : actuated_joint_names_)
         {
             std::cout << "   - " << n << '\n';
@@ -147,12 +147,12 @@ public:
         model_ = model;
         name_ = model->GetName();
 
-        const int ndof = actuated_joint_names_.size();
+        ndof_ = actuated_joint_names_.size();
 
-        current_joint_positions_.setZero(ndof);
-        current_joint_velocities_.setZero(ndof);
-        current_joint_torques_.setZero(ndof);
-        joint_torque_commands_.setZero(ndof);
+        current_joint_positions_.setZero(ndof_);
+        current_joint_velocities_.setZero(ndof_);
+        current_joint_external_torques_.setZero(ndof_);
+        joint_torque_command_.setZero(ndof_);
 
         return true;
     }
@@ -175,7 +175,106 @@ public:
         return gravity_vector_;
     }
 
+    const std::vector<std::string>& getActuatedJointNames()
+    {
+        return actuated_joint_names_;
+    }
+
+    const Eigen::Matrix<double,6,1>& getBaseVelocity()
+    {
+        return current_base_vel_;
+    }
+
+    const Eigen::Affine3d& getWorldToBaseTransform()
+    {
+        return current_world_to_base_;
+    }
+
+    const Eigen::VectorXd& getJointPositions()
+    {
+        return current_joint_positions_;
+    }
+
+    const Eigen::VectorXd& getJointVelocities()
+    {
+        return current_joint_velocities_;
+    }
+
+    const Eigen::VectorXd& getJointExternalTorques()
+    {
+        return current_joint_external_torques_;
+    }
+
+    void setJointTorqueCommand(const Eigen::VectorXd& joint_torque_command)
+    {
+        joint_torque_command_ = joint_torque_command;
+        for(int i=0 ; i < ndof_ ; ++i)
+        {
+            auto joint = model_->GetJoint( actuated_joint_names_[i] );
+            joint->SetForce(0,joint_torque_command[i]);
+        }
+    }
+
+    int getNDof()
+    {
+        return ndof_;
+    }
+protected:
+    void worldUpdateBegin()
+    {
+
+    }
+    void worldUpdateEnd()
+    {
+
+        for(int i=0 ; i < actuated_joint_names_.size() ; ++i)
+        {
+            auto joint = model_->GetJoint( actuated_joint_names_[i] );
+            #if GAZEBO_MAJOR_VERSION > 8
+                current_joint_positions_[i] = joint->Position(0);
+            #else
+                current_joint_positions_[i] = joint->GetAngle(0).Radian();
+            #endif
+            current_joint_velocities_[i] = joint->GetVelocity(0);
+            current_joint_external_torques_[i] = joint->GetForce(0u); // WARNING: This is the external estimated force
+        }
+
+
+        #if GAZEBO_MAJOR_VERSION > 8
+            auto pose = model_->RelativePose();
+            current_world_to_base_.translation() = Eigen::Vector3d(pose.Pos().X(),pose.Pos().Y(),pose.Pos().Z());
+            current_world_to_base_.linear() = Eigen::Quaterniond(pose.Rot().W(),pose.Rot().X(),pose.Rot().Y(),pose.Rot().Z()).toRotationMatrix();
+
+            auto base_vel_lin = model_->RelativeLinearVel();
+            auto base_vel_ang = model_->RelativeAngularVel();
+            current_base_vel_[0] = base_vel_lin[0];
+            current_base_vel_[1] = base_vel_lin[1];
+            current_base_vel_[2] = base_vel_lin[2];
+            current_base_vel_[3] = base_vel_ang[0];
+            current_base_vel_[4] = base_vel_ang[1];
+            current_base_vel_[5] = base_vel_ang[2];
+        #else
+            auto pose = model_->GetRelativePose();
+            current_world_to_base_.translation() = Eigen::Vector3d(pose.pos.x,pose.pos.y,pose.pos.z);
+            current_world_to_base_.linear() = Eigen::Quaterniond(pose.rot.w,pose.rot.x,pose.rot.y,pose.rot.z).toRotationMatrix();
+
+            auto base_vel_lin = model_->GetRelativeLinearVel();
+            auto base_vel_ang = model_->GetRelativeAngularVel();
+            current_base_vel_[0] = base_vel_lin.x;
+            current_base_vel_[1] = base_vel_lin.y;
+            current_base_vel_[2] = base_vel_lin.z;
+            current_base_vel_[3] = base_vel_ang.x;
+            current_base_vel_[4] = base_vel_ang.y;
+            current_base_vel_[5] = base_vel_ang.z;
+        #endif
+    }
 private:
+    GazeboModel()
+    {
+        current_base_vel_.setZero();
+        current_world_to_base_.setIdentity();
+        gravity_vector_.setZero();
+    }
     bool loadWorld()
     {
         auto world = ::gazebo::physics::get_world();
@@ -185,8 +284,11 @@ private:
             return false;
         }
         world_ = world;
+        world_begin_ = ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboModel::worldUpdateBegin,this));
+        world_end_   = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboModel::worldUpdateEnd,this));
         return true;
     }
+
     ::gazebo::physics::WorldPtr world_;
     ::gazebo::physics::ModelPtr model_;
     std::vector<std::string> actuated_joint_names_;
@@ -194,10 +296,13 @@ private:
     Eigen::Affine3d current_world_to_base_;
     Eigen::VectorXd current_joint_positions_;
     Eigen::VectorXd current_joint_velocities_;
-    Eigen::VectorXd current_joint_torques_;
-    Eigen::VectorXd joint_torque_commands_;
+    Eigen::VectorXd current_joint_external_torques_;
+    Eigen::VectorXd joint_torque_command_;
     std::string name_;
     Eigen::Vector3d gravity_vector_;
+    ::gazebo::event::ConnectionPtr world_begin_;
+    ::gazebo::event::ConnectionPtr world_end_;
+    int ndof_ = 0;
 };
 
 } // namespace gazebo

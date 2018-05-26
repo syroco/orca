@@ -53,8 +53,6 @@ public:
         ::gazebo::printVersion();
         if(load_default_values)
             load(world_name,server_options);
-        world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
-        world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
     }
 
     bool load(const std::string& world_name = "worlds/empty.world",std::vector<std::string> server_options = {"--verbose"})
@@ -77,6 +75,8 @@ public:
             return 0;
         }
         world_ = world;
+        world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
+        world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
         return world_;
     }
 
@@ -87,11 +87,7 @@ public:
 
     double getDt()
     {
-        if(!world_)
-        {
-            std::cerr << "[GazeboServer] World is not loaded" << '\n';
-            return 0;
-        }
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             dt_ = world_->Physics()->GetMaxStepSize();
         #else
@@ -100,6 +96,17 @@ public:
         return dt_;
     }
 
+    void stepOnce()
+    {
+        assertWorldLoaded();
+        ::gazebo::runWorld(world_, 1);
+    }
+    
+    void loopForever()
+    {
+        assertWorldLoaded();
+        ::gazebo::runWorld(world_, 0);
+    }   
     ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url)
     {
         TiXmlDocument doc(urdf_url);
@@ -116,6 +123,7 @@ public:
 
     int getModelCount()
     {
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             return world_->ModelCount();
         #else
@@ -125,6 +133,7 @@ public:
 
     std::vector<std::string> getModelNames()
     {
+        assertWorldLoaded();
         std::vector<std::string> names;
 
         #if GAZEBO_MAJOR_VERSION > 8
@@ -140,6 +149,7 @@ public:
 
     bool modelExists(const std::string& model_name)
     {
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             auto model = world_->ModelByName( model_name );
         #else
@@ -150,11 +160,7 @@ public:
 
     const Eigen::Vector3d& getGravity()
     {
-        if(!world_)
-        {
-            std::cerr << "[GazeboServer] World is not loaded" << '\n';
-            return gravity_vector_;
-        }
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             auto g = world_->Gravity();
         #else
@@ -194,6 +200,7 @@ public:
 
     ::gazebo::physics::ModelPtr getModelByName(const std::string& model_name)
     {
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             return world_->ModelByName(model_name);
         #else
@@ -205,6 +212,11 @@ public:
         return world_;
     }
 private:
+    void assertWorldLoaded()
+    {
+        if(!world_)
+            throw std::runtime_error("[GazeboServer] World is not loaded");
+    }
     ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc)
     {
         if(!doc)
@@ -273,33 +285,6 @@ private:
         }
         return 0;
     }
-
-    //     std::shared_ptr<RobotDynTree> robot(new RobotDynTree(urdf_url));
-    //     robot->setBaseFrame("base_link");
-    //
-    //     // Build the same with Gazebo joints
-    //     std::vector<std::string> joint_idx;
-    //     for(int i=0 ; i < robot->getNrOfJoints() ; ++i)
-    //     {
-    //         auto joint = gz_model->GetJoint( robot->getJointName(i) );
-    //
-    //         if(joint)
-    //         {
-    //             std::cout << "[GazeboServer] iDynTree adding joint " << i << " name " << robot->getJointName(i) << '\n';
-    //             joint_idx.push_back(robot->getJointName(i) );
-    //         }
-    //         else
-    //         {
-    //             std::cout << "[GazeboServer] Not adding joint " << robot->getJointName(i) << '\n';
-    //         }
-    //
-    //     }
-    //
-    //     if(joint_idx.size() != robot->getNrOfDegreesOfFreedom())
-    //     {
-    //         std::cout << "[GazeboServer] Could not add the " << robot->getNrOfDegreesOfFreedom() << " joints, only " << joint_idx.size() << '\n';
-    //         return -1;
-    //     }
 
     bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& robot_name)
     {
