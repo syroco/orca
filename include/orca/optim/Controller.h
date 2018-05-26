@@ -46,6 +46,7 @@
 #include "orca/task/WrenchTask.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/constraint/Contact.h"
+#include "orca/constraint/DynamicsEquationConstraint.h"
 #include <map>
 #include <list>
 
