@@ -11,11 +11,11 @@ using namespace orca::utils;
 int main(int argc, char const *argv[])
 {
     // Parse urdf and logger level as --log_level (or -l) debug/warning etc
-	orca::utils::Logger::parseArgv(argc, argv);
+    orca::utils::Logger::parseArgv(argc, argv);
 
     if(argc < 2)
     {
-        std::cerr << "Usage : ./orca-demosimple /path/to/robot-urdf.urdf" << "\n";
+        std::cerr << "Usage : " << argv[0] << " /path/to/robot-urdf.urdf" << "\n";
         return -1;
     }
 
