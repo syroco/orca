@@ -67,16 +67,14 @@ int main(int argc, char const *argv[])
     Vector6d cart_acc_ref;
     cart_acc_ref.setZero();
 
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartPID-EE");
     Vector6d P;
     P << 100, 100, 100, 10, 10, 10;
-    cart_acc_pid->pid().setProportionalGain(P);
+    cart_task->servoController()->pid().setProportionalGain(P);
     Vector6d D;
     D << 0, 10, 10, 1, 1, 1;
-    cart_acc_pid->pid().setDerivativeGain(D);
-    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    cart_task->servoController()->pid().setDerivativeGain(D);
+    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
-    cart_task->setServoController(cart_acc_pid);
     controller.addTask(cart_task);
 
     const int ndof = robot->getNrOfDegreesOfFreedom();
@@ -108,16 +106,16 @@ int main(int argc, char const *argv[])
     }
 
     controller.deactivateAll(current_time);
-    
+
     LOG_DEBUG << "Waiting for all components to stop";
     while(!controller.allDeactivated())
     {
-        
+
         current_time += dt;
         controller.update(current_time,dt);
     }
     LOG_DEBUG << "All components are stopped";
-    
+
     const Eigen::VectorXd& full_solution = controller.getFullSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
     const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
