@@ -14,7 +14,8 @@ int main(int argc, char** argv)
 
     GazeboServer gz("worlds/empty.world");
 
-    auto gzModel = GazeboModel(gz.insertModelFromURDFFile(urdf_url));
+    auto gz_model = GazeboModel(gz.insertModelFromURDFFile(urdf_url));
+
 //     const double sim_step_dt = world->GetPhysicsEngine()->GetMaxStepSize();
 //     std::cout << "sim_step_dt " << sim_step_dt << '\n';
 //

@@ -164,20 +164,14 @@ public:
             std::cerr << "[GazeboModel::" << getName() << "] " << "World is not loaded" << '\n';
             return gravity_vector_;
         }
-
         #if GAZEBO_MAJOR_VERSION > 8
-
-        gravity_vector_[0] = world_->Gravity()[0];
-        gravity_vector_[1] = world_->Gravity()[1];
-        gravity_vector_[2] = world_->Gravity()[2];
-
+            auto g = world_->Gravity();
         #else
-
-        gravity_vector_[0] = world_->GetPhysicsEngine()->GetGravity()[0];
-        gravity_vector_[1] = world_->GetPhysicsEngine()->GetGravity()[1];
-        gravity_vector_[2] = world_->GetPhysicsEngine()->GetGravity()[2];
-
+            auto g = world_->GetPhysicsEngine()->GetGravity();
         #endif
+        gravity_vector_[0] = g[0];
+        gravity_vector_[1] = g[1];
+        gravity_vector_[2] = g[2];
         return gravity_vector_;
     }
 

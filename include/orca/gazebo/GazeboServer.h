@@ -87,10 +87,15 @@ public:
 
     double getDt()
     {
+        if(!world_)
+        {
+            std::cerr << "[GazeboServer] World is not loaded" << '\n';
+            return 0;
+        }
         #if GAZEBO_MAJOR_VERSION > 8
-        dt_ = world_->Physics()->GetMaxStepSize();
+            dt_ = world_->Physics()->GetMaxStepSize();
         #else
-        dt_ = world_->GetPhysicsEngine()->GetMaxStepSize();
+            dt_ = world_->GetPhysicsEngine()->GetMaxStepSize();
         #endif
         return dt_;
     }
@@ -112,9 +117,9 @@ public:
     int getModelCount()
     {
         #if GAZEBO_MAJOR_VERSION > 8
-        return world_->ModelCount();
+            return world_->ModelCount();
         #else
-        return world_->GetModelCount();
+            return world_->GetModelCount();
         #endif
     }
 
@@ -123,11 +128,11 @@ public:
         std::vector<std::string> names;
 
         #if GAZEBO_MAJOR_VERSION > 8
-        for(auto model : world_->Models())
-            names.push_back(model->GetName());
+            for(auto model : world_->Models())
+                names.push_back(model->GetName());
         #else
-        for(auto model : world_->GetModels())
-            names.push_back(model->GetName());
+            for(auto model : world_->GetModels())
+                names.push_back(model->GetName());
         #endif
 
         return names;
@@ -136,31 +141,31 @@ public:
     bool modelExists(const std::string& model_name)
     {
         #if GAZEBO_MAJOR_VERSION > 8
-        auto model = world_->ModelByName( model_name );
+            auto model = world_->ModelByName( model_name );
         #else
-        auto model = world_->GetModel( model_name );
+            auto model = world_->GetModel( model_name );
         #endif
         return static_cast<bool>(model);
     }
 
     const Eigen::Vector3d& getGravity()
     {
+        if(!world_)
+        {
+            std::cerr << "[GazeboServer] World is not loaded" << '\n';
+            return gravity_vector_;
+        }
         #if GAZEBO_MAJOR_VERSION > 8
-
-        gravity_vector_[0] = world_->Gravity()[0];
-        gravity_vector_[1] = world_->Gravity()[1];
-        gravity_vector_[2] = world_->Gravity()[2];
-
+            auto g = world_->Gravity();
         #else
-
-        gravity_vector_[0] = world_->GetPhysicsEngine()->GetGravity()[0];
-        gravity_vector_[1] = world_->GetPhysicsEngine()->GetGravity()[1];
-        gravity_vector_[2] = world_->GetPhysicsEngine()->GetGravity()[2];
-
+            auto g = world_->GetPhysicsEngine()->GetGravity();
         #endif
+        gravity_vector_[0] = g[0];
+        gravity_vector_[1] = g[1];
+        gravity_vector_[2] = g[2];
         return gravity_vector_;
     }
-    
+
     std::vector<std::string> getModelJointNames(const std::string& model_name)
     {
         std::vector<std::string> joint_names;
