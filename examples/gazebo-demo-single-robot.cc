@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 
     gz.stepOnce();
     
-    std::cout << "Model " << gz_model.getName() << " complete state :\n" << '\n';
+    std::cout << "Model \'" << gz_model.getName() << "\' State :\n" << '\n';
     std::cout << "- Gravity "                   << gz_model.getGravity().transpose()                << '\n';
     std::cout << "- Base velocity\n"            << gz_model.getBaseVelocity().transpose()           << '\n';
     std::cout << "- Tworld->base\n"             << gz_model.getWorldToBaseTransform().matrix()      << '\n';

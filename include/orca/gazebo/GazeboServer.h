@@ -107,18 +107,18 @@ public:
         assertWorldLoaded();
         ::gazebo::runWorld(world_, 0);
     }   
-    ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url)
+    ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url,std::string model_name="")
     {
         TiXmlDocument doc(urdf_url);
         doc.LoadFile();
-        return insertModelFromTinyXML(&doc);
+        return insertModelFromTinyXML(&doc,model_name);
     }
 
-    ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str)
+    ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str,std::string model_name="")
     {
         TiXmlDocument doc;
         doc.Parse(urdf_str.c_str());
-        return insertModelFromTinyXML(&doc);
+        return insertModelFromTinyXML(&doc,model_name);
     }
 
     int getModelCount()
@@ -217,7 +217,7 @@ private:
         if(!world_)
             throw std::runtime_error("[GazeboServer] World is not loaded");
     }
-    ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc)
+    ::gazebo::physics::ModelPtr insertModelFromTinyXML(TiXmlDocument* doc,std::string model_name="")
     {
         if(!doc)
         {
@@ -231,11 +231,21 @@ private:
             return 0;
         }
 
-        std::string robot_name;
-        if(!getRobotNameFromTinyXML(robotElement,robot_name))
-            return 0;
-
-        std::cout << "[GazeboServer] Trying to insert model \'" << robot_name << "\'" << std::endl;
+        
+        if(model_name.empty())
+        {
+            // Extract model name from URDF
+            if(!getRobotNameFromTinyXML(robotElement,model_name))
+                return 0;
+        }
+        else
+        {
+            // Set the robot name to user specified name
+            if(!setRobotNameToTinyXML(robotElement,model_name))
+                return 0;
+        }
+        
+        std::cout << "[GazeboServer] Trying to insert model \'" << model_name << "\'" << std::endl;
 
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
@@ -270,13 +280,13 @@ private:
 
             std::cout << "[GazeboServer] Now verifying if the model is correctly loaded..." << std::endl;
 
-            model = getModelByName(robot_name);
+            model = getModelByName(model_name);
             if(model)
             {
                 do_exit = true;
                 if(th.joinable())
                     th.join();
-                std::cout << "[GazeboServer] Model " << robot_name << " successfully loaded" << std::endl;
+                std::cout << "[GazeboServer] Model " << model_name << " successfully loaded" << std::endl;
                 countExistingSensors();
                 return model;
             }
@@ -286,13 +296,13 @@ private:
         return 0;
     }
 
-    bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& robot_name)
+    bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& model_name)
     {
         if(robotElement)
         {
             if (robotElement->Attribute("name"))
             {
-                robot_name = robotElement->Attribute("name");
+                model_name = robotElement->Attribute("name");
             }
             else
             {
@@ -306,13 +316,25 @@ private:
             return false;
         }
 
-        if (robot_name.empty())
+        if (model_name.empty())
         {
             std::cerr << "[GazeboServer] Robot name is empty" << '\n';
             return false;
         }
         return true;
     }
+    
+    bool setRobotNameToTinyXML(TiXmlElement* robotElement, std::string& model_name)
+    {
+        std::string dummy;
+        if(!getRobotNameFromTinyXML(robotElement,dummy))
+            return false;
+
+        robotElement->RemoveAttribute("name");
+        robotElement->SetAttribute("name", model_name);
+        return true;
+    }
+    
     void worldUpdateBegin()
     {
         int tmp_sensor_count = 0;

@@ -27,22 +27,22 @@ public:
         load(model);
     }
 
-    const std::string& getName()
+    const std::string& getName() const
     {
         return name_;
     }
 
-    bool setModelConfiguration(std::vector<std::string> joint_names,std::vector<double> joint_positions)
+    bool setModelConfiguration(const std::vector<std::string>& joint_names,const std::vector<double>& joint_positions)
     {
         if (!model_)
         {
-            std::cerr << "[GazeboModel::" << getName() << "] " << "Model is not loaded" << '\n';
+            std::cerr << "[GazeboModel] Model is not loaded" << '\n';
             return false;
         }
 
         if (joint_names.size() != joint_positions.size())
         {
-            std::cerr << "[GazeboModel::" << getName() << "] " << "joint_names lenght should be the same as joint_positions : " << joint_names.size() << " vs " << joint_positions.size() << '\n';
+            std::cerr << "[GazeboModel \'" << getName() << "\'] " << "joint_names lenght should be the same as joint_positions : " << joint_names.size() << " vs " << joint_positions.size() << '\n';
             return false;
         }
 
@@ -77,7 +77,7 @@ public:
         #endif
         if(! model)
         {
-            std::cerr << "[GazeboModel::" << getName() << "] " << "Could not get gazebo model " << model_name << ". Make sure it is loaded in the server" << '\n';
+            std::cerr << "[GazeboModel \'" << getName() << "\'] " << "Could not get gazebo model " << model_name << ". Make sure it is loaded in the server" << '\n';
             return false;
         }
         return load(model);
@@ -119,7 +119,7 @@ public:
                 added = true;
             }
 
-            std::cout << "[" << model->GetName() << "] " << (added ? "Adding":"Not adding")
+            std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << (added ? "Adding":"Not adding")
                 << " joint " << joint->GetName()
                 << " type " << joint->GetType()
                 #if GAZEBO_MAJOR_VERSION > 8
@@ -134,11 +134,11 @@ public:
 
         if(actuated_joint_names_.size() == 0)
         {
-            std::cerr << "[" << model->GetName() << "] " << "Could not get any actuated joint for model " << model->GetName() << '\n';
+            std::cerr << "[GazeboModel \'" << model->GetName() << "\'] " << "Could not get any actuated joint for model " << model->GetName() << '\n';
             return false;
         }
 
-        std::cout << "[" << model->GetName() << "] "<< "Actuated joints" << '\n';
+        std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << "Actuated joints" << '\n';
         for(auto n : actuated_joint_names_)
         {
             std::cout << "   - " << n << '\n';
@@ -157,50 +157,37 @@ public:
         return true;
     }
 
-    const Eigen::Vector3d& getGravity()
+    const Eigen::Vector3d& getGravity() const
     {
-        if(!world_)
-        {
-            std::cerr << "[GazeboModel::" << getName() << "] " << "World is not loaded" << '\n';
-            return gravity_vector_;
-        }
-        #if GAZEBO_MAJOR_VERSION > 8
-            auto g = world_->Gravity();
-        #else
-            auto g = world_->GetPhysicsEngine()->GetGravity();
-        #endif
-        gravity_vector_[0] = g[0];
-        gravity_vector_[1] = g[1];
-        gravity_vector_[2] = g[2];
         return gravity_vector_;
     }
 
-    const std::vector<std::string>& getActuatedJointNames()
+    const std::vector<std::string>& getActuatedJointNames() const
     {
         return actuated_joint_names_;
     }
 
-    const Eigen::Matrix<double,6,1>& getBaseVelocity()
+    const Eigen::Matrix<double,6,1>& getBaseVelocity() const
     {
         return current_base_vel_;
     }
 
-    const Eigen::Affine3d& getWorldToBaseTransform()
+    const Eigen::Affine3d& getWorldToBaseTransform() const
     {
         return current_world_to_base_;
     }
 
-    const Eigen::VectorXd& getJointPositions()
+    const Eigen::VectorXd& getJointPositions() const
     {
         return current_joint_positions_;
     }
 
-    const Eigen::VectorXd& getJointVelocities()
+    const Eigen::VectorXd& getJointVelocities() const
     {
         return current_joint_velocities_;
     }
 
-    const Eigen::VectorXd& getJointExternalTorques()
+    const Eigen::VectorXd& getJointExternalTorques() const
     {
         return current_joint_external_torques_;
     }
@@ -215,14 +202,32 @@ public:
         }
     }
 
-    int getNDof()
+    int getNDof() const
     {
         return ndof_;
+    }
+    
+    void printState() const
+    {
+        std::cout << "[GazeboModel \'" << getName() << "\'] State :\n" << '\n';
+        std::cout << "- Gravity "                   << getGravity().transpose()                << '\n';
+        std::cout << "- Base velocity\n"            << getBaseVelocity().transpose()           << '\n';
+        std::cout << "- Tworld->base\n"             << getWorldToBaseTransform().matrix()      << '\n';
+        std::cout << "- Joint positions "           << getJointPositions().transpose()         << '\n';
+        std::cout << "- Joint velocities "          << getJointVelocities().transpose()        << '\n';
+        std::cout << "- Joint external torques "    << getJointExternalTorques().transpose()   << '\n';
     }
 protected:
     void worldUpdateBegin()
     {
-
+        #if GAZEBO_MAJOR_VERSION > 8
+            auto g = world_->Gravity();
+        #else
+            auto g = world_->GetPhysicsEngine()->GetGravity();
+        #endif
+        gravity_vector_[0] = g[0];
+        gravity_vector_[1] = g[1];
+        gravity_vector_[2] = g[2];
     }
     void worldUpdateEnd()
     {

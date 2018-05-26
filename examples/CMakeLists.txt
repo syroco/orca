@@ -20,9 +20,14 @@ if(gazebo_FOUND)
             add_definitions(-fext-numeric-literals)
         endif()
 
-        add_executable(gazebo-demo-load-robot gazebo-demo-load-robot.cc)
-        target_link_libraries(gazebo-demo-load-robot ${GAZEBO_LIBRARIES} pthread orca tinyxml)
-        install(TARGETS gazebo-demo-load-robot DESTINATION lib/orca)
+        add_executable(gazebo-demo-single-robot gazebo-demo-single-robot.cc)
+        target_link_libraries(gazebo-demo-single-robot ${GAZEBO_LIBRARIES} pthread orca tinyxml)
+        install(TARGETS gazebo-demo-single-robot DESTINATION bin/orca/examples)
+        
+        add_executable(gazebo-demo-multi-robot gazebo-demo-multi-robot.cc)
+        target_link_libraries(gazebo-demo-multi-robot ${GAZEBO_LIBRARIES} pthread orca tinyxml)
+        install(TARGETS gazebo-demo-multi-robot DESTINATION bin/orca/examples)
+        
     else()
         message(WARNING "Gazebo ${GAZEBO_VERSION} found, we need at least gazebo 7")
     endif()
