@@ -139,9 +139,9 @@ public:
         }
 
         std::cout << "[" << getName() << "] "<< "Actuated joints" << '\n';
-        for(auto joint_name : joint_map_)
+        for(auto n : actuated_joint_names_)
         {
-            std::cout << "   - " << joint_name << '\n';
+            std::cout << "   - " << n << '\n';
         }
 
         model_ = model;
