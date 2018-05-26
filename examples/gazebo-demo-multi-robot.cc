@@ -25,11 +25,6 @@ int main(int argc, char** argv)
         ,quatFromRPY(0,0,0)
         ,"two"));
 
-    gz.runOnce();
-
-    gz_model_one.printState();
-    gz_model_two.printState();
-
     gz.run([&](uint32_t n_iter,double current_time,double dt)
     {
         std::cout << "Gazebo iteration " << n_iter << '\n'
