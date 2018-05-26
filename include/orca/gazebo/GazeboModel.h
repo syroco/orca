@@ -236,7 +236,6 @@ protected:
     }
     void worldUpdateEnd()
     {
-
         for(int i=0 ; i < actuated_joint_names_.size() ; ++i)
         {
             auto joint = model_->GetJoint( actuated_joint_names_[i] );

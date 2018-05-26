@@ -22,9 +22,7 @@ int main(int argc, char const *argv[])
     std::string urdf_url(argv[1]);
 
     auto robot = std::make_shared<RobotDynTree>();
-    if(!robot->loadModelFromFile(urdf_url))
-        throw std::runtime_error(Formatter() << "Could not load model from urdf file \'" << urdf_url << "\'");
-
+    robot->loadModelFromFile(urdf_url);
     robot->setBaseFrame("base_link"); // All the transformations will be expressed wrt this base frame
     robot->setGravity(Eigen::Vector3d(0,0,-9.81)); // Sets the world gravity
 
