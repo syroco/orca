@@ -224,7 +224,7 @@ install(DIRECTORY include/
   PATTERN "*.in" EXCLUDE
 )
 
-install(DIRECTORY external/plog-1.1.3/include/plog DESTINATION include)
+install(DIRECTORY external/plog-1.1.4/include/plog DESTINATION include)
 
 #
 # Cmake Package
