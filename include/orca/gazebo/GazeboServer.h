@@ -90,11 +90,10 @@ public:
     {
         assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
-            dt_ = world_->Physics()->GetMaxStepSize();
+            return world_->Physics()->GetMaxStepSize();
         #else
-            dt_ = world_->GetPhysicsEngine()->GetMaxStepSize();
+            return world_->GetPhysicsEngine()->GetMaxStepSize();
         #endif
-        return dt_;
     }
 
     void runOnce()
@@ -103,9 +102,11 @@ public:
         ::gazebo::runWorld(world_, 1);
     }
 
-    void run()
+    void run(std::function<void(uint32_t,double,double)> callback=0)
     {
         assertWorldLoaded();
+        if(callback)
+            registerCallback(callback);
         ::gazebo::runWorld(world_, 0);
     }
     ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url
@@ -217,6 +218,11 @@ public:
     ::gazebo::physics::WorldPtr getWorld()
     {
         return world_;
+    }
+    
+    void registerCallback(std::function<void(uint32_t,double,double)> callback)
+    {
+        callback_ = callback;
     }
 private:
     void assertWorldLoaded()
@@ -404,9 +410,21 @@ private:
 
     void worldUpdateEnd()
     {
-
+        if(callback_)
+            callback_(world_->Iterations(),
+                      getSimTime(),
+                      getDt());
     }
 
+    double getSimTime()
+    {
+        #if GAZEBO_MAJOR_VERSION > 8
+            return world_->SimTime().Double();
+        #else
+            return world_->GetSimTime().Double();
+        #endif
+    }
+    
     void countExistingSensors()
     {
         n_sensors_ = 0;
@@ -419,7 +437,7 @@ private:
         #endif
     }
 
-    double dt_ = 0.001;
+    std::function<void(uint32_t,double,double)> callback_;
     ::gazebo::physics::WorldPtr world_;
     ::gazebo::event::ConnectionPtr world_begin_;
     ::gazebo::event::ConnectionPtr world_end_;
