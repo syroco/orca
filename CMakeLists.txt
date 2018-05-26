@@ -11,7 +11,7 @@ include(CMakePackageConfigHelpers)
 find_package(Xenomai QUIET)
 
 if(XENOMAI_FOUND)
-    message(STATUS "[ORCA] Building with Xenomai mutexes")
+    message(STATUS "Building with Xenomai mutexes")
 endif()
 
 #################### Eigen3 ###########################
@@ -23,6 +23,11 @@ if(NOT Eigen3_FOUND)
     endif()
     message(WARNING "Using internal Eigen3 (3.3.90), please consider installing it standalone.")
     set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
+    # NOTE: removing the subdirectory as we just need the header path
+    # Adding the eigen project allows all the checks for processor features
+    # but also generate a lot of warnings/output that we don't really need
+    # It might be useful to add this on a very particular system to get some
+    # very specific processor features.
     #add_subdirectory(external/eigen-3.3.90/eigen3)
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
