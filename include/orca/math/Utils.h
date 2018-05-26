@@ -69,6 +69,20 @@ namespace math
         return d_t1_t2;
     }
 
+    inline Eigen::Quaterniond quatFromRPY(double roll,double pitch,double yaw )
+    {
+        return Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX())
+            * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
+            * Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ());
+    }
+
+    inline Eigen::Quaterniond quatFromKukaConvention(double A,double B,double C )
+    {
+        return Eigen::AngleAxisd(A, Eigen::Vector3d::UnitZ())
+            * Eigen::AngleAxisd(B, Eigen::Vector3d::UnitY())
+            * Eigen::AngleAxisd(C, Eigen::Vector3d::UnitX());
+    }
+
     struct Size
     {
         template <typename Derived> Size(const Eigen::MatrixBase<Derived>& mat)
