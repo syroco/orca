@@ -4,32 +4,27 @@
 // #include "iDynTreeImpl.impl"
 #include <exception>
 #include <stdexcept>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
 
-RobotDynTree::RobotDynTree(const std::string& modelFile)
+RobotDynTree::RobotDynTree()
 // : robot_impl_(new iDynTreeImpl)
 {
     global_gravity_vector_.setZero();
-    if(!modelFile.empty())
-        loadModelFromFile(modelFile);
 }
-
-bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
+bool RobotDynTree::loadModelFromString(const std::string &modelString, const std::string &filetype /*="urdf"*/)
 {
     iDynTree::ModelLoader mdlLoader;
-    mdlLoader.loadModelFromFile(modelFile);
+    mdlLoader.loadModelFromString(modelString,filetype);
 
     bool ok = kinDynComp_.loadRobotModel(mdlLoader.model());
     if( !ok || getNrOfDegreesOfFreedom() == 0 )
-    {
-        throw std::runtime_error(Formatter() << "Could not load model from urdf file \'" << modelFile << "\'");
-        return false;
-    }
-
-    urdf_url_ = modelFile;
+        throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " string :\n" << modelString << "\n");
 
     const iDynTree::Model & model = kinDynComp_.model();
 
@@ -56,6 +51,15 @@ bool RobotDynTree::loadModelFromFile(const std::string& modelFile)
     }
 
     return ok;
+}
+bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::string &filetype /*="urdf"*/)
+{
+    std::ifstream t(modelFile);
+    std::string str((std::istreambuf_iterator<char>(t)),
+                     std::istreambuf_iterator<char>());
+    if( str.empty() )
+        throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " file \'" << modelFile << "\'");
+    return loadModelFromString(str,filetype);
 }
 
 const Eigen::VectorXd& RobotDynTree::getMinJointPos()
@@ -169,11 +173,6 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
 const std::string& RobotDynTree::getBaseFrame() const
 {
     return base_frame_;
-}
-
-const std::string& RobotDynTree::getFileURL() const
-{
-    return urdf_url_;
 }
 
 unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
