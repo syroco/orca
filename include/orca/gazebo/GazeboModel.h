@@ -17,11 +17,13 @@ class GazeboModel
 public:
     GazeboModel(const std::string& name)
     {
+        gravity_vector_.setZero();
         load(name);
     }
 
     GazeboModel(::gazebo::physics::ModelPtr model)
     {
+        gravity_vector_.setZero();
         load(model);
     }
 
@@ -34,13 +36,13 @@ public:
     {
         if (!model_)
         {
-            std::cerr << "[" << getName() << "] " << "Model is not loaded" << '\n';
+            std::cerr << "[GazeboModel::" << getName() << "] " << "Model is not loaded" << '\n';
             return false;
         }
 
         if (joint_names.size() != joint_positions.size())
         {
-            std::cerr << "[" << getName() << "] " << "joint_names lenght should be the same as joint_positions : " << joint_names.size() << " vs " << joint_positions.size() << '\n';
+            std::cerr << "[GazeboModel::" << getName() << "] " << "joint_names lenght should be the same as joint_positions : " << joint_names.size() << " vs " << joint_positions.size() << '\n';
             return false;
         }
 
@@ -65,24 +67,20 @@ public:
 
     bool load(const std::string& model_name)
     {
-        auto world = ::gazebo::physics::get_world();
-        if(! world)
-        {
-            std::cerr << "[" << getName() << "] " << "Could not load gazebo world" << '\n';
+        if(!loadWorld())
             return false;
-        }
 
         #if GAZEBO_MAJOR_VERSION > 8
-            model_ = world->ModelByName( model_name );
+            auto model = world_->ModelByName( model_name );
         #else
-            model_ = world->GetModel( model_name );
+            auto model = world_->GetModel( model_name );
         #endif
-        if(! model_)
+        if(! model)
         {
-            std::cerr << "[" << getName() << "] " << "Could not get gazebo model " << model_name << ". Make sure it is loaded in the server" << '\n';
+            std::cerr << "[GazeboModel::" << getName() << "] " << "Could not get gazebo model " << model_name << ". Make sure it is loaded in the server" << '\n';
             return false;
         }
-        return load(model_);
+        return load(model);
     }
 
     bool load(::gazebo::physics::ModelPtr model)
@@ -92,6 +90,9 @@ public:
             std::cerr << "Model is invalid" << '\n';
             return false;
         }
+        if(!loadWorld())
+            return false;
+
         actuated_joint_names_.clear();
         for(auto joint : model->GetJoints() )
         {
@@ -137,14 +138,14 @@ public:
             return false;
         }
 
+        std::cout << "[" << getName() << "] "<< "Actuated joints" << '\n';
+        for(auto joint_name : joint_map_)
+        {
+            std::cout << "   - " << joint_name << '\n';
+        }
+
         model_ = model;
         name_ = model->GetName();
-
-        std::cout << "[" << model->GetName() << "] "<< "Physical joints" << std::endl;
-        for(auto joint_name : actuated_joint_names_)
-        {
-            std::cout << "   - " << joint_name << std::endl;
-        }
 
         const int ndof = actuated_joint_names_.size();
 
@@ -152,9 +153,47 @@ public:
         current_joint_velocities_.setZero(ndof);
         current_joint_torques_.setZero(ndof);
         joint_torque_commands_.setZero(ndof);
+
+        return true;
+    }
+
+    const Eigen::Vector3d& getGravity()
+    {
+        if(!world_)
+        {
+            std::cerr << "[GazeboModel::" << getName() << "] " << "World is not loaded" << '\n';
+            return gravity_vector_;
+        }
+
+        #if GAZEBO_MAJOR_VERSION > 8
+
+        gravity_vector_[0] = world_->Gravity()[0];
+        gravity_vector_[1] = world_->Gravity()[1];
+        gravity_vector_[2] = world_->Gravity()[2];
+
+        #else
+
+        gravity_vector_[0] = world_->GetPhysicsEngine()->GetGravity()[0];
+        gravity_vector_[1] = world_->GetPhysicsEngine()->GetGravity()[1];
+        gravity_vector_[2] = world_->GetPhysicsEngine()->GetGravity()[2];
+
+        #endif
+        return gravity_vector_;
     }
 
 private:
+    bool loadWorld()
+    {
+        auto world = ::gazebo::physics::get_world();
+        if(!world)
+        {
+            std::cerr << "[GazeboModel::" << getName() << "] " << "Could not load gazebo world" << '\n';
+            return false;
+        }
+        world_ = world;
+        return true;
+    }
+    ::gazebo::physics::WorldPtr world_;
     ::gazebo::physics::ModelPtr model_;
     std::vector<std::string> actuated_joint_names_;
     Eigen::Matrix<double,6,1> current_base_vel_;
@@ -164,6 +203,7 @@ private:
     Eigen::VectorXd current_joint_torques_;
     Eigen::VectorXd joint_torque_commands_;
     std::string name_;
+    Eigen::Vector3d gravity_vector_;
 };
 
 } // namespace gazebo

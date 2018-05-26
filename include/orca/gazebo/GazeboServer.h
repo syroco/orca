@@ -160,6 +160,7 @@ public:
         #endif
         return gravity_vector_;
     }
+    
     std::vector<std::string> getModelJointNames(const std::string& model_name)
     {
         std::vector<std::string> joint_names;
