@@ -75,6 +75,16 @@ const Eigen::VectorXd& GenericTask::getf() const
     return euclidian_norm_.getb();
 }
 
+void GenericTask::setE(const Eigen::MatrixXd& newE)
+{
+    return euclidian_norm_.setA(newE);
+}
+
+void GenericTask::setf(const Eigen::VectorXd& newf)
+{
+    return euclidian_norm_.setb(newf);
+}
+
 Eigen::MatrixXd& GenericTask::E()
 {
     return euclidian_norm_.A();

@@ -65,13 +65,16 @@ public:
     const Eigen::MatrixXd& getE() const;
     const Eigen::VectorXd& getf() const;
 
+    void setE(const Eigen::MatrixXd& newE);
+    void setf(const Eigen::VectorXd& newf);
+
     virtual void print() const;
 
+    const math::WeightedEuclidianNormFunction::QuadraticCost& getQuadraticCost() const;
+    
     Eigen::MatrixXd& E();
     Eigen::VectorXd& f();
 
-    const math::WeightedEuclidianNormFunction::QuadraticCost& getQuadraticCost() const;
-protected:
     virtual bool rampUp(double time_since_start);
     virtual void onUpdateAffineFunction(double current_time, double dt) = 0;
     virtual void onDeactivation();
