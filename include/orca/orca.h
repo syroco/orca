@@ -57,3 +57,17 @@
 #include "orca/task/JointTorqueTask.h"
 #include "orca/task/RegularisationTask.h"
 #include "orca/task/WrenchTask.h"
+
+namespace orca
+{
+    namespace all
+    {
+        using namespace common;
+        using namespace optim;
+        using namespace task;
+        using namespace constraint;
+        using namespace robot;
+        using namespace math;
+        using namespace utils;
+    }
+}
