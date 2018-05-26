@@ -32,8 +32,9 @@ This is the easiest installation if you have a clean system and want to test qui
 git clone https://github.com/syroco/orca
 cd orca
 mkdir build ; cd build
-cmake ..
-cmake --build . # or just 'make'
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+sudo cmake --build . --target install
 ```
 
 ### Installation without embedded dependencies (recommended)
@@ -58,7 +59,7 @@ wget https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.zip
 unzip qpOASES-3.2.1.zip
 cd qpOASES-3.2.1
 mkdir build ; cd build
-cmake .. -DCMAKE_CXX_FLAGS="-fPIC"
+cmake .. -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 sudo cmake --build . --target install
 ```
@@ -69,7 +70,7 @@ sudo cmake --build . --target install
 git clone https://github.com/robotology/idyntree
 cd idyntree
 mkdir build ; cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 sudo cmake --build . --target install
 ```
