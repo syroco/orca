@@ -118,7 +118,7 @@ public:
                 added = true;
             }
 
-            std::cout << "[" << getName() << "] " << (added ? "Adding":"Not adding")
+            std::cout << "[" << model->GetName() << "] " << (added ? "Adding":"Not adding")
                 << " joint " << joint->GetName()
                 << " type " << joint->GetType()
                 #if GAZEBO_MAJOR_VERSION > 8
@@ -133,14 +133,14 @@ public:
 
         if(actuated_joint_names_.size() == 0)
         {
-            std::cerr << "[" << getName() << "] " << "Could not get any actuated joint for model " << getName() << '\n';
+            std::cerr << "[" << model->GetName() << "] " << "Could not get any actuated joint for model " << model->GetName() << '\n';
             return false;
         }
 
         model_ = model;
         name_ = model->GetName();
 
-        std::cout << "[" << getName() << "] "<< "Physical joints" << std::endl;
+        std::cout << "[" << model->GetName() << "] "<< "Physical joints" << std::endl;
         for(auto joint_name : actuated_joint_names_)
         {
             std::cout << "   - " << joint_name << std::endl;
