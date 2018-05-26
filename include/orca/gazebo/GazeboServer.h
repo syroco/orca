@@ -105,8 +105,7 @@ public:
     void run(std::function<void(uint32_t,double,double)> callback=0)
     {
         assertWorldLoaded();
-        if(callback)
-            registerCallback(callback);
+        callback_ = callback;
         ::gazebo::runWorld(world_, 0);
     }
     ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url
@@ -220,11 +219,8 @@ public:
         return world_;
     }
     
-    void registerCallback(std::function<void(uint32_t,double,double)> callback)
-    {
-        callback_ = callback;
-    }
-private:
+
+private:   
     void assertWorldLoaded()
     {
         if(!world_)
@@ -418,6 +414,7 @@ private:
 
     double getSimTime()
     {
+        assertWorldLoaded();
         #if GAZEBO_MAJOR_VERSION > 8
             return world_->SimTime().Double();
         #else

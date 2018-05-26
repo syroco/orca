@@ -25,9 +25,19 @@ int main(int argc, char** argv)
         ,quatFromRPY(0,0,0)
         ,"two"));
 
+    gz_model_two.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    {
+        std::cout << "gz_model_two \'" << gz_model_two.getName() << "\' callback " << '\n'
+            << "- iteration    " << n_iter << '\n'
+            << "- current time " << current_time << '\n'
+            << "- dt           " << dt << '\n';
+    });
+    
+    
     gz.run([&](uint32_t n_iter,double current_time,double dt)
     {
-        std::cout << "Gazebo iteration " << n_iter << '\n'
+        std::cout << "GazeboServer callback " << '\n'
+            << "- iteration    " << n_iter << '\n'
             << "- current time " << current_time << '\n'
             << "- dt           " << dt << '\n';
     });

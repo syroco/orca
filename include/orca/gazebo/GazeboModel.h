@@ -216,6 +216,12 @@ public:
         std::cout << "- Joint velocities "          << getJointVelocities().transpose()        << '\n';
         std::cout << "- Joint external torques "    << getJointExternalTorques().transpose()   << '\n';
     }
+    
+    void setCallback(std::function<void(uint32_t,double,double)> callback)
+    {
+        callback_ = callback;
+    }
+    
 protected:
     void worldUpdateBegin()
     {
@@ -263,6 +269,20 @@ protected:
             current_base_vel_[4] = base_vel_ang.y;
             current_base_vel_[5] = base_vel_ang.z;
         #endif
+        if(callback_)
+        {
+            #if GAZEBO_MAJOR_VERSION > 8
+                double sim_time = world_->SimTime().Double();
+            #else
+                double sim_time = world_->GetSimTime().Double();
+            #endif
+            #if GAZEBO_MAJOR_VERSION > 8
+                double dt = world_->Physics()->GetMaxStepSize();
+            #else
+                double dt = world_->GetPhysicsEngine()->GetMaxStepSize();
+            #endif
+            callback_(this->world_->Iterations(),sim_time,dt);
+        }
     }
 private:
     GazeboModel()
@@ -299,6 +319,7 @@ private:
     ::gazebo::event::ConnectionPtr world_begin_;
     ::gazebo::event::ConnectionPtr world_end_;
     int ndof_ = 0;
+    std::function<void(uint32_t,double,double)> callback_;
 };
 
 } // namespace gazebo
