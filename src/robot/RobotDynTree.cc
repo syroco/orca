@@ -191,8 +191,6 @@ const iDynTree::Model& RobotDynTree::getRobotModel()
 
 bool RobotDynTree::frameExists(const std::string& frame_name)
 {
-    if(frame_name.empty())
-        throw std::runtime_error("Provided frame is empty");
     if(kinDynComp_.getFrameIndex(frame_name) < 0)
     {
         return false;
