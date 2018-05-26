@@ -232,8 +232,9 @@ struct RobotDataHelper
 class RobotDynTree
 {
 public:
-    RobotDynTree(const std::string& modelFile="");
-    bool loadModelFromFile(const std::string& modelFile );
+    RobotDynTree();
+    bool loadModelFromFile(const std::string& modelFile, const std::string &filetype="urdf");
+    bool loadModelFromString(const std::string &modelString, const std::string &filetype="urdf");
     void setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
@@ -248,7 +249,6 @@ public:
     void setBaseFrame(const std::string& fixed_base_or_free_floating_frame);
     const std::string& getBaseFrame() const;
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
-    const std::string& getFileURL() const;
     unsigned int getNrOfDegreesOfFreedom() const;
     unsigned int getConfigurationSpaceDimension() const;
     bool frameExists(const std::string& frame_name);
@@ -278,7 +278,6 @@ protected:
     iDynTreeRobotState idynRobotState_;
     bool is_initialized_ = false;
     std::string base_frame_;
-    std::string urdf_url_;
     Eigen::Vector3d global_gravity_vector_;
     std::map<unsigned int, std::pair<double,double> > joint_pos_limits_;
 // private:

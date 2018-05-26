@@ -71,6 +71,15 @@ namespace optim
             }
             insertNewProblem();
         }
+
+        void print() const
+        {
+            for(auto problem : problems_)
+            {
+                problem->print();
+            }
+        }
+
         void setPrintLevel(int level)
         {
             for(auto problem : problems_)
@@ -237,7 +246,7 @@ namespace optim
 
             problems_.push_back(problem);
         }
-        
+
         void updateTasks(double current_time, double dt)
         {
             for(auto problem : problems_)
