@@ -12,14 +12,8 @@ JointPositionLimitConstraint::JointPositionLimitConstraint(const std::string& na
 
 void JointPositionLimitConstraint::setJointLimitsFromRobotModel()
 {
-    for(auto l : robot()->getJointPositionLimits())
-    {
-        int i = l.first;
-        double lb = l.second.first;
-        double ub = l.second.second;
-        this->minLimit()[i] = lb;
-        this->maxLimit()[i] = ub;
-    }
+    this->minLimit() = robot()->getMinJointPos();
+    this->maxLimit() = robot()->getMaxJointPos();
 }
 
 void JointPositionLimitConstraint::setHorizon(double horizon)

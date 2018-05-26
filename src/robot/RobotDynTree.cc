@@ -40,7 +40,6 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
         {
             robotData_.eigMinJointPos[i] = kinDynComp_.model().getJoint(i)->getMinPosLimit(0);
             robotData_.eigMaxJointPos[i] = kinDynComp_.model().getJoint(i)->getMaxPosLimit(0);
-            joint_pos_limits_[i] = {min,max};
         }
         else
         {
@@ -188,11 +187,6 @@ unsigned int RobotDynTree::getConfigurationSpaceDimension() const
 const iDynTree::Model& RobotDynTree::getRobotModel()
 {
     return kinDynComp_.getRobotModel();
-}
-
-const std::map<unsigned int, std::pair<double,double> >& RobotDynTree::getJointPositionLimits()
-{
-    return joint_pos_limits_;
 }
 
 bool RobotDynTree::frameExists(const std::string& frame_name)

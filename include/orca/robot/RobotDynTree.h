@@ -252,7 +252,6 @@ public:
     unsigned int getNrOfDegreesOfFreedom() const;
     unsigned int getConfigurationSpaceDimension() const;
     bool frameExists(const std::string& frame_name);
-    const std::map<unsigned int, std::pair<double,double> >& getJointPositionLimits();
 
     Eigen::Matrix< double, 4, 4, Eigen::RowMajor > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
     bool addAdditionalFrameToLink (const std::string &linkName, const std::string &frameName, const Eigen::Matrix4d& link_H_frame);
@@ -279,7 +278,6 @@ protected:
     bool is_initialized_ = false;
     std::string base_frame_;
     Eigen::Vector3d global_gravity_vector_;
-    std::map<unsigned int, std::pair<double,double> > joint_pos_limits_;
 // private:
     // class iDynTreeImpl;                     // Forward declaration of the implementation class
     // std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
