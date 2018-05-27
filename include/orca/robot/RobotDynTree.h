@@ -232,7 +232,8 @@ struct RobotDataHelper
 class RobotDynTree
 {
 public:
-    RobotDynTree();
+    RobotDynTree(const std::string& name="");
+    const std::string& getName() const;
     bool loadModelFromFile(const std::string& modelFile, const std::string &filetype="urdf");
     bool loadModelFromString(const std::string &modelString, const std::string &filetype="urdf");
     void setRobotState(const Eigen::Matrix4d& world_H_base
@@ -277,7 +278,8 @@ protected:
     iDynTreeRobotState idynRobotState_;
     bool is_initialized_ = false;
     std::string base_frame_;
-    Eigen::Vector3d global_gravity_vector_;
+    std::string name_;
+    Eigen::Vector3d global_gravity_vector_ = Eigen::Vector3d(0,0,-9.81);
 // private:
     // class iDynTreeImpl;                     // Forward declaration of the implementation class
     // std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL

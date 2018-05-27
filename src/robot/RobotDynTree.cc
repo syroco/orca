@@ -12,11 +12,16 @@ using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
 
-RobotDynTree::RobotDynTree()
+RobotDynTree::RobotDynTree(const std::string& robot_name)
 // : robot_impl_(new iDynTreeImpl)
+: name_(robot_name)
+{}
+
+const std::string& RobotDynTree::getName() const
 {
-    global_gravity_vector_.setZero();
+    return name_;
 }
+
 bool RobotDynTree::loadModelFromString(const std::string &modelString, const std::string &filetype /*="urdf"*/)
 {
     iDynTree::ModelLoader mdlLoader;
@@ -133,10 +138,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
         throw std::runtime_error("Robot model is not loaded");
 
     if( base_frame_.empty())
-        throw std::runtime_error("Base/FreeFloating frame is empty. Please use setBaseFrame before setting the robot state");
-
-    if(global_gravity_vector_.isZero(0))
-        throw std::runtime_error("Gravity vector is zero. Please use setGravity before setting the robot state");
+        throw std::runtime_error("Base/FreeFloating frame is empty. Please use setBaseFrame() before setting the robot state");
 
     if(jointPos.size() != getNrOfDegreesOfFreedom())
         throw std::runtime_error(Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << getNrOfDegreesOfFreedom());
