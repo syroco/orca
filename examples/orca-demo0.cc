@@ -22,10 +22,10 @@ int main(int argc, char const *argv[])
     orca::utils::Logger::parseArgv(argc, argv);
 
     // Create the kinematic model that is shared by everybody
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
+    auto robot = std::make_shared<RobotDynTree>(); // Here you can pass a robot name
+    robot->loadModelFromFile(urdf_url); // If you don't pass a robot name, it is extracted from the urdf
     robot->setBaseFrame("base_link"); // All the transformations (end effector pose for example) will be expressed wrt this base frame
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81)); // Sets the world gravity
+    robot->setGravity(Eigen::Vector3d(0,0,-9.81)); // Sets the world gravity (Optional)
 
     // This is an helper function to store the whole state of the robot as eigen vectors/matrices
     // This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices
