@@ -36,17 +36,6 @@ void Problem::print() const
     std::cout << "Problem data : " << std::endl;
     data_.print();
     std::cout << std::endl;
-    std::cout << "Problem objects : " << std::endl;
-    std::cout << "      Tasks" << std::endl;
-    for(auto t : this->tasks_)
-    {
-        std::cout << "          " << t->getName() << std::endl;
-    }
-    std::cout << "      Constraints" << std::endl;
-    for(auto c : this->constraints_)
-    {
-        std::cout << "          " << c->getName() << std::endl;
-    }
     std::cout << "Optimization Vector : " << '\n';
     const auto all_variables =
     {
@@ -65,6 +54,17 @@ void Problem::print() const
     for(auto v : all_variables)
     {
         std::cout << "  - " << v << " index " << getIndex(v) << " size " << getSize(v) << '\n';
+    }
+    std::cout << "Problem objects : " << std::endl;
+    std::cout << "      Tasks" << std::endl;
+    for(auto t : this->tasks_)
+    {
+        std::cout << "          " << t->getName() << std::endl;
+    }
+    std::cout << "      Constraints" << std::endl;
+    for(auto c : this->constraints_)
+    {
+        std::cout << "          " << c->getName() << std::endl;
     }
 }
 
@@ -123,10 +123,9 @@ void Problem::resizeProblemData(int nvar,int nconstr)
     data_.resize(nvar,nconstr);
 }
 
-Problem::ReturnValue Problem::addTask(std::shared_ptr<GenericTask> task)
+bool Problem::addTask(std::shared_ptr<GenericTask> task)
 {
     // TODO: Add more checks for more return values
-    
     if(!exists(task,tasks_))
     {
         LOG_INFO << "Adding task " << task->getName();
@@ -136,21 +135,20 @@ Problem::ReturnValue Problem::addTask(std::shared_ptr<GenericTask> task)
             if(addWrench(task->getWrench()))
             {
                 resize();
-                return SizeChanged;
+                return true;
             }
-            else 
+            else
             {
-                return Error;
+                return false;
             }
         }
-        return Success;
+        return true;
     }
     else
     {
         LOG_WARNING << "Task " << task->getName() << " is already present in the problem";
-        return TaskExists;
+        return false;
     }
-    return Error;
 }
 
 bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
@@ -169,7 +167,7 @@ bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
     return false;
 }
 
-Problem::ReturnValue Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
+bool Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
 {
     if(!exists(cstr,constraints_))
     {
@@ -180,21 +178,21 @@ Problem::ReturnValue Problem::addConstraint(std::shared_ptr<GenericConstraint> c
             if(addWrench(cstr->getWrench()))
             {
                 resize();
-                return SizeChanged;
+                return true;
             }
             else
             {
-                return Error;
+                return false;
             }
+
         }
-        return Success;
+        return true;
     }
     else
     {
         LOG_WARNING << "Constraint " << cstr->getName() << " is already present in the problem";
-        return ConstraintExists;
+        return false;
     }
-    return Error;
 }
 
 void Problem::resize()
@@ -222,7 +220,12 @@ void Problem::resize()
 
 bool Problem::solve()
 {
-    return qpsolver_->solve(data_) == 0;
+    return qpsolver_->solve(data_);
+}
+
+ReturnCode Problem::getReturnCode() const
+{
+    return qpsolver_->getReturnCode();
 }
 
 Eigen::VectorXd Problem::getSolution(ControlVariable var) const

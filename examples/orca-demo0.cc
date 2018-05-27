@@ -132,16 +132,24 @@ int main(int argc, char const *argv[])
         robot->setRobotState(eigState.jointPos,eigState.jointVel);
 
         // Step the controller
-        controller.update(current_time,dt);
+        if(controller.update(current_time,dt))
+        {
 
-        // Get the controller output
-        const Eigen::VectorXd& full_solution = controller.getFullSolution();
-        const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-        const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
+            // Get the controller output
+            const Eigen::VectorXd& full_solution = controller.getFullSolution();
+            const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+            const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
-        // Here you can send the commands to you REAL robot
-        // Something like :
-        // myRealRobot.setTorqueCommand(trq_cmd);
+            // Here you can send the commands to you REAL robot
+            // Something like :
+            // myRealRobot.setTorqueCommand(trq_cmd);
+        }
+        else
+        {
+            // Controller could not get the optimal torque
+            // Now you have to save your robot
+            // You can get the return code with controller.getReturnCode();
+        }
     }
 
     // Print the last computed solution (just for fun)

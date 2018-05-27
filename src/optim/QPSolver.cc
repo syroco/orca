@@ -4,6 +4,7 @@
 #include <iostream>
 using namespace orca::optim;
 using namespace orca::utils;
+using namespace orca::common;
 
 QPSolver::QPSolver(QPSolver::SolverType solver_type)
 {
@@ -31,9 +32,14 @@ void QPSolver::resize(int nvar,int nconstr)
     pimpl->resize(nvar,nconstr);
 }
 
-int QPSolver::solve(ProblemData& data)
+ReturnCode QPSolver::getReturnCode() const
 {
-    int ret = pimpl->solve(data);
+    return ret_;
+}
+
+bool QPSolver::solve(ProblemData& data)
+{
+    ret_ = pimpl->solve(data);
     pimpl->getPrimalSolution(data.primal_solution_);
-    return ret;
+    return ret_ == ReturnCode::SUCCESSFUL_RETURN;
 }

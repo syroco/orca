@@ -33,9 +33,10 @@
 
 #pragma once
 
-#include <memory>
 #include "orca/math/Utils.h"
+#include "orca/utils/Utils.h"
 #include "orca/optim/ProblemData.h"
+#include "orca/common/ReturnCode.h"
 
 namespace orca
 {
@@ -50,10 +51,12 @@ public:
     virtual ~QPSolver();
     void setPrintLevel(int level);
     void resize(int nvar, int nconstr);
-    int solve(orca::optim::ProblemData& data);
+    bool solve(orca::optim::ProblemData& data);
+    common::ReturnCode getReturnCode() const;
 private:
     template<SolverType type = qpOASES> struct SolverImpl;
     std::unique_ptr<SolverImpl<> > pimpl;
+    common::ReturnCode ret_ = common::ReturnCode::RET_INIT_FAILED;
 };
 
 } // namespace optim

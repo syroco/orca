@@ -106,7 +106,7 @@ namespace optim
             robot_ = robot;
         }
 
-        void update(double current_time, double dt)
+        bool update(double current_time, double dt)
         {
             switch (resolution_strategy_)
             {
@@ -114,8 +114,18 @@ namespace optim
                     updateTasks(current_time,dt);
                     updateConstraints(current_time,dt);
                     problems_.front()->build();
-                    problems_.front()->solve();
-                break;
+                    return problems_.front()->solve();
+                default:
+                    throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
+            }
+        }
+
+        common::ReturnCode getReturnCode() const
+        {
+            switch (resolution_strategy_)
+            {
+                case ResolutionStrategy::OneLevelWeighted:
+                    return problems_.front()->getReturnCode();
                 default:
                     throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
             }
@@ -127,7 +137,7 @@ namespace optim
             {
                 task->setRobotModel(robot_);
                 task->setProblem(problems_.front());
-                return problems_.front()->addTask(task) != Problem::Error;
+                return problems_.front()->addTask(task);
             }
             return false;
         }
@@ -138,7 +148,7 @@ namespace optim
             {
                 cstr->setRobotModel(robot_);
                 cstr->setProblem(problems_.front());
-                return problems_.front()->addConstraint(cstr) != Problem::Error;
+                return problems_.front()->addConstraint(cstr);
             }
             return false;
         }

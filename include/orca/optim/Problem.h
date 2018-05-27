@@ -33,6 +33,7 @@
 
 #pragma once
 #include "orca/math/Utils.h"
+#include "orca/common/ReturnCode.h"
 #include "orca/utils/Utils.h"
 #include "orca/utils/Logger.h"
 #include "orca/optim/ControlVariable.h"
@@ -74,17 +75,16 @@ namespace optim
 class Problem
 {
 public:
-    enum ReturnValue {Error,Success,TaskExists,ConstraintExists,SizeChanged};
-    
     Problem(std::shared_ptr<robot::RobotDynTree> robot,QPSolver::SolverType solver_type);
 
     virtual ~Problem();
 
     void build();
     bool solve();
+    common::ReturnCode getReturnCode() const;
 
-    ReturnValue addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr);
-    ReturnValue addTask(std::shared_ptr< task::GenericTask> task);
+    bool addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr);
+    bool addTask(std::shared_ptr< task::GenericTask> task);
 
     const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;

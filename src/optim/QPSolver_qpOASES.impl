@@ -38,8 +38,9 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
 
     void setPrintLevel(int level)
     {
-        if(!qpoases_) return;
-
+        if(!qpoases_)
+            throw std::runtime_error("qpsolver pointer is null");
+            
         switch (level)
         {
             case -2:    qpoases_->setPrintLevel(qpOASES::PL_DEBUG_ITER);  break;
@@ -54,7 +55,8 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
 
     void setDefaultOptions()
     {
-        if(!qpoases_) return;
+        if(!qpoases_)
+            throw std::runtime_error("qpsolver pointer is null");
 
         options_.setToMPC(); // setToReliable() // setToDefault()
         options_.enableRegularisation = qpOASES::BT_FALSE; // since we specify the type of Hessian matrix, we do not need automatic regularisation
@@ -62,9 +64,10 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
         qpoases_->setOptions( options_ );
     }
 
-    int solve(ProblemData& data )
+    common::ReturnCode solve(ProblemData& data )
     {
-        if(!qpoases_) return qpOASES::RET_NOTHING_TO_DO;
+        if(!qpoases_)
+            throw std::runtime_error("qpsolver pointer is null");
 
         int nWSR = 1000000;
         qpOASES::returnValue ret;
@@ -87,7 +90,9 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
                                         );
 
             // Keep init if it didn't work
-            if(ret == qpOASES::SUCCESSFUL_RETURN)
+            if(ret == qpOASES::RET_INIT_FAILED)
+                LOG_WARNING << "[qpoases] Init called but returned code " << ret << ", I will keep trying to init" << '\n';
+            else
                 qpoases_initialized_ = true;
         }
         else
@@ -102,17 +107,21 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
                                         , data.ubA_.data()
                                         , nWSR);
             if(ret != qpOASES::SUCCESSFUL_RETURN)
+            {
                 qpoases_initialized_ = false;
+                LOG_WARNING << "[qpoases] Hotstart returned code " << ret << ", going back to init" << '\n';
+            }
 
         }
-        return ret;
+        // NOTE : for now, orca return codes == qpoases return code
+        return static_cast<common::ReturnCode>(ret);
     }
+
     void getPrimalSolution(Eigen::VectorXd& solution)
     {
         if(!qpoases_)
-        {
             throw std::runtime_error("qpsolver pointer is null");
-        }
+
         int nv = qpoases_->getNV();
         if(solution.size() != nv)
         {
