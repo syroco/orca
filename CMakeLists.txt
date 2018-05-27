@@ -38,10 +38,9 @@ endif()
 find_package(TinyXML QUIET)
 if(NOT TinyXML_FOUND)
     message(WARNING "Using internal TinyXML (2.6.2), please consider installing it standalone.")
-    set(tinyxml_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/tinyxml-2.6.2)
+    set(tinyxml_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1/extern/tinyxml/src)
     include_directories(${tinyxml_SOURCE_DIR})
     add_library(tinyxml
-        ${tinyxml_SOURCE_DIR}/tinystr.cpp
         ${tinyxml_SOURCE_DIR}/tinyxml.cpp
         ${tinyxml_SOURCE_DIR}/tinyxmlerror.cpp
         ${tinyxml_SOURCE_DIR}/tinyxmlparser.cpp

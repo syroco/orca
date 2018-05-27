@@ -1,5 +1,5 @@
 FROM alpine
-RUN apk add --no-cache git cmake g++ make
+RUN apk add --no-cache cmake g++ make
 # RUN git clone https://github.com/syroco/orca
 RUN mkdir orca
 COPY ./ orca/
