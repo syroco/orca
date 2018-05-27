@@ -2,7 +2,7 @@
 <package format="2">
   <name>orca</name>
   <version>2.0.0</version>
-  <description>Optimisation-based framework for Robotics Applications</description>
+  <description>Optimization-based framework for Robotics Applications</description>
 
   <maintainer email="info@fuzzylogicrobotics.com">Fuzzy Logic Robotics</maintainer>
   <author email="hoarau.robotics@gmail.com">Antoine Hoarau</author>

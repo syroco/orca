@@ -1,7 +1,7 @@
-Optimisation Vector
+Optimization Vector
 ===================
 
-The optimisation vector in the quadratic problem is written as follows :
+The optimization vector in the quadratic problem is written as follows :
 
 .. math::
 
@@ -34,10 +34,10 @@ In addition to those necessary variables, you can specify also a combination :
 
 * :math:`\dot{\nu}` : Generalised joint acceleration, concatenation of :math:`\dot{\nu}^{fb}` and :math:`\dot{\nu}^{j}` (:math:`6+n_{dof} \times 1`)
 * :math:`\tau`      : Generalised joint torque, concatenation of :math:`\tau^{fb}` and :math:`\tau^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`X`         : The whole optimisation vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
+* :math:`X`         : The whole optimization vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
 * :math:`^{e}w`     : External wrenches (:math:`n_{wrenche} 6 \times 1`)
 =======
 * :math:`\dot{\nu}`: Generalised joint acceleration, concatenation of :math:`\dot{\nu}^{fb}` and :math:`\dot{\nu}^{j}` (:math:`6+n_{dof} \times 1`)
 * :math:`\tau`     : Generalised joint torque, concatenation of :math:`\dot{\tau}^{fb}` and :math:`\dot{\tau}^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`X`      : The whole optimisation vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
+* :math:`X`      : The whole optimization vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
 * :math:`^{e}w`          : External wrenches (:math:`n_{wrenche} 6 \times 1`)

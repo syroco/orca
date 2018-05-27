@@ -47,7 +47,7 @@ void Problem::print() const
     {
         std::cout << "          " << c->getName() << std::endl;
     }
-    std::cout << "Optimisation Vector : " << '\n';
+    std::cout << "Optimization Vector : " << '\n';
     const auto all_variables =
     {
           ControlVariable::X

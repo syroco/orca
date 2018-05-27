@@ -252,8 +252,8 @@ int main(int argc, char const *argv[])
     qp.setPrintLevel(0);
 
     timer.Reset();
-    qp.buildOptimisationProblem(); //reading the problem and filling in the matrices
-    std::cout << "qp.buildOptimisationProblem() time: " << std::fixed << timer.Elapsed().count()/1E6 << "ms\n";
+    qp.buildOptimizationProblem(); //reading the problem and filling in the matrices
+    std::cout << "qp.buildOptimizationProblem() time: " << std::fixed << timer.Elapsed().count()/1E6 << "ms\n";
 
     timer.Reset();
     bool success = (qp.solve() == 0); // solving the problem
@@ -274,13 +274,13 @@ int main(int argc, char const *argv[])
 
         dynConstr.update();
 
-        qp.buildOptimisationProblem();
+        qp.buildOptimizationProblem();
         qp.solve();
     }while(i--);
 
     qp.print();
 
-    std::cout << "qp.buildOptimisationProblem() + qp.solve()+ time " << std::fixed << timer.Elapsed().count()/1E6/ntrials << "ms\n";
+    std::cout << "qp.buildOptimizationProblem() + qp.solve()+ time " << std::fixed << timer.Elapsed().count()/1E6/ntrials << "ms\n";
 
     if(success)
     {

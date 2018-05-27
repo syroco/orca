@@ -276,8 +276,8 @@ int main(int argc, char** argv)
 
     WeightedQPSolver qp;
     timer.Reset();
-    qp.buildOptimisationProblem();
-    std::cout << "qp.buildOptimisationProblem() time: " << std::fixed << timer.Elapsed().count()/1E6 << "ms\n";
+    qp.buildOptimizationProblem();
+    std::cout << "qp.buildOptimizationProblem() time: " << std::fixed << timer.Elapsed().count()/1E6 << "ms\n";
     qp.print();
     qp.setPrintLevel(0);
 
@@ -346,12 +346,12 @@ int main(int argc, char** argv)
 //         {
 //             LOG_WARNING << "Inserting Contact 1";
 //             contact1.insertInProblem();
-//             qp.buildOptimisationProblem();
+//             qp.buildOptimizationProblem();
 //             qp.print();
 //         }
 
 
-        qp.buildOptimisationProblem();
+        qp.buildOptimizationProblem();
         bool solution_found = qp.solve() == 0;
 
         const Eigen::VectorXd& torque = qp.getPrimalSolution().segment(

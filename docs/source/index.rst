@@ -20,7 +20,7 @@ The problem is written as a **quadratic problem** :
 
     lb_A \leq Ax \leq ub_A
 
-* ``x`` the optimisation vector
+* ``x`` the optimization vector
 * ``H`` the hessian matrix (:math:`size(x) \times size(x)`)
 * ``g`` the gradient vector (:math:`size(x) \times 1`)
 * ``A`` the constraint matrix (:math:`size(x) \times size(x)`)
@@ -33,7 +33,7 @@ Tasks are written as **weighted euclidian distance function** :
 
     w_{task}  \lVert \mathbf{E}x + \mathbf{f} \rVert_{W_{norm}}^2
 
-* ``x`` the optimisation vector, or **part** of the optimisation vector
+* ``x`` the optimization vector, or **part** of the optimization vector
 * ``E`` the linear matrix of the affine function (:math:`size(x) \times size(x)`)
 * ``f`` the origin vector (:math:`size(x) \times 1`)
 * ``w task`` the weight of the tasks in the overall quadratic cost (scalar :math:`[0:1]`)

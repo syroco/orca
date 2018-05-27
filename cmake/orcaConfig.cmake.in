@@ -17,7 +17,7 @@ endif()
 
 message(STATUS "
 
-ORCA : Optimisation-based framework for Robotic Control Applications
+ORCA : Optimization-based framework for Robotic Control Applications
 
 ")
 

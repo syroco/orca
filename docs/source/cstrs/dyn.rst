@@ -1,7 +1,7 @@
 Dynamics Equation
 =================
 
-* **Control variable** : X (whole optimisation vector)
+* **Control variable** : X (whole optimization vector)
 * **Type** : Equality constraint
 * **Size** : :math:`ndof \times size(X)`
 
@@ -22,4 +22,4 @@ Dynamics Equation
     dyn_eq.update(); // <-- Now initialized
     
     dyn_eq.activate(); // <-- Now activated 
-    dyn_eq.insertInProblem(); // <-- Now part of the optimisation problem 
+    dyn_eq.insertInProblem(); // <-- Now part of the optimization problem 

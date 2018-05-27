@@ -183,7 +183,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'ORCA', u'ORCA Documentation',
-     author, 'ORCA', 'C++ Optimisation-based Framework for Robotic Control Applications',
+     author, 'ORCA', 'C++ Optimization-based Framework for Robotic Control Applications',
      'Miscellaneous'),
 ]
 
