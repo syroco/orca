@@ -142,6 +142,7 @@ bool Problem::addTask(std::shared_ptr<GenericTask> task)
                 return false;
             }
         }
+        resize();
         return true;
     }
     else
@@ -186,6 +187,7 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
             }
 
         }
+        resize();
         return true;
     }
     else
