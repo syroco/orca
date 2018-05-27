@@ -49,14 +49,14 @@ namespace orca
             CartesianAccelerationPID(const std::string& name);
 
             void setDesired(const Eigen::Matrix4d& cartesian_position_traj
-                                , const Vector6d& cartesian_velocity_traj
-                                , const Vector6d& cartesian_acceleration_traj);
+                        , const Vector6d& cartesian_velocity_traj
+                        , const Vector6d& cartesian_acceleration_traj);
             const Vector6d& getCommand() const;
             const Eigen::Matrix4d& getCartesianPositionRef() const;
             const Vector6d& getCartesianVelocityRef() const;
             const Vector6d& getCartesianAccelerationRef() const;
             void print() const;
-            PIDController<6>& pid();
+            std::shared_ptr<PIDController> pid();
         protected:
             void onResize();
             void onActivation();
@@ -71,7 +71,7 @@ namespace orca
                     ,cart_pos_err_
                     ,cart_vel_err_
                     ,cart_vel_curr_;
-            PIDController<6> pid_;
+            std::shared_ptr<PIDController> pid_;
         };
     }
 }

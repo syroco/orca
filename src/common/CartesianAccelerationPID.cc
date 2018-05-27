@@ -5,9 +5,8 @@ using namespace orca::optim;
 
 CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 : CartesianServoController(name)
-{
-
-}
+, pid_(std::make_shared<PIDController>(6))
+{}
 
 const Eigen::Matrix4d& CartesianAccelerationPID::getCartesianPositionRef() const
 {
@@ -55,7 +54,7 @@ void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_posit
     cart_acc_des_ = cartesian_acceleration_traj;
 }
 
-PIDController<6>& CartesianAccelerationPID::pid()
+std::shared_ptr<PIDController> CartesianAccelerationPID::pid()
 {
     return pid_;
 }
@@ -69,7 +68,7 @@ void CartesianAccelerationPID::onUpdate(double current_time, double dt)
 {
     // If no frame has been set before, use the default Floating Base.
     if(getBaseFrame().empty())
-        throw std::runtime_error("baseframe is empty");
+        throw std::runtime_error("baseFrame is empty");
     if(getControlFrame().empty())
         throw std::runtime_error("controlFrame is empty");
 
@@ -82,7 +81,7 @@ void CartesianAccelerationPID::onUpdate(double current_time, double dt)
     cart_vel_err_ = cart_vel_des_ - cart_vel_curr_;
 
     // Compute Cartesian Acceleration Command
-    cart_acc_cmd_ = cart_acc_des_ + pid_.computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
+    cart_acc_cmd_ = cart_acc_des_ + pid_->computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
 }
 
 const Vector6d& CartesianAccelerationPID::getCommand() const

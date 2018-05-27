@@ -50,14 +50,14 @@ public:
 
     void setCurrent(const Eigen::VectorXd& jointTorque);
 
-    common::PIDController<Eigen::Dynamic>& pid();
+    std::shared_ptr<common::PIDController> pid();
 protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
     virtual void onActivation();
 private:
     Eigen::VectorXd jnt_trq_des_,current_jnt_trq_;
-    common::PIDController<Eigen::Dynamic> pid_;
+    std::shared_ptr<common::PIDController> pid_;
 };
 
 }

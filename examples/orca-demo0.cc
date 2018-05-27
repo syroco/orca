@@ -78,10 +78,10 @@ int main(int argc, char const *argv[])
     // Now set the servoing PID
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid().setProportionalGain(P);
+    cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid().setDerivativeGain(D);
+    cart_task->servoController()->pid()->setDerivativeGain(D);
     // The desired values are set on the servo controller
     // Because cart_task->setDesired expects a cartesian acceleration
     // Which is computed automatically by the servo controller

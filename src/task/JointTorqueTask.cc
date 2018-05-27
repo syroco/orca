@@ -11,6 +11,7 @@ using namespace orca::utils;
 
 JointTorqueTask::JointTorqueTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointSpaceTorque)
+, pid_(std::make_shared<PIDController>())
 {
 
 }
@@ -28,7 +29,7 @@ void JointTorqueTask::onActivation()
 
 void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    f() = - pid_.computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
+    f() = - pid_->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
 
 void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
@@ -37,7 +38,7 @@ void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
     current_jnt_trq_ = current_joint_torque;
 }
 
-PIDController<Eigen::Dynamic>& JointTorqueTask::pid()
+std::shared_ptr<PIDController> JointTorqueTask::pid()
 {
     return pid_;
 }
@@ -50,7 +51,7 @@ void JointTorqueTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
 
-        pid_.resize(dof);
+        pid_->resize(dof);
 
         jnt_trq_des_.setZero(dof);
         current_jnt_trq_.setZero(dof);

@@ -61,7 +61,7 @@ public:
 
     void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
 
-    common::PIDController<6>& pid();
+    std::shared_ptr<common::PIDController> pid();
 
 protected:
     virtual void onActivation();
@@ -70,7 +70,7 @@ protected:
 private:
     std::shared_ptr<common::Wrench> wrench_;
     Vector6d wrench_des_;
-    common::PIDController<6> pid_;
+    std::shared_ptr<common::PIDController> pid_;
 };
 
 } // namespace task
