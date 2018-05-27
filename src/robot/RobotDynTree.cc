@@ -7,10 +7,34 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
+#include <tinyxml.h>
 
 using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
+
+static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
+{
+    TiXmlElement* robotElement = doc->FirstChildElement("robot");
+    if(!robotElement)
+    {
+        std::cerr << "Could not get the <robot> tag in the URDF " << '\n';
+        return false;
+    }
+
+    if (robotElement->Attribute("name"))
+    {
+        model_name = robotElement->Attribute("name");
+        if(model_name.empty())
+            std::cerr << "URDF has a robot name, but it is empty" << '\n';
+        return true;
+    }
+    else
+    {
+        std::cerr << "Could not get the <name> tag in the URDF " << '\n';
+        return false;
+    }
+}
 
 RobotDynTree::RobotDynTree(const std::string& robot_name)
 // : robot_impl_(new iDynTreeImpl)
@@ -24,6 +48,21 @@ const std::string& RobotDynTree::getName() const
 
 bool RobotDynTree::loadModelFromString(const std::string &modelString, const std::string &filetype /*="urdf"*/)
 {
+    if(name_.empty())
+    {
+        // If no name is provided, let's find it on the URDF
+        TiXmlDocument doc;
+        doc.Parse(modelString.c_str());
+        if(!getRobotNameFromTinyXML(&doc,name_))
+        {
+            throw std::runtime_error(Formatter() << "Could not extract automatically the robot name from the urdf." \
+                << '\n'
+                << "Please use auto robot = std::make_shared<RobotDynTree>(\"my_robot_name\")"
+                << '\n'
+                );
+        }
+    }
+
     iDynTree::ModelLoader mdlLoader;
     mdlLoader.loadModelFromString(modelString,filetype);
 
@@ -54,6 +93,11 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
         }
     }
 
+    if(ok)
+    {
+        std::cout << "[RobotDynTree " << getName() << "] Successfully loaded" << '\n';
+    }
+
     return ok;
 }
 bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::string &filetype /*="urdf"*/)
@@ -77,19 +121,19 @@ const Eigen::VectorXd& RobotDynTree::getMaxJointPos()
 
 void RobotDynTree::print() const
 {
-    std::cout << "Robot Model " << std::endl;
+    std::cout << "[RobotDynTree " << getName() << "]" << '\n';
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfJoints() ; i++)
     {
-        std::cout << "      Joint " << i << " " << kinDynComp_.getRobotModel().getJointName(i) << std::endl;
+        std::cout << "      Joint " << i << " " << kinDynComp_.getRobotModel().getJointName(i) << '\n';
     }
 
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
     {
-        std::cout << "      Frame " << i << " " << kinDynComp_.getRobotModel().getFrameName(i) << std::endl;
+        std::cout << "      Frame " << i << " " << kinDynComp_.getRobotModel().getFrameName(i) << '\n';
     }
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfLinks() ; i++)
     {
-        std::cout << "      Link " << i << " " << kinDynComp_.getRobotModel().getLinkName(i) << std::endl;
+        std::cout << "      Link " << i << " " << kinDynComp_.getRobotModel().getLinkName(i) << '\n';
     }
 }
 
