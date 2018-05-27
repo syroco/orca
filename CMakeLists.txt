@@ -34,6 +34,18 @@ if(NOT Eigen3_FOUND)
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
 endif()
 
+#################### TinyXML ###########################
+find_package(TinyXML QUIET)
+if(NOT TinyXML_FOUND)
+    message(WARNING "Using internal TinyXML (2.6.2), please consider installing it standalone.")
+    include_directories(${PROJECT_SOURCE_DIR}/external/tinyxml-2.6.2)
+    add_library(tinyxml
+        tinystr.cpp
+        tinyxml.cpp
+        tinyxmlerror.cpp
+        tinyxmlparser.cpp
+    )
+endif()
 
 #################### qpOASES ##########################
 find_package(qpOASES QUIET)
@@ -197,6 +209,7 @@ target_include_directories(
 target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
 target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
 target_link_libraries(orca PRIVATE ${qpOASES_LIBRARIES})
+target_link_libraries(orca PRIVATE tinyxml)
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
