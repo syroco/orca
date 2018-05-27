@@ -22,7 +22,6 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
             LOG_INFO << "[QPSolver] New qpOASES::SQProblem (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
             qpoases_.reset(new qpOASES::SQProblem(nvar,nconstr,qpOASES::HST_POSDEF));
             setDefaultOptions();
-
             qpoases_initialized_ = false;
         }
         else if(nvar != qpoases_->getNV() || nconstr != qpoases_->getNC() )
@@ -40,7 +39,7 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
     {
         if(!qpoases_)
             throw std::runtime_error("qpsolver pointer is null");
-            
+
         switch (level)
         {
             case -2:    qpoases_->setPrintLevel(qpOASES::PL_DEBUG_ITER);  break;
@@ -62,6 +61,7 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
         options_.enableRegularisation = qpOASES::BT_FALSE; // since we specify the type of Hessian matrix, we do not need automatic regularisation
         options_.enableEqualities = qpOASES::BT_TRUE; // Specifies whether equalities shall be  always treated as active constraints.
         qpoases_->setOptions( options_ );
+        qpoases_->setPrintLevel(qpOASES::PL_NONE);
     }
 
     common::ReturnCode solve(ProblemData& data )

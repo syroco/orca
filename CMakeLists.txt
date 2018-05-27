@@ -44,6 +44,7 @@ if(NOT qpOASES_FOUND)
     file(GLOB qpOASES_srcs ${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
 
     add_library(qpOASES STATIC ${qpOASES_srcs})
+    target_compile_definitions(qpOASES PRIVATE __NO_COPYRIGHT__)
     set(qpOASES_LIBRARIES qpOASES)
     target_include_directories(qpOASES PRIVATE external/qpOASES-3.2.1/include)
     install(DIRECTORY external/qpOASES-3.2.1/include
