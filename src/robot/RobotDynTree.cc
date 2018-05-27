@@ -95,7 +95,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
 
     if(ok)
     {
-        std::cout << "[RobotDynTree " << getName() << "] Successfully loaded" << '\n';
+        std::cout << "[RobotDynTree] Robot model " << getName() << " successfully loaded" << '\n';
     }
 
     return ok;
@@ -121,7 +121,7 @@ const Eigen::VectorXd& RobotDynTree::getMaxJointPos()
 
 void RobotDynTree::print() const
 {
-    std::cout << "[RobotDynTree " << getName() << "]" << '\n';
+    std::cout << "[RobotDynTree] Robot model " << getName() << '\n';
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfJoints() ; i++)
     {
         std::cout << "      Joint " << i << " " << kinDynComp_.getRobotModel().getJointName(i) << '\n';
