@@ -38,6 +38,10 @@ if(gazebo_FOUND)
         target_link_libraries(orca-gazebo-robot-demo ${GAZEBO_LIBRARIES} pthread orca tinyxml)
         install(TARGETS orca-gazebo-robot-demo DESTINATION bin/orca/examples)
 
+        add_executable(orca-gazebo-robot-demo-gravity-compensation orca-gazebo-robot-demo-gravity-compensation.cc)
+        target_link_libraries(orca-gazebo-robot-demo-gravity-compensation ${GAZEBO_LIBRARIES} pthread orca tinyxml)
+        install(TARGETS orca-gazebo-robot-demo-gravity-compensation DESTINATION bin/orca/examples)
+
     else()
         message(WARNING "Gazebo ${GAZEBO_VERSION} found, we need at least gazebo 7")
     endif()
