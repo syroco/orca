@@ -239,6 +239,11 @@ private:
         TiXmlElement* robotElement = doc->FirstChildElement("robot");
         if(!robotElement)
         {
+            
+            TiXmlPrinter printer;
+            printer.SetIndent( "    " );
+            doc->Accept( &printer );
+            std::cerr << printer.CStr() << '\n';
             std::cerr << "[GazeboServer] Could not get the <robot> tag in the URDF " << '\n';
             return 0;
         }
@@ -296,9 +301,11 @@ private:
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
 
-            std::cerr << "[GazeboServer] \x1B[33m\n\nTo make it work you need first to set the path to the **repo/package** containing the meshes\e[0m" << std::endl;
-            std::cerr << "[GazeboServer] \x1B[33mexport GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/the/package_above\e[0m" << std::endl;
-            std::cerr << "[GazeboServer] \x1B[33mGazebo won't be able to load the URDF if it cannot load the model meshes\n\n\e[0m" << std::endl;
+            std::cerr << "[GazeboServer] \x1B[33m\n\nYou are seeing this message because gazebo does not know where to find the meshes for the \'" << model_name << "\' model\n\e[0m" << std::endl
+                << "\x1B[33mTo make it work, you need to append the path to the dir containing the meshes to the GAZEBO_MODEL_PATH env variable\n, one level above the package.xml. Example :\n\e[0m" << std::endl
+                << "\x1B[33mIf the meshes for the model \'" << model_name << "\' are located at /path/to/" << model_name << "_description\n\e[0m" << std::endl
+                << "\x1B[33mThen append \'/path/to/\' to GAZEBO_MODEL_PATH with export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/\n\e[0m" << std::endl
+                << "\x1B[33mIf you are using ROS (and rospack find  " << model_name << "_description works), just add this to your ~/.bashrc :\n\nexport GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$ROS_PACKAGE_PATH\n\e[0m" << std::endl;
         });
 
         int max_trials = 10;
