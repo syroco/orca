@@ -32,13 +32,12 @@ bool TaskBase::isActivated() const
 void TaskBase::print() const
 {
     std::cout << "[" << TaskBase::getName() << "]" << '\n';
-    std::cout << " - State " << getState() << '\n';
     std::cout << " - Control variable   " << getControlVariable() << '\n';
+    std::cout << " - Current state " << getState() << '\n';
     std::cout << " - hasProblem         " << hasProblem() << '\n';
     std::cout << " - hasRobot           " << hasRobot() << '\n';
     std::cout << " - hasWrench          " << hasWrench() << '\n';
     std::cout << " - isRobotInitialized " << isRobotInitialized() << '\n';
-    std::cout << " - isActivated        " << isActivated() << '\n';
 }
 
 bool TaskBase::isRobotInitialized() const
