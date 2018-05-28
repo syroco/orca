@@ -136,7 +136,7 @@ int main(int argc, char const *argv[])
         {
 
             // Get the controller output
-            const Eigen::VectorXd& full_solution = controller.getFullSolution();
+            const Eigen::VectorXd& full_solution = controller.getSolution();
             const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
             const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
@@ -153,7 +153,7 @@ int main(int argc, char const *argv[])
     }
 
     // Print the last computed solution (just for fun)
-    const Eigen::VectorXd& full_solution = controller.getFullSolution();
+    const Eigen::VectorXd& full_solution = controller.getSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
     const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
     LOG_INFO << "Full solution : " << full_solution.transpose();

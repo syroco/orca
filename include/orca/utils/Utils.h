@@ -44,7 +44,6 @@
 #include <functional>
 #include <thread>
 #include <map>
-#include "orca/math/Utils.h"
 #include "orca/utils/Logger.h"
 
 namespace orca

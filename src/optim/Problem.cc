@@ -235,6 +235,11 @@ Eigen::VectorXd Problem::getSolution(ControlVariable var) const
     return data_.primal_solution_.segment(getIndex(var),getSize(var));
 }
 
+const Eigen::VectorXd& Problem::getSolution() const
+{
+    return data_.primal_solution_;
+}
+
 unsigned int Problem::getIndex(ControlVariable var) const
 {
     return mapping_.getIndex(var);
