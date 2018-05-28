@@ -10,7 +10,7 @@ namespace orca
 {
 namespace gazebo
 {
-    
+
 class GazeboModel
 {
 public:
@@ -28,16 +28,18 @@ public:
 
     const std::string& getName() const
     {
+        assertModelLoaded();
         return name_;
     }
 
+    const std::string& getBaseName()
+    {
+        assertModelLoaded();
+        return base_name_;
+    }
     bool setModelConfiguration(const std::vector<std::string>& joint_names,const std::vector<double>& joint_positions)
     {
-        if (!model_)
-        {
-            std::cerr << "[GazeboModel] Model is not loaded" << '\n';
-            return false;
-        }
+        assertModelLoaded();
 
         if (joint_names.size() != joint_positions.size())
         {
@@ -152,47 +154,62 @@ public:
         current_joint_velocities_.setZero(ndof_);
         current_joint_external_torques_.setZero(ndof_);
         joint_torque_command_.setZero(ndof_);
+        current_joint_measured_torques_.setZero(ndof_);
 
         return true;
     }
 
     const Eigen::Vector3d& getGravity() const
     {
+        assertModelLoaded();
         return gravity_vector_;
     }
 
     const std::vector<std::string>& getActuatedJointNames() const
     {
+        assertModelLoaded();
         return actuated_joint_names_;
     }
 
     const Eigen::Matrix<double,6,1>& getBaseVelocity() const
     {
+        assertModelLoaded();
         return current_base_vel_;
     }
 
     const Eigen::Affine3d& getWorldToBaseTransform() const
     {
+        assertModelLoaded();
         return current_world_to_base_;
     }
 
     const Eigen::VectorXd& getJointPositions() const
     {
+        assertModelLoaded();
         return current_joint_positions_;
     }
 
     const Eigen::VectorXd& getJointVelocities() const
     {
+        assertModelLoaded();
         return current_joint_velocities_;
     }
 
     const Eigen::VectorXd& getJointExternalTorques() const
     {
+        assertModelLoaded();
         return current_joint_external_torques_;
+    }
+
+    const Eigen::VectorXd& getJointMeasuredTorques() const
+    {
+        assertModelLoaded();
+        return current_joint_measured_torques_;
     }
 
     void setJointTorqueCommand(const Eigen::VectorXd& joint_torque_command)
     {
+        assertModelLoaded();
         joint_torque_command_ = joint_torque_command;
         for(int i=0 ; i < ndof_ ; ++i)
         {
@@ -203,11 +220,13 @@ public:
 
     int getNDof() const
     {
+        assertModelLoaded();
         return ndof_;
     }
 
     void printState() const
     {
+        assertModelLoaded();
         std::cout << "[GazeboModel \'" << getName() << "\'] State :\n" << '\n';
         std::cout << "- Gravity "                   << getGravity().transpose()                << '\n';
         std::cout << "- Base velocity\n"            << getBaseVelocity().transpose()           << '\n';
@@ -216,12 +235,12 @@ public:
         std::cout << "- Joint velocities "          << getJointVelocities().transpose()        << '\n';
         std::cout << "- Joint external torques "    << getJointExternalTorques().transpose()   << '\n';
     }
-    
+
     void setCallback(std::function<void(uint32_t,double,double)> callback)
     {
         callback_ = callback;
     }
-    
+
 protected:
     void worldUpdateBegin()
     {
@@ -246,12 +265,13 @@ protected:
             #endif
             current_joint_velocities_[i] = joint->GetVelocity(0);
             current_joint_external_torques_[i] = joint->GetForce(0u); // WARNING: This is the external estimated force
+            current_joint_measured_torques_[i] = 0; // FIXME : find out how to fill this
         }
 
 
         #if GAZEBO_MAJOR_VERSION > 8
             current_world_to_base_ = convPose(model_->RelativePose());
-            
+
             current_base_vel_.head(3) = convVec3(model_->RelativeLinearVel());
             current_base_vel_.tail(3) = convVec3(model_->RelativeAngularVel());
         #else
@@ -284,6 +304,11 @@ protected:
         }
     }
 private:
+    void assertModelLoaded() const
+    {
+        if (!model_)
+            throw std::runtime_error("[GazeboModel] Model is not loaded");
+    }
     GazeboModel()
     {
         current_base_vel_.setZero();
@@ -312,8 +337,10 @@ private:
     Eigen::VectorXd current_joint_positions_;
     Eigen::VectorXd current_joint_velocities_;
     Eigen::VectorXd current_joint_external_torques_;
+    Eigen::VectorXd current_joint_measured_torques_;
     Eigen::VectorXd joint_torque_command_;
     std::string name_;
+    std::string base_name_;
     Eigen::Vector3d gravity_vector_;
     ::gazebo::event::ConnectionPtr world_begin_;
     ::gazebo::event::ConnectionPtr world_end_;
