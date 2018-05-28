@@ -26,14 +26,16 @@ int main(int argc, char** argv)
     auto robot = std::make_shared<RobotDynTree>();
     robot->loadModelFromFile(urdf_url);
     robot->print();
-    robot->setBaseFrame("base_link"); // All the transformations will be expressed wrt this base frame
-    robot->setGravity(gzserver.getGravity()); // Sets the world gravity
 
     // Update the robot on at every iteration
     gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
     {
-        robot->setRobotState(gzrobot.getJointPositions()
-                            ,gzrobot.getJointVelocities());
+        robot->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
+                            ,gzrobot.getJointPositions()
+                            ,gzrobot.getBaseVelocity()
+                            ,gzrobot.getJointVelocities()
+                            ,gzrobot.getGravity()
+                        );
     });
 
     // Run the main simulation loop.
