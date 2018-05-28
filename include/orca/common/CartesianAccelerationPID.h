@@ -74,6 +74,7 @@ namespace orca
                     ,cart_vel_err_
                     ,cart_vel_curr_;
             std::shared_ptr<PIDController> pid_;
+            bool desired_set_ = false;
         };
     }
 }

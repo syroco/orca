@@ -61,6 +61,7 @@ void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_posit
     cart_pos_des_ = cartesian_position_traj;
     cart_vel_des_ = cartesian_velocity_traj;
     cart_acc_des_ = cartesian_acceleration_traj;
+    desired_set_ = true;
 }
 
 std::shared_ptr<PIDController> CartesianAccelerationPID::pid()
@@ -70,7 +71,11 @@ std::shared_ptr<PIDController> CartesianAccelerationPID::pid()
 
 void CartesianAccelerationPID::onActivation()
 {
-    cart_pos_des_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
+    if(!desired_set_)
+    {
+        // Defaults the task to the current pose of the robot
+        cart_pos_des_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
+    }
 }
 
 void CartesianAccelerationPID::onUpdate(double current_time, double dt)
