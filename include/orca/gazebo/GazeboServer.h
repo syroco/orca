@@ -115,11 +115,6 @@ public:
         return world_;
     }
 
-    virtual ~GazeboServer()
-    {
-        ::gazebo::shutdown();
-    }
-
     double getDt()
     {
         assertWorldLoaded();
@@ -142,6 +137,15 @@ public:
         callback_ = callback;
         ::gazebo::runWorld(world_, 0);
     }
+
+    void shutdown()
+    {
+        ::gazebo::event::Events::sigInt.Signal();
+        std::cout <<"\x1B[32m[[--- Stoping Simulation ---]]\033[0m"<< '\n';
+        if(world_)
+            world_->Fini();
+    }
+
     ::gazebo::physics::ModelPtr insertModelFromURDFFile(const std::string& urdf_url
         , Eigen::Vector3d init_pos = Eigen::Vector3d::Zero()
         , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
@@ -253,6 +257,12 @@ public:
         return world_;
     }
 
+    virtual ~GazeboServer()
+    {
+        std::cout <<"\x1B[32m[[--- Gazebo Shutdown... ---]]\033[0m"<< '\n';
+        //NOTE: This crashes as gazebo is running is a thread
+        ::gazebo::shutdown();
+    }
 
 private:
     void assertWorldLoaded()
