@@ -129,12 +129,12 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 
 bool TaskBase::rampUp(double time_since_start)
 {
-    return time_since_start < ramp_duration_;
+    return time_since_start >= ramp_duration_;
 }
 
 bool TaskBase::rampDown(double time_since_stop)
 {
-    return time_since_stop < ramp_duration_;
+    return time_since_stop >= ramp_duration_;
 }
 
 void TaskBase::resize()
@@ -239,10 +239,14 @@ void TaskBase::update(double current_time, double dt)
                 start_time_ = current_time;
                 onActivation();
             }
+
             if(this->rampUp(current_time - start_time_))
             {
                 state_ = Activated;
-                LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
+                if(this->getRampDuration() > 0)
+                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
+                else
+                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
             }
             break;
         }
@@ -259,13 +263,16 @@ void TaskBase::update(double current_time, double dt)
             {
                 this->deactivation_requested_ = false;
                 stop_time_ = current_time;
-
             }
+
             if(this->rampDown(current_time - stop_time_))
             {
                 state_ = Deactivated;
                 onDeactivation();
-                LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
+                if(this->getRampDuration() > 0)
+                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
+                else
+                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
             }
             break;
         }

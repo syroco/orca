@@ -137,47 +137,85 @@ Eigen::VectorXd Controller::getJointAccelerationCommand()
     }
 }
 
-void Controller::activateAll(double current_time)
+void Controller::activateTasksAndConstraints()
+{
+    activateTasks();
+    activateConstraints();
+}
+
+void Controller::deactivateTasksAndConstraints()
+{
+    deactivateTasks();
+    deactivateConstraints();
+}
+
+void Controller::deactivateTasks()
 {
     for(auto problem : problems_)
     {
         for(auto t : problem->getTasks())
         {
-            t->activate();
-        }
-        for(auto c : problem->getConstraints())
-        {
-            c->activate();
+            if(t->getName() == "DynamicsEquation")
+                continue;
+            t->deactivate();
         }
     }
 }
 
-void Controller::deactivateAll(double current_time)
+void Controller::deactivateConstraints()
 {
     for(auto problem : problems_)
     {
-        for(auto t : problem->getTasks())
-        {
-            t->deactivate();
-        }
         for(auto c : problem->getConstraints())
         {
+            if(c->getName() == "GlobalRegularisation")
+                continue;
             c->deactivate();
         }
     }
 }
 
-bool Controller::allDeactivated()
+void Controller::activateTasks()
 {
     for(auto problem : problems_)
     {
         for(auto t : problem->getTasks())
         {
+            if(t->getName() == "DynamicsEquation")
+                continue;
+            t->activate();
+        }
+    }
+}
+
+void Controller::activateConstraints()
+{
+    for(auto problem : problems_)
+    {
+        for(auto c : problem->getConstraints())
+        {
+            if(c->getName() == "GlobalRegularisation")
+                continue;
+            c->activate();
+        }
+    }
+}
+
+bool Controller::tasksAndConstraintsDeactivated()
+{
+    for(auto problem : problems_)
+    {
+        for(auto t : problem->getTasks())
+        {
+            if(t->getName() == "DynamicsEquation")
+                continue;
             if(t->getState() != common::TaskBase::Deactivated)
                 return false;
         }
         for(auto c : problem->getConstraints())
         {
+            if(c->getName() == "GlobalRegularisation")
+                continue;
             if(c->getState() != common::TaskBase::Deactivated)
                 return false;
         }
@@ -185,26 +223,40 @@ bool Controller::allDeactivated()
     return true;
 }
 
+std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globalRegularization(int level)
+{
+    if(level < problems_.size())
+    {
+        auto it = problems_.begin();
+        std::advance(it, level);
+        auto problem = *it;
+        for(auto t : problem->getTasks())
+        {
+            if(t->getName() == "GlobalRegularisation")
+            {
+                return std::dynamic_pointer_cast<task::RegularisationTask<ControlVariable::X> >(t);
+            }
+        }
+    }
+    return 0;
+}
+
 void Controller::insertNewProblem()
 {
     LOG_INFO << "Inserting new MOOProblem at level " << problems_.size();
     auto problem = std::make_shared<Problem>(robot_,solver_type_);
+    problems_.push_back(problem);
 
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
     auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
 
-    dynamics_equation->setRobotModel(robot_);
-    dynamics_equation->setProblem(problem);
-
-    global_regularisation->setRobotModel(robot_);
-    global_regularisation->setProblem(problem);
-
     global_regularisation->euclidianNorm().setWeight(1E-5);
 
-    problem->addConstraint(dynamics_equation);
-    problem->addTask(global_regularisation);
+    addConstraint(dynamics_equation);
+    addTask(global_regularisation);
 
-    problems_.push_back(problem);
+    dynamics_equation->activate();
+    global_regularisation->activate();
 }
 
 void Controller::updateTasks(double current_time, double dt)
