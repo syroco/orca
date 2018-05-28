@@ -47,17 +47,51 @@ namespace gazebo
 class GazeboServer
 {
 public:
-    GazeboServer(bool load_default_values=true
-        ,const std::string& world_name = "worlds/empty.world"
-        ,std::vector<std::string> server_options = {"--verbose"})
+    GazeboServer()
     {
-        ::gazebo::printVersion();
-        if(load_default_values)
-            load(world_name,server_options);
+        load();
+    }
+    GazeboServer(int argc, char * argv[])
+    {
+        std::vector<std::string> v;
+        for (int i = 0; i < argc; i++)
+            v.push_back(argv[i]);
+        load(v);
+    }
+    GazeboServer(int argc, char const * argv[])
+    {
+        std::vector<std::string> v;
+        for (int i = 0; i < argc; i++)
+            v.push_back(argv[i]);
+        load(v);
+    }
+    GazeboServer(std::vector<std::string> server_options,const std::string& world_name = "worlds/empty.world")
+    {
+        load(server_options,world_name);
+    }
+    GazeboServer(const std::string& world_name,std::vector<std::string> server_options = {"--verbose"})
+    {
+        load(server_options,world_name);
     }
 
-    bool load(const std::string& world_name = "worlds/empty.world",std::vector<std::string> server_options = {"--verbose"})
+    bool load(std::vector<std::string> server_options = {"--verbose"},const std::string& world_name = "worlds/empty.world")
     {
+        for (size_t i = 0; i < server_options.size() - 1; i++)
+        {
+            std::string op(server_options[i]);
+            std::string next_op(server_options[i+1]);
+
+            if (op.find("verbose") != std::string::npos)
+            {
+                ::gazebo::printVersion();
+                ::gazebo::common::Console::SetQuiet(false);
+            }
+            if (op.find("-s") != std::string::npos || op.find("--server-plugin") != std::string::npos)
+            {
+                ::gazebo::addPlugin(next_op);
+                i++;
+            }
+        }
         if(!::gazebo::setupServer(server_options))
         {
             std::cerr << "[GazeboServer] Could not setup server" << '\n';
@@ -218,9 +252,9 @@ public:
     {
         return world_;
     }
-    
 
-private:   
+
+private:
     void assertWorldLoaded()
     {
         if(!world_)
@@ -239,7 +273,7 @@ private:
         TiXmlElement* robotElement = doc->FirstChildElement("robot");
         if(!robotElement)
         {
-            
+
             TiXmlPrinter printer;
             printer.SetIndent( "    " );
             doc->Accept( &printer );
@@ -272,22 +306,22 @@ private:
         //          sdf->SetAttribute("version", "1.4");
         // I'm setting it to the current sdf version to avoid warnings
         sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
-        
+
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
         sdf_xml.Accept( &printer );
         std::string xml_str = printer.CStr();
         sdf::SDF _sdf;
         _sdf.SetFromString(xml_str);
-        
+
         // Set the initial position
         ignition::math::Pose3d init_pose(convVec3(init_pos),convQuat(init_rot));
         // WARNING: These elemts should always exist, so i'm not checking is they are null
         _sdf.Root()->GetElement("model")->GetElement("pose")->Set<ignition::math::Pose3d>(init_pose);
-        
+
         //std::cout << "[GazeboServer] Converted to sdf :\n" << _sdf.ToString() << '\n';
-        
-        
+
+
         world_->InsertModelSDF(_sdf);
 
         std::atomic<bool> do_exit(false);
@@ -428,7 +462,7 @@ private:
             return world_->GetSimTime().Double();
         #endif
     }
-    
+
     void countExistingSensors()
     {
         n_sensors_ = 0;
