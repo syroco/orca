@@ -274,9 +274,6 @@ void TaskBase::update(double current_time, double dt)
             break;
     }
 
-    if(hasWrench())
-        wrench_->update(current_time,dt);
-
     for(auto t : linked_elements_)
         t->update(current_time,dt);
 
