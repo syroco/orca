@@ -237,6 +237,7 @@ public:
     bool loadModelFromFile(const std::string& modelFile, const std::string &filetype="urdf");
     bool loadModelFromString(const std::string &modelString, const std::string &filetype="urdf");
     const std::string& getUrdfUrl() const;
+    const std::string& getUrdfString() const;
     void setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
@@ -271,8 +272,14 @@ public:
     const iDynTree::Model& getRobotModel();
     unsigned int getNrOfJoints();
     std::string getJointName(unsigned int idx);
+    const std::vector<std::string>& getLinkNames();
+    const std::vector<std::string>& getFrameNames();
+    const std::vector<std::string>& getJointNames();
     bool isInitialized() const;
 protected:
+    bool load(const iDynTree::Model& model);
+    void assertInitialized() const;
+    void assertLoaded() const;
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;
     EigenRobotState eigRobotState_;
@@ -281,6 +288,11 @@ protected:
     std::string base_frame_;
     std::string name_;
     std::string urdf_url_;
+    std::string urdf_str_;
+    unsigned int ndof_ = 0;
+    std::vector<std::string> joint_names_;
+    std::vector<std::string> link_names_;
+    std::vector<std::string> frame_names_;
     Eigen::Vector3d global_gravity_vector_ = Eigen::Vector3d(0,0,-9.81);
 // private:
     // class iDynTreeImpl;                     // Forward declaration of the implementation class
