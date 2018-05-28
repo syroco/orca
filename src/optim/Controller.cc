@@ -187,7 +187,7 @@ bool Controller::allDeactivated()
 
 void Controller::insertNewProblem()
 {
-    LOG_INFO << "Creating new problem at level " << problems_.size();
+    LOG_INFO << "Inserting new MOOProblem at level " << problems_.size();
     auto problem = std::make_shared<Problem>(robot_,solver_type_);
     problem->qpSolver()->setPrintLevel(0);
 
