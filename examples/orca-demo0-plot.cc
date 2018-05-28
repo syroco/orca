@@ -1,4 +1,5 @@
 #include <orca/orca.h>
+#include <matplotlibcpp/matplotlibcpp.h>
 using namespace orca;
 using namespace orca::common;
 using namespace orca::optim;
@@ -7,6 +8,8 @@ using namespace orca::constraint;
 using namespace orca::robot;
 using namespace orca::math;
 using namespace orca::utils;
+
+namespace plt = matplotlibcpp;
 
 int main(int argc, char const *argv[])
 {
@@ -112,16 +115,23 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);  // because not read in the URDF for now
 
-
     double dt = 0.001;
+    double total_time = 1.0;
     double current_time = 0;
 
     // Shortcut : activate all tasks
     controller.activateTasksAndConstraints();
 
     // Now you can run the control loop
-    for (; current_time < 2.0; current_time +=dt)
+    std::vector<double> time_log;
+    int ncols = std::ceil(total_time/dt);
+    Eigen::MatrixXd torqueMat(ndof,ncols);
+    torqueMat.setZero();
+
+    for (int count = 0; current_time < total_time; current_time +=dt)
     {
+        time_log.push_back(current_time);
+
         // Here you can get the data from you REAL robot (API might vary)
         // Some thing like :
         //      eigState.jointPos = myRealRobot.getJointPositions();
@@ -136,7 +146,9 @@ int main(int argc, char const *argv[])
 
             // Get the controller output
             const Eigen::VectorXd& full_solution = controller.getSolution();
-            const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+
+            torqueMat.col(count) = controller.getJointTorqueCommand();
+
             const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
             // Here you can send the commands to you REAL robot
@@ -149,6 +161,13 @@ int main(int argc, char const *argv[])
             // Now you have to save your robot
             // You can get the return code with controller.getReturnCode();
         }
+
+        count++;
+
+        std::cout << "current_time  " << current_time << '\n';
+        std::cout << "total_time  " << total_time << '\n';
+        std::cout << "time log size  " << time_log.size() << '\n';
+        std::cout << "torqueMat.cols " << torqueMat.cols() << '\n';
     }
 
     // Print the last computed solution (just for fun)
@@ -165,8 +184,17 @@ int main(int argc, char const *argv[])
     while(!controller.tasksAndConstraintsDeactivated())
     {
         current_time += dt;
+        controller.print();
         controller.update(current_time,dt);
     }
-    // All objets will be destroyed here
+
+    // Plot data
+    for (size_t i = 0; i < torqueMat.rows(); i++)
+    {
+        std::vector<double> trq(time_log.size());
+        Eigen::VectorXd::Map(trq.data(),time_log.size()) = torqueMat.row(i);
+        plt::plot(time_log,trq);
+    }
+    plt::show();
     return 0;
 }

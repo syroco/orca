@@ -59,12 +59,12 @@ void Problem::print() const
     std::cout << "      Tasks" << std::endl;
     for(auto t : this->tasks_)
     {
-        std::cout << "          " << t->getName() << std::endl;
+        std::cout << "          [" << t->getState() << "] " << t->getName() << std::endl;
     }
     std::cout << "      Constraints" << std::endl;
     for(auto c : this->constraints_)
     {
-        std::cout << "          " << c->getName() << std::endl;
+        std::cout << "          [" << c->getState() << "] " << c->getName() << std::endl;
     }
 }
 
@@ -99,18 +99,18 @@ unsigned int Problem::computeNumberOfConstraintRows() const
 {
     int number_of_constraints_rows = 0;
 
-    for(auto constr : getConstraints())
+    for(auto constraint : getConstraints())
     {
-        if(constr->getConstraintMatrix().isIdentity())
+        if(constraint->getConstraintMatrix().isIdentity())
         {
-            LOG_DEBUG << "For constraint " << constr->getName() << " : detecting lb < x < ub constraint, not adding rows";
+            LOG_DEBUG << "For constraint " << constraint->getName() << " : detecting lb < x < ub constraint, not adding rows";
             // Detecting lb < x < ub constraint
         }
         else
         {
-            LOG_DEBUG << "For constraint " << constr->getName() << " : adding constraint " << constr->rows() << " rows";
-            number_of_constraints_rows += constr->rows();
-            LOG_DEBUG << "For constraint " << constr->getName() << " : number of constraint rows is now  " << number_of_constraints_rows ;
+            LOG_DEBUG << "For constraint " << constraint->getName() << " : adding constraint " << constraint->rows() << " rows";
+            number_of_constraints_rows += constraint->rows();
+            LOG_DEBUG << "For constraint " << constraint->getName() << " : number of constraint rows is now  " << number_of_constraints_rows ;
         }
     }
     //LOG_DEBUG << "We are now at  " << data_.H_.rows() << "x" << data_.A_.rows();
@@ -168,15 +168,15 @@ bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
     return false;
 }
 
-bool Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
+bool Problem::addConstraint(std::shared_ptr<GenericConstraint> constraint)
 {
-    if(!exists(cstr,constraints_))
+    if(!exists(constraint,constraints_))
     {
-        LOG_INFO << "Adding constraint " << cstr->getName();
-        constraints_.push_back(cstr);
-        if(cstr->hasWrench())
+        LOG_INFO << "Adding constraint " << constraint->getName();
+        constraints_.push_back(constraint);
+        if(constraint->hasWrench())
         {
-            if(addWrench(cstr->getWrench()))
+            if(addWrench(constraint->getWrench()))
             {
                 resize();
                 return true;
@@ -192,7 +192,7 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> cstr)
     }
     else
     {
-        LOG_WARNING << "Constraint " << cstr->getName() << " is already present in the problem";
+        LOG_WARNING << "Constraint " << constraint->getName() << " is already present in the problem";
         return false;
     }
 }
@@ -282,7 +282,9 @@ void Problem::build()
 
         if(start_idx + nrows <= data_.H_.rows() && start_idx + ncols <= data_.H_.cols())
         {
-            if(task->isActivated())
+            if(task->getState() == common::TaskBase::Activating
+            || task->getState() == common::TaskBase::Activated
+            || task->getState() == common::TaskBase::Deactivating)
             {
                 data_.H_.block(start_idx, start_idx, nrows, ncols).noalias()  += task->getWeight() * task->getQuadraticCost().getHessian();
                 data_.g_.segment(start_idx ,ncols).noalias()                  += task->getWeight() * task->getQuadraticCost().getGradient();
@@ -301,16 +303,16 @@ void Problem::build()
     int iAwrench = 0;
     iwrench = 0;
     int row_idx = 0;
-    for(auto constr : constraints_)
+    for(auto constraint : constraints_)
     {
-        int start_idx = getIndex(constr->getControlVariable());
+        int start_idx = getIndex(constraint->getControlVariable());
 
-        int nrows = constr->rows();
-        int ncols = constr->cols();
+        int nrows = constraint->rows();
+        int ncols = constraint->cols();
 
-        if(constr->getConstraintMatrix().isIdentity())
+        if(constraint->getConstraintMatrix().isIdentity())
         {
-            if(constr->getControlVariable() == ControlVariable::ExternalWrench)
+            if(constraint->getControlVariable() == ControlVariable::ExternalWrench)
             {
                 start_idx += iwrench * 6;
                 iwrench++;
@@ -318,21 +320,23 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constr->isActivated())
+                if(constraint->getState() == common::TaskBase::Activating
+                || constraint->getState() == common::TaskBase::Activated
+                || constraint->getState() == common::TaskBase::Deactivating)
                 {
-                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constr->getLowerBound());
-                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constr->getUpperBound());
+                    data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constraint->getLowerBound());
+                    data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constraint->getUpperBound());
                 }
             }
             else
             {
                 // Error
-                throw std::runtime_error(Formatter() << "Identity Constraint " << constr->getName() << " ptr " << constr << " is out of band : start_idx + nrows > data_.lb_.size()");
+                throw std::runtime_error(Formatter() << "Identity Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
         else
         {
-            if(constr->getControlVariable() == ControlVariable::ExternalWrench)
+            if(constraint->getControlVariable() == ControlVariable::ExternalWrench)
             {
                 start_idx += iAwrench * 6;
                 iAwrench++;
@@ -340,11 +344,11 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constr->isActivated())
+                if(constraint->isActivated())
                 {
-                    data_.A_.block(row_idx,start_idx,nrows,ncols) = constr->getConstraintMatrix();
-                    data_.lbA_.segment(row_idx,nrows) = data_.lbA_.segment(row_idx,nrows).cwiseMax(constr->getLowerBound());
-                    data_.ubA_.segment(row_idx,nrows) = data_.ubA_.segment(row_idx,nrows).cwiseMin(constr->getUpperBound());
+                    data_.A_.block(row_idx,start_idx,nrows,ncols) = constraint->getConstraintMatrix();
+                    data_.lbA_.segment(row_idx,nrows) = data_.lbA_.segment(row_idx,nrows).cwiseMax(constraint->getLowerBound());
+                    data_.ubA_.segment(row_idx,nrows) = data_.ubA_.segment(row_idx,nrows).cwiseMin(constraint->getUpperBound());
                 }
                 else
                 {
@@ -356,7 +360,7 @@ void Problem::build()
             else
             {
                 // Error
-                throw std::runtime_error(Formatter() << "Constraint " << constr->getName() << " ptr " << constr << " is out of band : start_idx + nrows > data_.lb_.size()");
+                throw std::runtime_error(Formatter() << "Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
     }

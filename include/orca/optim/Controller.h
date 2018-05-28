@@ -41,6 +41,7 @@
 #include "orca/optim/QPSolver.h"
 #include "orca/robot/RobotDynTree.h"
 #include "orca/constraint/GenericConstraint.h"
+#include "orca/task/RegularisationTask.h"
 
 namespace orca
 {
@@ -78,12 +79,17 @@ namespace optim
 
         Eigen::VectorXd getJointAccelerationCommand();
 
-        void activateAll(double current_time);
+        void activateTasksAndConstraints();
+        void activateTasks();
+        void activateConstraints();
 
-        void deactivateAll(double current_time);
+        void deactivateTasksAndConstraints();
+        void deactivateTasks();
+        void deactivateConstraints();
 
-        bool allDeactivated();
+        bool tasksAndConstraintsDeactivated();
 
+        std::shared_ptr<task::RegularisationTask<ControlVariable::X> > globalRegularization(int level = 0);
     private:
         void insertNewProblem();
 

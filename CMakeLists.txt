@@ -205,6 +205,18 @@ target_include_directories(
       $<INSTALL_INTERFACE:include>
   )
 
+find_package(PythonLibs QUIET)
+if(PYTHONLIBS_FOUND)
+    target_include_directories(
+          orca PUBLIC
+          $<BUILD_INTERFACE:${PYTHON_INCLUDE_DIRS}>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/matplotlibcpp/include>
+          $<INSTALL_INTERFACE:include>
+      )
+    target_link_libraries(orca PUBLIC ${PYTHON_LIBRARIES})
+    install(DIRECTORY external/matplotlibcpp/include/matplotlibcpp DESTINATION include/matplotlibcpp)
+endif()
+
 target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
 target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
 target_link_libraries(orca PUBLIC ${qpOASES_LIBRARIES})

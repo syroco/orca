@@ -46,7 +46,9 @@ namespace task
 
         RegularisationTask(const std::string& name)
         : GenericTask(name,C)
-        {}
+        {
+            this->setRampDuration(0);
+        }
     protected:
         void onActivation()
         {}
@@ -71,6 +73,6 @@ namespace task
     typedef RegularisationTask<optim::ControlVariable::GeneralisedAcceleration>   AccelerationRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::GeneralisedTorque>         TorqueRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::ExternalWrench>            WrenchRegularisationTask;
-    typedef RegularisationTask<optim::ControlVariable::X>                         WholeRegularisationTask;
+    typedef RegularisationTask<optim::ControlVariable::X>                         GlobalRegularisationTask;
 }
 }
