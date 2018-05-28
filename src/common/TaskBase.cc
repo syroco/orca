@@ -221,7 +221,8 @@ bool TaskBase::activate()
 
 void TaskBase::update(double current_time, double dt)
 {
-    //this->checkIfUpdatable();
+    for(auto t : linked_elements_)
+        t->update(current_time,dt);
 
     switch (state_)
     {
@@ -280,9 +281,6 @@ void TaskBase::update(double current_time, double dt)
             //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
-
-    for(auto t : linked_elements_)
-        t->update(current_time,dt);
 
     if(update_cb_)
         update_cb_(current_time,dt);
