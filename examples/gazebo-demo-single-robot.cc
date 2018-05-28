@@ -28,7 +28,8 @@ int main(int argc, char** argv)
     std::cout << "- Joint positions "           << m.getJointPositions().transpose()         << '\n';
     std::cout << "- Joint velocities "          << m.getJointVelocities().transpose()        << '\n';
     std::cout << "- Joint external torques "    << m.getJointExternalTorques().transpose()   << '\n';
-
+    std::cout << "- Joint measured torques "    << m.getJointMeasuredTorques().transpose()   << '\n';
+    
     // You can optionally register a callback that will be called
     // after every WorldUpdateEnd, so the internal gazebo model is updated
     // and you can get the full state (q,qdot,Tworld->base, etc)
@@ -42,8 +43,8 @@ int main(int argc, char** argv)
         const Eigen::VectorXd& q = m.getJointPositions();
         const Eigen::VectorXd& qdot = m.getJointVelocities();
 
-        std::cout << "q    " << q.transpose() << '\n';
-        std::cout << "qdot " << qdot.transpose() << '\n';
+        std::cout << "ExtTrq " << m.getJointExternalTorques().transpose() << '\n';
+        std::cout << "MeaTrq " << m.getJointMeasuredTorques().transpose() << '\n';
     });
 
     // Run the main simulation loop.
