@@ -97,8 +97,6 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
     {
         std::cout << "[RobotDynTree] Robot model " << getName() << " successfully loaded" << '\n';
     }
-
-    urdf_url_ = modelString;
     return ok;
 }
 
@@ -109,6 +107,8 @@ bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::st
                      std::istreambuf_iterator<char>());
     if( str.empty() )
         throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " file \'" << modelFile << "\'");
+
+    urdf_url_ = modelFile;
     return loadModelFromString(str,filetype);
 }
 
