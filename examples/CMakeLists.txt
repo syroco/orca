@@ -1,5 +1,6 @@
 add_executable(orca-demo0 orca-demo0.cc)
 target_link_libraries(orca-demo0 orca)
+install(TARGETS orca-demo0 DESTINATION bin/orca)
 
 # add_executable(orca-demo1 orca-demo1.cc)
 # target_link_libraries(orca-demo1 orca)
@@ -38,5 +39,3 @@ if(gazebo_FOUND)
 else()
     message(STATUS "Gazebo not found, not building gazebo examples")
 endif()
-
-# install(TARGETS orca-demo1 DESTINATION lib/orca)

@@ -69,8 +69,6 @@ endif()
 
 #################### iDynTree #########################
 find_package(iDynTree QUIET)
-#################### catkin #########################
-find_package(catkin QUIET)
 
 if(NOT iDynTree_FOUND)
     message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
@@ -122,6 +120,7 @@ endif()
 
 #################### Catkin ###########################
 
+find_package(catkin QUIET COMPONENTS pluginlib)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include #${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
@@ -208,8 +207,8 @@ target_include_directories(
 
 target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
 target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
-target_link_libraries(orca PRIVATE ${qpOASES_LIBRARIES})
-target_link_libraries(orca PRIVATE tinyxml)
+target_link_libraries(orca PUBLIC ${qpOASES_LIBRARIES})
+target_link_libraries(orca PUBLIC tinyxml)
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
@@ -226,12 +225,15 @@ add_custom_target(  ${PROJECT_NAME}-atom-files ALL
 endif()
 
 #################### ORCA Install #########################
+install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
+
 if(NOT qpOASES_FOUND)
-    install(TARGETS orca qpOASES DESTINATION lib EXPORT orcaTargets)
-else()
-    install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
+    install(TARGETS qpOASES DESTINATION lib EXPORT orcaTargets)
 endif()
 
+if(NOT TinyXML_FOUND)
+    install(TARGETS tinyxml DESTINATION lib EXPORT orcaTargets)
+endif()
 
 install(DIRECTORY include/
   DESTINATION include
