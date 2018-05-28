@@ -47,11 +47,16 @@ void CartesianTask::setControlFrame(const std::string& control_frame)
 void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
 {
     cart_acc_des_ = cartesian_acceleration_des;
+    desired_set_ = true;
 }
 
 void CartesianTask::onActivation()
 {
-
+    if(!desired_set_)
+    {
+        // Do not move if no desired target is set
+        cart_acc_des_.setZero();
+    }
 }
 
 void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
@@ -82,16 +87,10 @@ void CartesianTask::onResize()
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
     euclidianNorm().resize(6,fulldim);
 
-    if(!servo_)
-        throw std::runtime_error("No servo controller set. Use setServoController before inserting the task in the controller");
-
     // If no frame has been set before, use the default Floating Base.
     if(base_ref_frame_.empty())
     {
-        LOG_WARNING << "Calling update but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
+        LOG_WARNING << "Calling resize but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
         setBaseFrame(robot()->getBaseFrame());
     }
-
-    // Do not move at first
-    cart_acc_des_.setZero();
 }

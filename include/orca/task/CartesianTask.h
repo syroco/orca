@@ -59,6 +59,7 @@ protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
+    bool desired_set_ = false;
     std::string base_ref_frame_,control_frame_;
     Vector6d cart_acc_des_,cart_acc_bias_;
     std::shared_ptr<common::CartesianAccelerationPID> servo_;
