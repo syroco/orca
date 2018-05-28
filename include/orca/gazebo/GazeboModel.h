@@ -94,9 +94,12 @@ public:
         if(!loadWorld())
             return false;
 
+        joints_.clear();
         actuated_joint_names_.clear();
         for(auto joint : model->GetJoints() )
         {
+            // Provide feedback to get the internal torque
+            joint->SetProvideFeedback(true);
             // Not adding fixed joints
             bool added = false;
             if( true
@@ -116,6 +119,7 @@ public:
                 #endif
             )
             {
+                joints_.push_back(joint);
                 actuated_joint_names_.push_back(joint->GetName());
                 added = true;
             }
@@ -151,6 +155,7 @@ public:
         ndof_ = actuated_joint_names_.size();
 
         current_joint_positions_.setZero(ndof_);
+        joint_gravity_torques_.setZero(ndof_);
         current_joint_velocities_.setZero(ndof_);
         current_joint_external_torques_.setZero(ndof_);
         joint_torque_command_.setZero(ndof_);
@@ -195,6 +200,14 @@ public:
         return current_joint_velocities_;
     }
 
+    void setJointGravityTorques(const Eigen::VectorXd& gravity_torques)
+    {
+        assertModelLoaded();
+        if (gravity_torques.size() != joint_gravity_torques_.size())
+            throw std::runtime_error("Provided gravity torques do not match the model's dofs");
+        joint_gravity_torques_ = gravity_torques;
+    }
+
     const Eigen::VectorXd& getJointExternalTorques() const
     {
         assertModelLoaded();
@@ -211,11 +224,6 @@ public:
     {
         assertModelLoaded();
         joint_torque_command_ = joint_torque_command;
-        for(int i=0 ; i < ndof_ ; ++i)
-        {
-            auto joint = model_->GetJoint( actuated_joint_names_[i] );
-            joint->SetForce(0,joint_torque_command[i]);
-        }
     }
 
     int getNDof() const
@@ -234,6 +242,7 @@ public:
         std::cout << "- Joint positions "           << getJointPositions().transpose()         << '\n';
         std::cout << "- Joint velocities "          << getJointVelocities().transpose()        << '\n';
         std::cout << "- Joint external torques "    << getJointExternalTorques().transpose()   << '\n';
+        std::cout << "- Joint measured torques "    << getJointMeasuredTorques().transpose()   << '\n';
     }
 
     void setCallback(std::function<void(uint32_t,double,double)> callback)
@@ -252,22 +261,37 @@ protected:
         gravity_vector_[0] = g[0];
         gravity_vector_[1] = g[1];
         gravity_vector_[2] = g[2];
+
+        if(world_->Iterations() > 0)
+        {
+            for(int i=0 ; i < ndof_ ; ++i)
+            {
+                auto joint = joints_[i];
+                joint->SetForce(0,joint_torque_command_[i] + joint_gravity_torques_[i]);
+            }
+        }
     }
     void worldUpdateEnd()
     {
-        for(int i=0 ; i < actuated_joint_names_.size() ; ++i)
+        for(int i=0 ; i < ndof_ ; ++i)
         {
-            auto joint = model_->GetJoint( actuated_joint_names_[i] );
+            auto joint = joints_[i];
             #if GAZEBO_MAJOR_VERSION > 8
                 current_joint_positions_[i] = joint->Position(0);
             #else
                 current_joint_positions_[i] = joint->GetAngle(0).Radian();
             #endif
             current_joint_velocities_[i] = joint->GetVelocity(0);
-            current_joint_external_torques_[i] = joint->GetForce(0u); // WARNING: This is the external estimated force
-            current_joint_measured_torques_[i] = 0; // FIXME : find out how to fill this
-        }
+            current_joint_external_torques_[i] = joint->GetForce(0); // WARNING: This is the external estimated force (= force applied to the joint = torque command from user)
 
+            auto w = joint->GetForceTorque(0u);
+            #if GAZEBO_MAJOR_VERSION > 8
+                auto a = joint->LocalAxis(0u);
+            #else
+                auto a = joint->GetLocalAxis(0u);
+            #endif
+            current_joint_measured_torques_[i] = a.Dot(w.body1Torque);
+        }
 
         #if GAZEBO_MAJOR_VERSION > 8
             current_world_to_base_ = convPose(model_->RelativePose());
@@ -331,10 +355,12 @@ private:
 
     ::gazebo::physics::WorldPtr world_;
     ::gazebo::physics::ModelPtr model_;
+    ::gazebo::physics::Joint_V joints_;
     std::vector<std::string> actuated_joint_names_;
     Eigen::Matrix<double,6,1> current_base_vel_;
     Eigen::Affine3d current_world_to_base_;
     Eigen::VectorXd current_joint_positions_;
+    Eigen::VectorXd joint_gravity_torques_;
     Eigen::VectorXd current_joint_velocities_;
     Eigen::VectorXd current_joint_external_torques_;
     Eigen::VectorXd current_joint_measured_torques_;
