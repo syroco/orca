@@ -53,7 +53,7 @@ namespace common
         virtual ~TaskBase();
         bool isActivated() const;
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
-        
+
         optim::ControlVariable getControlVariable() const;
 
         const std::string& getName() const;
@@ -80,17 +80,18 @@ namespace common
 
         double getStartTime() const;
         double getStopTime() const;
-        
+
         std::shared_ptr<const optim::Problem> getProblem()const;
         std::shared_ptr<const common::Wrench> getWrench() const;
         std::shared_ptr<const robot::RobotDynTree> getRobot() const;
-        
+
         void link(std::shared_ptr<common::TaskBase> e);
+        void setUpdateCallback(std::function<void(double,double)> update_cb);
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<common::Wrench> wrench();
-        
+
         virtual void onResize() = 0;
         virtual void onActivation() = 0;
         virtual bool rampUp(double time_since_start);
@@ -114,6 +115,7 @@ namespace common
         std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
+        std::function<void(double,double)> update_cb_;
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;

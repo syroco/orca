@@ -109,17 +109,17 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
     }
     // Copy the new robot model
     robot_ = robot;
-    
+
     // Create the wrench if you depend on ExternalWrench
     if(getControlVariable() == ControlVariable::ExternalWrench)
     {
         wrench_ = std::make_shared<Wrench>(name_ + "_wrench");
         wrench_->setRobotModel(robot_);
     }
-    
+
     for(auto e : linked_elements_)
         e->setRobotModel(robot_);
-    
+
     if(hasProblem())
     {
         // Resize if we have all the parameters
@@ -141,11 +141,11 @@ void TaskBase::resize()
 {
     // Calling the user callback
     // NOTE: the need to resize the task is handled in the the user callback
-    // i.e verify if new_size != current_size, which is specific to said task 
+    // i.e verify if new_size != current_size, which is specific to said task
     this->onResize();
     for(auto e : linked_elements_)
         e->resize();
-    
+
     switch (state_)
     {
         case Init:
@@ -153,7 +153,7 @@ void TaskBase::resize()
             break;
         default:
             // NOTE: If the task is running, then just call instantaneous resize
-            // and do not change the state. 
+            // and do not change the state.
             // Otherwise you would have to activate() again the task
             // which is not what user expect
             break;
@@ -201,13 +201,13 @@ bool TaskBase::activate()
     if(state_ == Resized || state_ == Deactivated)
     {
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
-        
+
         state_ = Activating;
         this->activation_requested_ = true;
-        
+
         if(hasWrench())
             wrench_->activate();
-    
+
         for(auto t : linked_elements_)
             t->activate();
         return true;
@@ -226,6 +226,10 @@ void TaskBase::update(double current_time, double dt)
     switch (state_)
     {
         case Init:
+            break;
+        case Resized:
+            break;
+        case Deactivated:
             break;
         case Activating:
         {
@@ -255,7 +259,7 @@ void TaskBase::update(double current_time, double dt)
             {
                 this->deactivation_requested_ = false;
                 stop_time_ = current_time;
-                
+
             }
             if(this->rampDown(current_time - stop_time_))
             {
@@ -269,12 +273,22 @@ void TaskBase::update(double current_time, double dt)
             //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
-    
+
     if(hasWrench())
         wrench_->update(current_time,dt);
-    
+
     for(auto t : linked_elements_)
         t->update(current_time,dt);
+
+    if(update_cb_)
+        update_cb_(current_time,dt);
+}
+
+
+void TaskBase::setUpdateCallback(std::function<void(double,double)> update_cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering update callback";
+    this->update_cb_ = update_cb;
 }
 
 bool TaskBase::deactivate()
@@ -282,13 +296,13 @@ bool TaskBase::deactivate()
     if(state_ == Activated || state_ == Init || state_ == Resized)
     {
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
-        
+
         state_ = Deactivating;
         this->deactivation_requested_ = true;
-        
+
         if(hasWrench())
             wrench_->deactivate();
-    
+
         for(auto t : linked_elements_)
             t->deactivate();
         return true;
@@ -317,10 +331,10 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
         return false;
     }
     this->problem_ = problem;
-    
+
     for(auto e : linked_elements_)
         e->setProblem(problem_);
-    
+
     if(hasRobot())
     {
         // Resize if we have all the parameters
