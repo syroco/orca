@@ -61,7 +61,7 @@ const std::vector<std::string>& RobotDynTree::getJointNames()
     return joint_names_;
 }
 
-bool RobotDynTree::loadModelFromString(const std::string &modelString, const std::string &filetype /*="urdf"*/)
+bool RobotDynTree::loadModelFromString(const std::string &modelString)
 {
     if(name_.empty())
     {
@@ -79,11 +79,10 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
     }
 
     iDynTree::ModelLoader mdlLoader;
-    mdlLoader.loadModelFromString(modelString,filetype);
+    mdlLoader.loadModelFromString(modelString);
 
-    bool ok = kinDynComp_.loadRobotModel(mdlLoader.model());
-    if( !ok || ndof_ == 0 )
-        throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " string :\n" << modelString << "\n");
+    if(! kinDynComp_.loadRobotModel(mdlLoader.model()) )
+        throw std::runtime_error(Formatter() << "Could not load model from urdf string :\n" << modelString << "\n");
 
     return load(kinDynComp_.model());
 }
@@ -97,6 +96,7 @@ bool RobotDynTree::load(const iDynTree::Model& model)
 
     ndof_ = model.getNrOfDOFs();
 
+    joint_names_.clear();
     for(unsigned int i = 0 ; i < ndof_ ; i++)
     {
         double min = 0,max = 0;
@@ -111,12 +111,11 @@ bool RobotDynTree::load(const iDynTree::Model& model)
             robotData_.eigMinJointPos[i] = - Infinity;
             robotData_.eigMaxJointPos[i] =   Infinity;
         }
-    }
-    joint_names_.clear();
-    for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfJoints() ; i++)
-    {
+        // NOTE: iDyntree stores all the joints as [actuated joints + fixed joints]
+        // Important distinction then : Number of degrees of freedom != number of joints in the model !
         joint_names_.push_back( kinDynComp_.getRobotModel().getJointName(i) );
     }
+    
     frame_names_.clear();
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
     {
@@ -133,16 +132,16 @@ bool RobotDynTree::load(const iDynTree::Model& model)
     return true;
 }
 
-bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::string &filetype /*="urdf"*/)
+bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
 {
     std::ifstream t(modelFile);
     std::string str((std::istreambuf_iterator<char>(t)),
                      std::istreambuf_iterator<char>());
     if( str.empty() )
-        throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " file \'" << modelFile << "\'");
+        throw std::runtime_error(Formatter() << "Could not load model from urdf file \'" << modelFile << "\'");
 
     urdf_url_ = modelFile;
-    return loadModelFromString(str,filetype);
+    return loadModelFromString(str);
 }
 
 const std::string& RobotDynTree::getUrdfUrl() const
@@ -426,11 +425,27 @@ const Eigen::VectorXd& RobotDynTree::getJointGravityTorques()
     robotData_.eigJointGravityTorques = iDynTree::toEigen(robotData_.generalizedGravityTorques.jointTorques());
     return robotData_.eigJointGravityTorques;
 }
+
+const Eigen::VectorXd& RobotDynTree::getJointCoriolisTorques()
+{
+    generalizedBiasForces();
+    getJointGravityTorques();
+    robotData_.eigJointCoriolisTorques = robotData_.eigJointGravityAndCoriolisTorques - robotData_.eigJointGravityTorques;
+    return robotData_.eigJointCoriolisTorques;
+}
+
+const Eigen::VectorXd& RobotDynTree::getJointGravityAndCoriolisTorques()
+{
+    generalizedBiasForces();
+    return robotData_.eigJointGravityAndCoriolisTorques;
+}
+
 const Eigen::VectorXd& RobotDynTree::generalizedBiasForces()
 {
     assertInitialized();
     kinDynComp_.generalizedBiasForces(robotData_.generalizedBiasForces);
     robotData_.eigGeneralizedBiasForces.head(6) = iDynTree::toEigen(robotData_.generalizedBiasForces.baseWrench());
-    robotData_.eigGeneralizedBiasForces.tail(ndof_) = iDynTree::toEigen(robotData_.generalizedBiasForces.jointTorques());
+    robotData_.eigJointGravityAndCoriolisTorques = iDynTree::toEigen(robotData_.generalizedBiasForces.jointTorques());
+    robotData_.eigGeneralizedBiasForces.tail(ndof_) = robotData_.eigJointGravityAndCoriolisTorques;
     return robotData_.eigGeneralizedBiasForces;
 }

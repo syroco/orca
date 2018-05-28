@@ -199,6 +199,10 @@ struct RobotDataHelper
         eigJointGravityTorques.setZero(6 + model.getNrOfDOFs());
         extForces.resize(model);
 
+        eigJointGravityTorques.resize(model.getNrOfDOFs());
+        eigJointCoriolisTorques.resize(model.getNrOfDOFs());
+        eigJointGravityAndCoriolisTorques.resize(model.getNrOfDOFs());
+        
         eigMinJointPos.setZero(model.getNrOfDOFs());
         eigMaxJointPos.setZero(model.getNrOfDOFs());
 
@@ -222,6 +226,8 @@ struct RobotDataHelper
     iDynTree::FreeFloatingGeneralizedTorques generalizedGravityTorques;
     Eigen::VectorXd eigGeneralizedBiasForces;
     Eigen::VectorXd eigJointGravityTorques;
+    Eigen::VectorXd eigJointCoriolisTorques;
+    Eigen::VectorXd eigJointGravityAndCoriolisTorques;
     Eigen::VectorXd eigMinJointPos;
     Eigen::VectorXd eigMaxJointPos;
     EigenRobotState eigRobotState;
@@ -234,8 +240,8 @@ class RobotDynTree
 public:
     RobotDynTree(const std::string& name="");
     const std::string& getName() const;
-    bool loadModelFromFile(const std::string& modelFile, const std::string &filetype="urdf");
-    bool loadModelFromString(const std::string &modelString, const std::string &filetype="urdf");
+    bool loadModelFromFile(const std::string& modelFile);
+    bool loadModelFromString(const std::string &modelString);
     const std::string& getUrdfUrl() const;
     const std::string& getUrdfString() const;
     void setRobotState(const Eigen::Matrix4d& world_H_base
@@ -269,6 +275,8 @@ public:
     Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFrameFreeFloatingJacobian(const std::string& frameName);
     const Eigen::VectorXd& generalizedBiasForces();
     const Eigen::VectorXd& getJointGravityTorques();
+    const Eigen::VectorXd& getJointCoriolisTorques();
+    const Eigen::VectorXd& getJointGravityAndCoriolisTorques();
     const iDynTree::Model& getRobotModel();
     unsigned int getNrOfJoints();
     std::string getJointName(unsigned int idx);
