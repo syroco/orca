@@ -8,7 +8,16 @@ CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 , pid_(std::make_shared<PIDController>(6))
 {}
 
-const Eigen::Matrix4d& CartesianAccelerationPID::getCartesianPositionRef() const
+const Eigen::Matrix4d& CartesianAccelerationPID::getCurrentCartesianPose() const
+{
+    return cart_pos_curr_;
+}
+const Vector6d& CartesianAccelerationPID::getCurrentCartesianVelocity() const
+{
+    return cart_vel_curr_;
+}
+
+const Eigen::Matrix4d& CartesianAccelerationPID::getCartesianPoseRef() const
 {
     return cart_pos_des_;
 }
@@ -38,7 +47,7 @@ void CartesianAccelerationPID::print() const
 {
     std::cout << "[" << getName() << "]" << '\n';
     std::cout << " - Position ref : " << '\n';
-    std::cout << getCartesianPositionRef() << '\n';
+    std::cout << getCartesianPoseRef() << '\n';
     std::cout << " - Velocity ref : " << '\n';
     std::cout << getCartesianVelocityRef() << '\n';
     std::cout << " - Acceleration ref : " << '\n';
