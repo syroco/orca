@@ -56,6 +56,7 @@ protected:
     virtual void onResize();
     virtual void onActivation();
 private:
+    bool desired_set_ = false;
     Eigen::VectorXd jnt_trq_des_,current_jnt_trq_;
     std::shared_ptr<common::PIDController> pid_;
 };

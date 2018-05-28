@@ -20,15 +20,20 @@ void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
 {
     assertSize(desired_joint_torque,current_jnt_trq_);
     jnt_trq_des_ = desired_joint_torque;
+    desired_set_ = true;
 }
 
 void JointTorqueTask::onActivation()
-{
-    jnt_trq_des_.setZero();
-}
+{}
 
 void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
 {
+    if(!desired_set_)
+    {
+        LOG_WARNING << "[" << getName() << "] Desired torque has not been set, setting the desired to the gravity torques";
+        jnt_trq_des_ = robot()->getJointGravityTorques();
+    }
+
     f() = - pid_->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
 
