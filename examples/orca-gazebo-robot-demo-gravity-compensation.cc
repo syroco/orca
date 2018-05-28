@@ -16,8 +16,8 @@ int main(int argc, char** argv)
     std::string urdf_url(argv[1]);
 
     // Instanciate the gazebo server with de dedfault empty world
+    GazeboServer gzserver(argc,argv);
     // This is equivalent to GazeboServer gz("worlds/empty.world")
-    GazeboServer gzserver;
     // Insert a model onto the server and create the GazeboModel from the return value
     // You can also set the initial pose, and override the name in the URDF
     auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
