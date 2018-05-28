@@ -236,6 +236,7 @@ public:
     const std::string& getName() const;
     bool loadModelFromFile(const std::string& modelFile, const std::string &filetype="urdf");
     bool loadModelFromString(const std::string &modelString, const std::string &filetype="urdf");
+    const std::string& getUrdfUrl() const;
     void setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
@@ -279,6 +280,7 @@ protected:
     bool is_initialized_ = false;
     std::string base_frame_;
     std::string name_;
+    std::string urdf_url_;
     Eigen::Vector3d global_gravity_vector_ = Eigen::Vector3d(0,0,-9.81);
 // private:
     // class iDynTreeImpl;                     // Forward declaration of the implementation class

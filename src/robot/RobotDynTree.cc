@@ -98,8 +98,10 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString, const std
         std::cout << "[RobotDynTree] Robot model " << getName() << " successfully loaded" << '\n';
     }
 
+    urdf_url_ = modelString;
     return ok;
 }
+
 bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::string &filetype /*="urdf"*/)
 {
     std::ifstream t(modelFile);
@@ -108,6 +110,11 @@ bool RobotDynTree::loadModelFromFile(const std::string &modelFile, const std::st
     if( str.empty() )
         throw std::runtime_error(Formatter() << "Could not load model from " << filetype << " file \'" << modelFile << "\'");
     return loadModelFromString(str,filetype);
+}
+
+const std::string& RobotDynTree::getUrdfUrl() const
+{
+    return urdf_url_;
 }
 
 const Eigen::VectorXd& RobotDynTree::getMinJointPos()
