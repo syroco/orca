@@ -238,6 +238,8 @@ void TaskBase::update(double current_time, double dt)
                 this->activation_requested_ = false;
                 start_time_ = current_time;
                 onActivation();
+                if(activation_cb_)
+                    activation_cb_();
             }
 
             if(this->rampUp(current_time - start_time_))
@@ -255,6 +257,8 @@ void TaskBase::update(double current_time, double dt)
             if(hasWrench())
                 wrench_->update(current_time,dt);
             this->onUpdate(current_time, dt);
+            if(update_cb_)
+                update_cb_(current_time,dt);
             break;
         }
         case Deactivating:
@@ -269,6 +273,8 @@ void TaskBase::update(double current_time, double dt)
             {
                 state_ = Deactivated;
                 onDeactivation();
+                if(deactivation_cb_)
+                    deactivation_cb_();
                 if(this->getRampDuration() > 0)
                     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
                 else
@@ -280,16 +286,24 @@ void TaskBase::update(double current_time, double dt)
             //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
-
-    if(update_cb_)
-        update_cb_(current_time,dt);
 }
-
 
 void TaskBase::setUpdateCallback(std::function<void(double,double)> update_cb)
 {
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering update callback";
     this->update_cb_ = update_cb;
+}
+
+void TaskBase::setActivationCallback(std::function<void(void)> activation_cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering activation callback";
+    this->activation_cb_ = activation_cb;
+}
+
+void TaskBase::setDeactivationCallback(std::function<void(void)> deactivation_cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering deactivation callback";
+    this->deactivation_cb_ = deactivation_cb;
 }
 
 bool TaskBase::deactivate()

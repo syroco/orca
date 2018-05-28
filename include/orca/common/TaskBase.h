@@ -87,6 +87,8 @@ namespace common
 
         void link(std::shared_ptr<common::TaskBase> e);
         void setUpdateCallback(std::function<void(double,double)> update_cb);
+        void setActivationCallback(std::function<void(void)> activation_cb);
+        void setDeactivationCallback(std::function<void(void)> deactivation_cb);
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotDynTree> robot();
@@ -116,6 +118,8 @@ namespace common
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
         std::function<void(double,double)> update_cb_;
+        std::function<void(void)> activation_cb_;
+        std::function<void(void)> deactivation_cb_;
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
