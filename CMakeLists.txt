@@ -206,7 +206,8 @@ target_include_directories(
   )
 
 find_package(PythonLibs QUIET)
-if(PYTHONLIBS_FOUND)
+find_package(NumPy QUIET)
+if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     target_include_directories(
           orca PUBLIC
           $<BUILD_INTERFACE:${PYTHON_INCLUDE_DIRS}>
