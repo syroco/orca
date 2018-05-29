@@ -49,6 +49,7 @@ class GazeboServer
 public:
     GazeboServer()
     {
+        std::cout <<"\x1B[32m[[--- Gazebo Server ---]]\033[0m"<< '\n';
         load();
     }
     GazeboServer(int argc, char * argv[])
@@ -76,6 +77,7 @@ public:
 
     bool load(std::vector<std::string> server_options = {"--verbose"},const std::string& world_name = "worlds/empty.world")
     {
+        std::vector<std::string> plugins;
         for (size_t i = 0; i < server_options.size() - 1; i++)
         {
             std::string op(server_options[i]);
@@ -88,10 +90,22 @@ public:
             }
             if (op.find("-s") != std::string::npos || op.find("--server-plugin") != std::string::npos)
             {
-                ::gazebo::addPlugin(next_op);
+                plugins.push_back(next_op);
                 i++;
             }
         }
+
+        std::cout <<"\x1B[32m[[--- Gazebo setup ---]]\033[0m"<< '\n';
+        if(plugins.size())
+        {
+            std::cout <<"\x1B[32m Loading plugins\033[0m"<< '\n';
+            for(auto plugin : plugins)
+            {
+                ::gazebo::addPlugin(plugin);
+                std::cout <<"\x1B[32m   - " << plugin << "\033[0m"<< '\n';
+            }
+        }
+
         if(!::gazebo::setupServer(server_options))
         {
             std::cerr << "[GazeboServer] Could not setup server" << '\n';
