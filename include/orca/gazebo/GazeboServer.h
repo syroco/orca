@@ -329,7 +329,10 @@ private:
         //          will up-convert URDF to SDF.
         //          sdf->SetAttribute("version", "1.4");
         // I'm setting it to the current sdf version to avoid warnings
-        ///////////////////////////////////////////////////////////////sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
+        // NOTE 2 : Settings the version to 1.6 (kinetic+16.04) disallow the fixed joints
+        // to have any <origin rpy="" part, it is ignored for some reason
+        // FIXME : Find out how to convert URDF to sdf 1.6 (or ar least current version)
+        //sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
 
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
