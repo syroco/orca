@@ -329,7 +329,7 @@ private:
         //          will up-convert URDF to SDF.
         //          sdf->SetAttribute("version", "1.4");
         // I'm setting it to the current sdf version to avoid warnings
-        sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
+        ///////////////////////////////////////////////////////////////sdf_xml.RootElement()->SetAttribute("version",sdf::SDF::Version());
 
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
