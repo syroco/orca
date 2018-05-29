@@ -57,15 +57,25 @@ void Controller::setRobotModel(std::shared_ptr<robot::RobotDynTree> robot)
     robot_ = robot;
 }
 
+void Controller::setUpdateCallback(std::function<void(double,double)> update_cb)
+{
+    this->update_cb_ = update_cb;
+}
+
 bool Controller::update(double current_time, double dt)
 {
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
+        {
             updateTasks(current_time,dt);
             updateConstraints(current_time,dt);
             problems_.front()->build();
-            return problems_.front()->solve();
+            bool solved = problems_.front()->solve();
+            if(this->update_cb_)
+                this->update_cb_(current_time,dt);
+            return solved;
+        }
         default:
             throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
     }

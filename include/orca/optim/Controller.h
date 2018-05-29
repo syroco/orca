@@ -90,12 +90,16 @@ namespace optim
         bool tasksAndConstraintsDeactivated();
 
         std::shared_ptr<task::RegularisationTask<ControlVariable::X> > globalRegularization(int level = 0);
+        void setUpdateCallback(std::function<void(double,double)> update_cb);
+
     private:
         void insertNewProblem();
 
         void updateTasks(double current_time, double dt);
 
         void updateConstraints(double current_time, double dt);
+private:
+        std::function<void(double,double)> update_cb_;
 
         std::list< std::shared_ptr<Problem> > problems_;
 
