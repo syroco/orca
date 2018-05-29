@@ -73,11 +73,15 @@ namespace optim
 
         bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
 
+        bool solutionFound() const;
+
         const Eigen::VectorXd& getSolution();
 
-        Eigen::VectorXd getJointTorqueCommand();
+        const Eigen::VectorXd& getJointTorqueCommand();
 
-        Eigen::VectorXd getJointAccelerationCommand();
+        const Eigen::VectorXd& computeKKTTorques();
+
+        const Eigen::VectorXd& getJointAccelerationCommand();
 
         void activateTasksAndConstraints();
         void activateTasks();
@@ -106,11 +110,13 @@ private:
         std::shared_ptr<robot::RobotDynTree> robot_;
 
         Eigen::VectorXd joint_torque_command_;
+        Eigen::VectorXd kkt_torques_;
         Eigen::VectorXd joint_acceleration_command_;
 
         ResolutionStrategy resolution_strategy_;
         QPSolver::SolverType solver_type_;
         const std::string name_;
+        bool solution_found_ = false;
     };
 } // namespace optim
 } //namespace orca

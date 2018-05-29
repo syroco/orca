@@ -17,6 +17,10 @@ Controller::Controller(const std::string& name
 , resolution_strategy_(resolution_strategy)
 , solver_type_(solver_type)
 {
+    joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
+    joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
+    kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
+
     if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
     {
         throw std::runtime_error(utils::Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
@@ -64,6 +68,8 @@ void Controller::setUpdateCallback(std::function<void(double,double)> update_cb)
 
 bool Controller::update(double current_time, double dt)
 {
+    solution_found_ = false;
+
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
@@ -71,14 +77,21 @@ bool Controller::update(double current_time, double dt)
             updateTasks(current_time,dt);
             updateConstraints(current_time,dt);
             problems_.front()->build();
-            bool solved = problems_.front()->solve();
+            solution_found_ = problems_.front()->solve();
+
             if(this->update_cb_)
                 this->update_cb_(current_time,dt);
-            return solved;
+
+            return solution_found_;
         }
         default:
             throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
     }
+}
+
+bool Controller::solutionFound() const
+{
+    return solution_found_;
 }
 
 common::ReturnCode Controller::getReturnCode() const
@@ -125,23 +138,31 @@ const Eigen::VectorXd& Controller::getSolution()
     }
 }
 
-Eigen::VectorXd Controller::getJointTorqueCommand()
+const Eigen::VectorXd& Controller::getJointTorqueCommand()
 {
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
-            return problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
+            joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
+            return joint_torque_command_;
         default:
             throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
     }
 }
 
-Eigen::VectorXd Controller::getJointAccelerationCommand()
+const Eigen::VectorXd& Controller::computeKKTTorques()
+{
+    throw std::runtime_error(utils::Formatter() << "computeKKTTorques() is not yet implemented");
+    return kkt_torques_;
+}
+
+const Eigen::VectorXd& Controller::getJointAccelerationCommand()
 {
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
-            return problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
+            joint_acceleration_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
+            return joint_acceleration_command_;
         default:
             throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
     }

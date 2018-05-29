@@ -122,32 +122,42 @@ int main(int argc, char const *argv[])
     // Now you can run the control loop
     for (; current_time < 2.0; current_time +=dt)
     {
-        // Here you can get the data from you REAL robot (API might vary)
+        // Here you can get the data from you REAL robot (API is robot-specific)
         // Some thing like :
         //      eigState.jointPos = myRealRobot.getJointPositions();
         //      eigState.jointVel = myRealRobot.getJointVelocities();
 
-        // Now update the internal kinematic model with data from REAL robot
+        // Now update the internal kinematic model with data from the REAL robot
         robot->setRobotState(eigState.jointPos,eigState.jointVel);
 
-        // Step the controller
-        if(controller.update(current_time,dt))
-        {
+        // Step the controller + solve the internal optimal problem
+        controller.update(current_time,dt);
 
-            // Get the controller output
+        // Do what you want with the solution
+        if(controller.solutionFound())
+        {
+            // The whole optimal solution [AccFb, Acc, Tfb, T, eWrenches]
             const Eigen::VectorXd& full_solution = controller.getSolution();
+            // The optimal joint torque command
             const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+            // The optimal joint acceleration command
             const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
-            // Here you can send the commands to you REAL robot
-            // Something like :
-            // myRealRobot.setTorqueCommand(trq_cmd);
+            // Send torques to the REAL robot (API is robot-specific)
+            //real_tobot->set_joint_torques(trq_cmd);
         }
         else
         {
-            // Controller could not get the optimal torque
-            // Now you have to save your robot
-            // You can get the return code with controller.getReturnCode();
+            // WARNING : Optimal solution is NOT found
+            // Switching to a fallback strategy
+            // Typical are :
+            // - Stop the robot (robot-specific method)
+            // - Compute KKT Solution and send to the robot (dangerous)
+            // - PID around the current position (dangerous)
+
+            //trq = controller.computeKKTTorques();
+            // Send torques to the REAL robot (API is robot-specific)
+            //real_tobot->set_joint_torques(trq_cmd);
         }
     }
 
