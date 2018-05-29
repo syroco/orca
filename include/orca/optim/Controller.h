@@ -77,7 +77,8 @@ namespace optim
 
         const Eigen::VectorXd& getSolution();
 
-        const Eigen::VectorXd& getJointTorqueCommand();
+        const Eigen::VectorXd& getJointTorqueCommand(bool remove_gravity_torques = false
+                                                , bool remove_coriolis_torques = false);
 
         const Eigen::VectorXd& computeKKTTorques();
 
@@ -96,6 +97,8 @@ namespace optim
         std::shared_ptr<task::RegularisationTask<ControlVariable::X> > globalRegularization(int level = 0);
         void setUpdateCallback(std::function<void(double,double)> update_cb);
 
+        void removeGravityTorquesFromSolution(bool do_remove);
+        void removeCoriolisTorquesFromSolution(bool do_remove);
     private:
         void insertNewProblem();
 
@@ -112,6 +115,9 @@ private:
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;
         Eigen::VectorXd joint_acceleration_command_;
+
+        bool remove_gravity_torques_ = false;
+        bool remove_coriolis_torques_ = false;
 
         ResolutionStrategy resolution_strategy_;
         QPSolver::SolverType solver_type_;

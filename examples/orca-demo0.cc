@@ -119,6 +119,9 @@ int main(int argc, char const *argv[])
     // Shortcut : activate all tasks
     controller.activateTasksAndConstraints();
 
+    controller.removeGravityTorquesFromSolution(true);
+    controller.removeCoriolisTorquesFromSolution(true);
+
     // Now you can run the control loop
     for (; current_time < 2.0; current_time +=dt)
     {

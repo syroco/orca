@@ -138,13 +138,25 @@ const Eigen::VectorXd& Controller::getSolution()
     }
 }
 
-const Eigen::VectorXd& Controller::getJointTorqueCommand()
+const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_torques /*= false*/
+                                                    , bool remove_coriolis_torques /*= false*/)
 {
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
+            if(!solutionFound())
+                throw std::runtime_error(utils::Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
+                
             joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
+
+            if(remove_gravity_torques || remove_gravity_torques_)
+                joint_torque_command_ -= robot_->getJointGravityTorques();
+
+            if(remove_coriolis_torques || remove_coriolis_torques_)
+                joint_torque_command_ -= robot_->getJointCoriolisTorques();
+
             return joint_torque_command_;
+
         default:
             throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
     }
@@ -252,6 +264,15 @@ bool Controller::tasksAndConstraintsDeactivated()
         }
     }
     return true;
+}
+
+void Controller::removeGravityTorquesFromSolution(bool do_remove)
+{
+    remove_gravity_torques_ = do_remove;
+}
+void Controller::removeCoriolisTorquesFromSolution(bool do_remove)
+{
+    remove_coriolis_torques_ = do_remove;
 }
 
 std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globalRegularization(int level)
