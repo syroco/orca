@@ -224,6 +224,7 @@ public:
     {
         assertModelLoaded();
         joint_torque_command_ = joint_torque_command;
+        joint_command_received_ = true;
     }
 
     int getNDof() const
@@ -262,13 +263,17 @@ protected:
         gravity_vector_[1] = g[1];
         gravity_vector_[2] = g[2];
 
-        if(world_->Iterations() > 0)
+        if(world_->Iterations() > 0 && joint_command_received_)
         {
+            model_->SetEnabled(true);
             for(int i=0 ; i < ndof_ ; ++i)
-            {
-                auto joint = joints_[i];
-                joint->SetForce(0,joint_torque_command_[i] + joint_gravity_torques_[i]);
-            }
+                joints_[i]->SetForce(0,joint_torque_command_[i] + joint_gravity_torques_[i]);
+        }
+        else
+        {
+            model_->SetEnabled(false);
+            for(int i=0 ; i < ndof_ ; ++i)
+                joints_[i]->SetVelocity(0, 0.0);
         }
     }
     void worldUpdateEnd()
@@ -371,6 +376,7 @@ private:
     ::gazebo::event::ConnectionPtr world_begin_;
     ::gazebo::event::ConnectionPtr world_end_;
     int ndof_ = 0;
+    bool joint_command_received_ = false;
     std::function<void(uint32_t,double,double)> callback_;
 };
 
