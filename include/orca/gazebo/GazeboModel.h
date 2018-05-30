@@ -224,7 +224,7 @@ public:
     {
         assertModelLoaded();
         joint_torque_command_ = joint_torque_command;
-        joint_command_received_ = true;
+        brakes_ = false;
     }
 
     int getNDof() const
@@ -244,11 +244,17 @@ public:
         std::cout << "- Joint velocities "          << getJointVelocities().transpose()        << '\n';
         std::cout << "- Joint external torques "    << getJointExternalTorques().transpose()   << '\n';
         std::cout << "- Joint measured torques "    << getJointMeasuredTorques().transpose()   << '\n';
+        std::cout << "- Brakes "    << (brakes_ ? "Enabled" : "Disabled")   << '\n';
     }
 
     void setCallback(std::function<void(uint32_t,double,double)> callback)
     {
         callback_ = callback;
+    }
+
+    void setBrakes(bool enable)
+    {
+        brakes_ = enable;
     }
 
 protected:
@@ -263,15 +269,15 @@ protected:
         gravity_vector_[1] = g[1];
         gravity_vector_[2] = g[2];
 
-        if(world_->Iterations() > 0 && joint_command_received_)
+        model_->SetEnabled(!brakes_); // Enable the robot when brakes are off
+
+        if(world_->Iterations() > 0 && !brakes_)
         {
-            model_->SetEnabled(true);
             for(int i=0 ; i < ndof_ ; ++i)
                 joints_[i]->SetForce(0,joint_torque_command_[i] + joint_gravity_torques_[i]);
         }
         else
         {
-            model_->SetEnabled(false);
             for(int i=0 ; i < ndof_ ; ++i)
                 joints_[i]->SetVelocity(0, 0.0);
         }
@@ -376,7 +382,7 @@ private:
     ::gazebo::event::ConnectionPtr world_begin_;
     ::gazebo::event::ConnectionPtr world_end_;
     int ndof_ = 0;
-    bool joint_command_received_ = false;
+    bool brakes_ = true;
     std::function<void(uint32_t,double,double)> callback_;
 };
 
