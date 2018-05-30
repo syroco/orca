@@ -226,16 +226,14 @@ target_link_libraries(orca PUBLIC tinyxml)
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
-#################### Linter for atom #########################
-if(Unix)
-add_custom_target(  ${PROJECT_NAME}-atom-files ALL
-                    DEPENDS ${PROJECT_NAME}
+#################### Linter #########################
+add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
+                    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
                     COMMAND ${CMAKE_COMMAND} -E copy
                     ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
                     ${PROJECT_SOURCE_DIR}
                     COMMENT "Copying 'compile_commands.json' to '${PROJECT_SOURCE_DIR}'"
                  )
-endif()
 
 #################### Doxygen #########################
 option(BUILD_API_DOC "Build documentation" OFF)

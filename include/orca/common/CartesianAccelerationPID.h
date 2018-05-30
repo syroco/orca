@@ -54,9 +54,9 @@ namespace orca
             const Vector6d& getCommand() const;
             const Eigen::Matrix4d& getCurrentCartesianPose() const;
             const Vector6d& getCurrentCartesianVelocity() const;
-            const Eigen::Matrix4d& getCartesianPoseRef() const;
-            const Vector6d& getCartesianVelocityRef() const;
-            const Vector6d& getCartesianAccelerationRef() const;
+            const Eigen::Matrix4d& getDesiredCartesianPose() const;
+            const Vector6d& getDesiredCartesianVelocity() const;
+            const Vector6d& getDesiredCartesianAcceleration() const;
             const Vector6d& getCartesianPoseError() const;
             const Vector6d& getCartesianVelocityError() const;
             void print() const;

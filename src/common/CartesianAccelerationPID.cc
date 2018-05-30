@@ -17,15 +17,15 @@ const Vector6d& CartesianAccelerationPID::getCurrentCartesianVelocity() const
     return cart_vel_curr_;
 }
 
-const Eigen::Matrix4d& CartesianAccelerationPID::getCartesianPoseRef() const
+const Eigen::Matrix4d& CartesianAccelerationPID::getDesiredCartesianPose() const
 {
     return cart_pos_des_;
 }
-const Vector6d& CartesianAccelerationPID::getCartesianVelocityRef() const
+const Vector6d& CartesianAccelerationPID::getDesiredCartesianVelocity() const
 {
     return cart_vel_des_;
 }
-const Vector6d& CartesianAccelerationPID::getCartesianAccelerationRef() const
+const Vector6d& CartesianAccelerationPID::getDesiredCartesianAcceleration() const
 {
     return cart_acc_des_;
 }
