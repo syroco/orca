@@ -118,4 +118,12 @@ To do so simply run the following command:
 
 .. code-block:: bash
     :linenos:
+
     orca-install-test
+
+
+
+What's next?
+==================
+
+Check out :ref:`where_to_go` for more info.

@@ -69,28 +69,3 @@ Constraints are written as **double bounded linear function** :
 ..    }
 ..    robot->setBaseFrame("link_0");
 ..    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
-
-
-.. toctree::
-    :name: optim
-    :caption: Optimization Problem
-    :glob:
-    :maxdepth: 2
-
-    optim/*
-
-.. toctree::
-    :name: tasks
-    :caption: Tasks
-    :glob:
-    :maxdepth: 2
-
-    tasks/*
-
-.. toctree::
-    :name: constraints
-    :caption: Constraints
-    :glob:
-    :maxdepth: 2
-
-    constraints/*

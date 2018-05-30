@@ -1,19 +1,23 @@
-.. image:: _static/orca-l.png
-    :width: 40px
-    :align: left
-
+****************
 ORCA Control
-============
+****************
 
 ORCA is a c++ whole-body reactive controller meant to compute the desired actuation torque
 of a robot given some tasks to perform and some constraints.
 
 About
-^^^^^
+==============
 
 
-The remainder of the documentation describes "classical" tasks and cosntraints which
-one may want to define
+Motivation
+-----------------
+
+
+
+
+************************
+Table of Contents
+************************
 
 .. toctree::
     :name: getting_started
@@ -21,7 +25,10 @@ one may want to define
     :glob:
     :maxdepth: 2
 
-    getting_started/*
+    getting_started/install
+    getting_started/where_to_go
+    getting_started/building_docs
+    getting_started/using_the_lib
 
 .. toctree::
     :name: examples
@@ -29,7 +36,8 @@ one may want to define
     :glob:
     :maxdepth: 2
 
-    examples/*
+    examples/examples
+    examples/basic/01-simple_controller
 
 .. toctree::
     :name: controller_formulation
@@ -37,16 +45,51 @@ one may want to define
     :glob:
     :maxdepth: 2
 
-    controller_formulation/*
+    controller_formulation/overview
+    controller_formulation/optim/optimization_vector
+    controller_formulation/tasks/cartesian_acceleration_task
+    controller_formulation/constraints/dynamics_equation
 
+.. toctree::
+    :caption: License Information
+    :maxdepth: 2
+
+    license
+
+
+Authorship
+=============
+Work on ORCA initially began in 2017 at the Institut des Systèmes Intelligents et de Robotique (ISIR). Since January 2018, active maintenance and development has been taken over by Fuzzy Logic Robotics S.A.S.
+
+Maintainers
+---------------
+Antoine Hoarau
+Ryan Lober
+Fuzzy Logic Robotics (info@fuzzylogicrobotics.com)
+
+Contributors
+---------------
+Vincent Padois
+Lucas Joseph
+etc.
+
+
+Partner Institutions
+--------------------------
 
 
 .. image:: _static/isir.png
-    :width: 100px
+    :height: 50px
     :align: left
 
 .. image:: _static/cnrs.png
-    :width: 100px
+    :height: 50px
+    :align: left
 
 .. image:: _static/upmc.png
-    :width: 250px
+    :height: 50px
+    :align: left
+
+.. image:: _static/flr_logo.png
+    :height: 50px
+    :align: left
