@@ -61,7 +61,7 @@ namespace common
                 d_error_.setZero(dim);
                 cmd_.setZero(dim);
                 windup_limit_.resize(dim);
-                windup_limit_.setConstant(dim, math::Infinity );
+                windup_limit_.setConstant( math::Infinity );
             }
             else
             {
