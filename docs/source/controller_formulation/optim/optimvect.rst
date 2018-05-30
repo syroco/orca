@@ -1,5 +1,6 @@
+***********************
 Optimization Vector
-===================
+***********************
 
 The optimization vector in the quadratic problem is written as follows :
 
