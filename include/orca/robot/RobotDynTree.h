@@ -35,19 +35,11 @@
 
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
-#include <map>
-#include <cstdlib>
-
-// Eigen headers
-#include <Eigen/Core>
 
 // iDynTree headers
 #include <iDynTree/Model/FreeFloatingState.h>
 #include <iDynTree/KinDynComputations.h>
 #include <iDynTree/ModelIO/ModelLoader.h>
-
-// Helpers function to convert between
-// iDynTree datastructures
 #include <iDynTree/Core/EigenHelpers.h>
 
 namespace orca
@@ -62,28 +54,12 @@ struct EigenRobotState
 {
     void resize(int nrOfInternalDOFs)
     {
-        world_H_base.setIdentity();
         jointPos.resize(nrOfInternalDOFs);
         jointVel.resize(nrOfInternalDOFs);
-        jointPos.setZero();
-        jointVel.setZero();
-        gravity[0] = 0;
-        gravity[1] = 0;
-        gravity[2] = -9.81;
+        reset();
     }
 
-    void random()
-    {
-        world_H_base.setIdentity();
-        jointPos.setRandom();
-        baseVel.setRandom();
-        jointVel.setRandom();
-        gravity[0] = 0;
-        gravity[1] = 0;
-        gravity[2] = -9.81;
-    }
-
-    void setFixedBaseValues()
+    void reset()
     {
         world_H_base.setIdentity();
         jointPos.setZero();
@@ -113,10 +89,12 @@ struct iDynTreeRobotState
     {
         jointPos.resize(nrOfInternalDOFs);
         jointVel.resize(nrOfInternalDOFs);
+        reset();
     }
 
-    void setFixedBase()
+    void reset()
     {
+        world_H_base.Identity();
         gravity(0) = 0;
         gravity(1) = 0;
         gravity(2) = -9.81;
@@ -190,38 +168,47 @@ struct RobotDataHelper
         eigRobotAcc.resize(model.getNrOfDOFs());
         idynRobotAcc.resize(model.getNrOfDOFs());
 
-        idynMassMatrix.resize(model);
-        idynJacobian.resize(6,model.getNrOfDOFs());
-        idynJacobianFb.resize(model);
+        idynFFMassMatrix.resize(model);
+        eigFFMassMatrix = iDynTree::toEigen(idynFFMassMatrix);
+        eigMassMatrix.setZero(model.getNrOfDOFs(),model.getNrOfDOFs());
+        
         generalizedBiasForces.resize(model);
         eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
         generalizedGravityTorques.resize(model);
         eigJointGravityTorques.setZero(6 + model.getNrOfDOFs());
         extForces.resize(model);
 
-        eigJointGravityTorques.resize(model.getNrOfDOFs());
-        eigJointCoriolisTorques.resize(model.getNrOfDOFs());
-        eigJointGravityAndCoriolisTorques.resize(model.getNrOfDOFs());
-        
+        eigJointGravityTorques.setZero(model.getNrOfDOFs());
+        eigJointCoriolisTorques.setZero(model.getNrOfDOFs());
+        eigJointGravityAndCoriolisTorques.setZero(model.getNrOfDOFs());
+
         eigMinJointPos.setZero(model.getNrOfDOFs());
         eigMaxJointPos.setZero(model.getNrOfDOFs());
 
         eigRobotAcc.setZero();
         idynRobotAcc.zero();
-        idynMassMatrix.zero();
-        idynJacobian.zero();
         extForces.zero();
+
+        idynJacobian.resize(6,model.getNrOfDOFs());
+        eigJacobian = iDynTree::toEigen(idynJacobian);
+        
+        idynFFJacobian.resize(model);
+        eigFFJacobian = iDynTree::toEigen(idynFFJacobian);
     }
 
     EigenRobotAcceleration eigRobotAcc;
     iDynTreeRobotAcceleration idynRobotAcc;
-    iDynTree::FreeFloatingMassMatrix idynMassMatrix;
+    iDynTree::FreeFloatingMassMatrix idynFFMassMatrix;
     iDynTree::MatrixDynSize idynJacobian;
-    iDynTree::FrameFreeFloatingJacobian idynJacobianFb;
+    Eigen::MatrixXd eigFFJacobian;
+    Eigen::MatrixXd eigJacobian;
+    Eigen::MatrixXd eigFFMassMatrix;
+    Eigen::MatrixXd eigMassMatrix;
+    iDynTree::FrameFreeFloatingJacobian idynFFJacobian;
     iDynTree::LinkNetExternalWrenches extForces;
-    iDynTree::Vector6 frameBiasAcc;
-    iDynTree::Twist frameVel;
-    iDynTree::Position framePos;
+    iDynTree::Vector6 idynFrameBiasAcc;
+    iDynTree::Twist idynFrameVel;
+    iDynTree::Position idynPramePos;
     iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
     iDynTree::FreeFloatingGeneralizedTorques generalizedGravityTorques;
     Eigen::VectorXd eigGeneralizedBiasForces;
@@ -232,6 +219,9 @@ struct RobotDataHelper
     Eigen::VectorXd eigMaxJointPos;
     EigenRobotState eigRobotState;
     iDynTreeRobotState idynRobotState;
+    Eigen::Matrix<double,6,1> eigFrameBiasAcc;
+    Eigen::Matrix<double,6,1> eigFrameVel;
+    Eigen::Matrix4d eigTransform;
 };
 
 
@@ -260,38 +250,43 @@ public:
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
     unsigned int getNrOfDegreesOfFreedom() const;
     unsigned int getConfigurationSpaceDimension() const;
-    bool frameExists(const std::string& frame_name);
+    bool frameExists(const std::string& frame_name) const;
 
-    Eigen::Matrix< double, 4, 4, Eigen::RowMajor > getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    const Eigen::Matrix4d& getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    const Eigen::Matrix4d& getTransform(const std::string& frameName);
+    
     bool addAdditionalFrameToLink (const std::string &linkName, const std::string &frameName, const Eigen::Matrix4d& link_H_frame);
-    const Eigen::Matrix<double,6,1> getFrameVel(const std::string& frameName);
-    Eigen::Map< const Eigen::Matrix<double,6,1> > getFrameBiasAcc(const std::string& frameName);
-    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFreeFloatingMassMatrix();
-    const Eigen::VectorXd& getJointPos();
-    const Eigen::VectorXd& getJointVel();
+
+    const Eigen::Matrix<double,6,1>& getFrameVel(const std::string& frameName);
+    const Eigen::Matrix<double,6,1>& getFrameBiasAcc(const std::string& frameName);
+
+    const Eigen::MatrixXd& getFreeFloatingMassMatrix();
+    const Eigen::MatrixXd& getMassMatrix();
+    const Eigen::VectorXd& getJointPos() const;
+    const Eigen::VectorXd& getJointVel() const;
     const Eigen::VectorXd& getMinJointPos();
     const Eigen::VectorXd& getMaxJointPos();
-    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
-    Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > getFrameFreeFloatingJacobian(const std::string& frameName);
+    const Eigen::MatrixXd& getJacobian(const std::string& frameName);
+    const Eigen::MatrixXd& getRelativeJacobian(const std::string& refFrameName, const std::string& frameName);
+    const Eigen::MatrixXd& getFrameFreeFloatingJacobian(const std::string& frameName);
     const Eigen::VectorXd& generalizedBiasForces();
     const Eigen::VectorXd& getJointGravityTorques();
     const Eigen::VectorXd& getJointCoriolisTorques();
     const Eigen::VectorXd& getJointGravityAndCoriolisTorques();
-    const iDynTree::Model& getRobotModel();
-    unsigned int getNrOfJoints();
-    std::string getJointName(unsigned int idx);
-    const std::vector<std::string>& getLinkNames();
-    const std::vector<std::string>& getFrameNames();
-    const std::vector<std::string>& getJointNames();
+    const iDynTree::Model& getRobotModel() const;
+    unsigned int getNrOfJoints() const;
+    std::string getJointName(unsigned int idx) const;
+    const std::vector<std::string>& getLinkNames() const;
+    const std::vector<std::string>& getFrameNames() const;
+    const std::vector<std::string>& getJointNames() const;
     bool isInitialized() const;
 protected:
     bool load(const iDynTree::Model& model);
     void assertInitialized() const;
     void assertLoaded() const;
+    void assertFrameExists(const std::string& frameName) const;
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;
-    EigenRobotState eigRobotState_;
-    iDynTreeRobotState idynRobotState_;
     bool is_initialized_ = false;
     std::string base_frame_;
     std::string name_;
@@ -301,7 +296,6 @@ protected:
     std::vector<std::string> joint_names_;
     std::vector<std::string> link_names_;
     std::vector<std::string> frame_names_;
-    Eigen::Vector3d global_gravity_vector_ = Eigen::Vector3d(0,0,-9.81);
 // private:
     // class iDynTreeImpl;                     // Forward declaration of the implementation class
     // std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
