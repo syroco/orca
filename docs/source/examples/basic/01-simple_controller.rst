@@ -17,6 +17,7 @@ Simple controller
 
     int main(int argc, char const *argv[])
     {
+    
         // Get the urdf file from the command line
         if(argc < 2)
         {
