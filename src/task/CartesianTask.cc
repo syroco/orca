@@ -16,6 +16,15 @@ std::shared_ptr<CartesianAccelerationPID> CartesianTask::servoController()
     return servo_;
 }
 
+void CartesianTask::print() const
+{
+    std::cout << "[" << getName() << "]" << '\n';
+    std::cout << " Base frame " << base_ref_frame_ << '\n';
+    std::cout << " Control Frame " << control_frame_ << '\n';
+    servo_->print();
+    getEuclidianNorm().print();
+}
+
 void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
     servo_ = servo;

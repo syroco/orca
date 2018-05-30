@@ -53,6 +53,7 @@ public:
     void setControlFrame(const std::string& control_frame);
     const std::string& getBaseFrame() const;
     const std::string& getControlFrame() const;
+    void print() const;
     std::shared_ptr<common::CartesianAccelerationPID> servoController();
 protected:
     virtual void onActivation();

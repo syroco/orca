@@ -46,12 +46,19 @@ void CartesianAccelerationPID::onResize()
 void CartesianAccelerationPID::print() const
 {
     std::cout << "[" << getName() << "]" << '\n';
-    std::cout << " - Position desired : " << '\n';
-    std::cout << getCartesianPoseRef() << '\n';
-    std::cout << " - Velocity desired : " << '\n';
-    std::cout << getCartesianVelocityRef() << '\n';
-    std::cout << " - Acceleration desired : " << '\n';
-    std::cout << getCartesianAccelerationRef() << '\n';
+    std::cout << "  Position desired :\n" << '\n';
+    std::cout << cart_pos_des_ << '\n';
+    std::cout << "  Velocity desired : " << '\n';
+    std::cout << cart_vel_des_<< '\n';
+    std::cout << "  Acceleration desired : " << '\n';
+    std::cout << cart_acc_des_ << '\n';
+    std::cout << "  Position error : " << '\n';
+    std::cout << cart_pos_err_.transpose() << '\n';
+    std::cout << "  Velocity error : " << '\n';
+    std::cout << cart_vel_err_.transpose() << '\n';
+    pid_->print();
+    std::cout << "  Acceleration command : " << '\n';
+    std::cout << cart_acc_cmd_.transpose() << '\n';
 }
 
 void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_position_traj

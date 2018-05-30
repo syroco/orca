@@ -139,6 +139,19 @@ namespace common
             return cmd_;
         }
 
+        const void print() const
+        {
+            std::cout << "[PID]" << '\n';
+            std::cout << "      Dimension " << p_gain_.size() << '\n';
+            std::cout << "      P " << p_gain_.transpose() << '\n';
+            std::cout << "      I " << i_gain_.transpose() << '\n';
+            std::cout << "      D " << d_gain_.transpose() << '\n';
+            std::cout << "      Windup limit " << windup_limit_.transpose() << '\n';
+            std::cout << "      Ierror " << i_error_.transpose() << '\n';
+            std::cout << "      derror " << d_error_.transpose() << '\n';
+            std::cout << "      Command " << cmd_.transpose() << '\n';
+        }
+
     private:
         Eigen::VectorXd p_gain_;
         Eigen::VectorXd i_gain_;
