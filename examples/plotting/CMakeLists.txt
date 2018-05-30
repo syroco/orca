@@ -1,0 +1,5 @@
+if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
+    add_executable(orca-demo0-plot orca-demo0-plot.cc)
+    target_link_libraries(orca-demo0-plot orca)
+    install(TARGETS orca-demo0-plot DESTINATION bin/orca)
+endif()
