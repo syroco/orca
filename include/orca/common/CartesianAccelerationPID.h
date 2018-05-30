@@ -57,6 +57,8 @@ namespace orca
             const Eigen::Matrix4d& getCartesianPoseRef() const;
             const Vector6d& getCartesianVelocityRef() const;
             const Vector6d& getCartesianAccelerationRef() const;
+            const Vector6d& getCartesianPoseError() const;
+            const Vector6d& getCartesianVelocityError() const;
             void print() const;
             std::shared_ptr<PIDController> pid();
         protected:
