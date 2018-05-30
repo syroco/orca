@@ -146,7 +146,7 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
         case ResolutionStrategy::OneLevelWeighted:
             if(!solutionFound())
                 throw std::runtime_error(utils::Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
-                
+
             joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
 
             if(remove_gravity_torques || remove_gravity_torques_)
@@ -302,7 +302,7 @@ void Controller::insertNewProblem()
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
     auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
 
-    global_regularisation->euclidianNorm().setWeight(1E-5);
+    global_regularisation->euclidianNorm().setWeight(1E-8);
 
     addConstraint(dynamics_equation);
     addTask(global_regularisation);

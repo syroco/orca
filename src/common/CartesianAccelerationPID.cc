@@ -46,12 +46,19 @@ void CartesianAccelerationPID::onResize()
 void CartesianAccelerationPID::print() const
 {
     std::cout << "[" << getName() << "]" << '\n';
-    std::cout << " - Position ref : " << '\n';
-    std::cout << getCartesianPoseRef() << '\n';
-    std::cout << " - Velocity ref : " << '\n';
-    std::cout << getCartesianVelocityRef() << '\n';
-    std::cout << " - Acceleration ref : " << '\n';
-    std::cout << getCartesianAccelerationRef() << '\n';
+    std::cout << "  Position desired :\n" << '\n';
+    std::cout << cart_pos_des_ << '\n';
+    std::cout << "  Velocity desired : " << '\n';
+    std::cout << cart_vel_des_<< '\n';
+    std::cout << "  Acceleration desired : " << '\n';
+    std::cout << cart_acc_des_ << '\n';
+    std::cout << "  Position error : " << '\n';
+    std::cout << cart_pos_err_.transpose() << '\n';
+    std::cout << "  Velocity error : " << '\n';
+    std::cout << cart_vel_err_.transpose() << '\n';
+    pid_->print();
+    std::cout << "  Acceleration command : " << '\n';
+    std::cout << cart_acc_cmd_.transpose() << '\n';
 }
 
 void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_position_traj
@@ -78,14 +85,18 @@ void CartesianAccelerationPID::onActivation()
     }
 }
 
+const Vector6d& CartesianAccelerationPID::getCartesianPoseError() const
+{
+    return cart_pos_err_;
+}
+
+const Vector6d& CartesianAccelerationPID::getCartesianVelocityError() const
+{
+    return cart_vel_err_;
+}
+
 void CartesianAccelerationPID::onUpdate(double current_time, double dt)
 {
-    // If no frame has been set before, use the default Floating Base.
-    if(getBaseFrame().empty())
-        throw std::runtime_error("baseFrame is empty");
-    if(getControlFrame().empty())
-        throw std::runtime_error("controlFrame is empty");
-
     // Compute Cartesian Position Error
     cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
     cart_pos_err_ = math::diffTransform(cart_pos_curr_ , cart_pos_des_);

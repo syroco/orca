@@ -23,20 +23,28 @@ int main(int argc, char** argv)
     auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
 
     // Create an ORCA robot
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
-    robot->print();
+    auto robot_kinematics = std::make_shared<RobotDynTree>();
+    robot_kinematics->loadModelFromFile(urdf_url);
+    robot_kinematics->print();
+
+    // Set the gazebo model init pose
+    // auto joint_names = robot_kinematics->getJointNames();
+    // std::vector<double> init_joint_positions(robot_kinematics->getNrOfDegreesOfFreedom(),0);
+    
+    // gzrobot.setModelConfiguration(joint_names,init_joint_positions);
+    // or like this
+    // gzrobot.setModelConfiguration({"joint_2","joint_5"},{1.5,0.0});
 
     // Update the robot on at every iteration
     gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
     {
-        robot->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
+        robot_kinematics->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
                             ,gzrobot.getJointPositions()
                             ,gzrobot.getBaseVelocity()
                             ,gzrobot.getJointVelocities()
                             ,gzrobot.getGravity()
                         );
-        gzrobot.setJointGravityTorques(robot->getJointGravityTorques());
+        gzrobot.setJointGravityTorques(robot_kinematics->getJointGravityTorques());
     });
 
     // Run the main simulation loop.

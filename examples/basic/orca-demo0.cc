@@ -31,7 +31,6 @@ int main(int argc, char const *argv[])
     // This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices
     // You can use it to fill data from either real robot and simulated robot
     EigenRobotState eigState;
-    eigState.setFixedBaseValues(); // sets world to base to identity and base velocity to zero
     eigState.resize(robot->getNrOfDegreesOfFreedom()); // resize all the vectors/matrices to match the robot configuration
     // Set the initial state to zero (arbitrary)
     // NOTE : here we only set q,qot because this example asserts we have a fixed base robot

@@ -61,7 +61,7 @@ namespace common
                 d_error_.setZero(dim);
                 cmd_.setZero(dim);
                 windup_limit_.resize(dim);
-                windup_limit_.setConstant(dim, math::Infinity );
+                windup_limit_.setConstant( math::Infinity );
             }
             else
             {
@@ -137,6 +137,19 @@ namespace common
 
             cmd_.noalias() = p_gain_.asDiagonal() * Error + i_gain_.asDiagonal() * i_error_ + d_gain_.asDiagonal() * d_error_;
             return cmd_;
+        }
+
+        const void print() const
+        {
+            std::cout << "[PID]" << '\n';
+            std::cout << "      Dimension " << p_gain_.size() << '\n';
+            std::cout << "      P " << p_gain_.transpose() << '\n';
+            std::cout << "      I " << i_gain_.transpose() << '\n';
+            std::cout << "      D " << d_gain_.transpose() << '\n';
+            std::cout << "      Windup limit " << windup_limit_.transpose() << '\n';
+            std::cout << "      Ierror " << i_error_.transpose() << '\n';
+            std::cout << "      derror " << d_error_.transpose() << '\n';
+            std::cout << "      Command " << cmd_.transpose() << '\n';
         }
 
     private:

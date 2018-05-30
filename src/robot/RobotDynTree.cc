@@ -46,17 +46,17 @@ const std::string& RobotDynTree::getName() const
     return name_;
 }
 
-const std::vector<std::string>& RobotDynTree::getLinkNames()
+const std::vector<std::string>& RobotDynTree::getLinkNames() const
 {
     return link_names_;
 }
 
-const std::vector<std::string>& RobotDynTree::getFrameNames()
+const std::vector<std::string>& RobotDynTree::getFrameNames() const
 {
     return frame_names_;
 }
 
-const std::vector<std::string>& RobotDynTree::getJointNames()
+const std::vector<std::string>& RobotDynTree::getJointNames() const
 {
     return joint_names_;
 }
@@ -90,9 +90,6 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
 bool RobotDynTree::load(const iDynTree::Model& model)
 {
     robotData_.resize(model);
-    eigRobotState_.resize(model.getNrOfDOFs());
-    idynRobotState_.resize(model.getNrOfDOFs());
-    eigRobotState_.setFixedBaseValues();
 
     ndof_ = model.getNrOfDOFs();
 
@@ -115,7 +112,7 @@ bool RobotDynTree::load(const iDynTree::Model& model)
         // Important distinction then : Number of degrees of freedom != number of joints in the model !
         joint_names_.push_back( kinDynComp_.getRobotModel().getJointName(i) );
     }
-    
+
     frame_names_.clear();
     for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
     {
@@ -193,7 +190,7 @@ bool RobotDynTree::isInitialized() const
 
 void RobotDynTree::setGravity(const Eigen::Vector3d& g)
 {
-    global_gravity_vector_ = g;
+    robotData_.eigRobotState.gravity = g;
 }
 
 void RobotDynTree::assertInitialized() const
@@ -208,13 +205,17 @@ void RobotDynTree::assertLoaded() const
         throw std::runtime_error("Robot model is not loaded");
 }
 
+void RobotDynTree::assertFrameExists(const std::string& frame) const
+{
+    if(frame.empty())
+        throw std::runtime_error("Provided frame is empty");
+    if(!frameExists(frame))
+        throw std::runtime_error(Formatter() << "Frame \'" << frame << "\' is not part of the robot");
+}
+
 void RobotDynTree::setBaseFrame(const std::string& base_frame)
 {
-    if(base_frame.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(base_frame))
-        throw std::runtime_error(Formatter() << "Frame \'" << base_frame << "\' is not part of the robot");
-
+    assertFrameExists(base_frame);
     base_frame_ = base_frame;
     kinDynComp_.setFloatingBase( base_frame_ );
 }
@@ -222,13 +223,13 @@ void RobotDynTree::setBaseFrame(const std::string& base_frame)
 void RobotDynTree::setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel)
 {
-    setRobotState(jointPos,jointVel,global_gravity_vector_);
+    setRobotState(jointPos,jointVel,robotData_.eigRobotState.gravity);
 }
 void RobotDynTree::setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
-    setRobotState(Eigen::Matrix4d::Identity(),jointPos,Eigen::Matrix<double,6,1>::Zero(),jointVel,gravity);
+    setRobotState(robotData_.eigRobotState.world_H_base,jointPos,robotData_.eigRobotState.baseVel,jointVel,gravity);
 }
 
 void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
@@ -237,8 +238,6 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
-    global_gravity_vector_ = gravity;
-
     assertLoaded();
 
     if(jointPos.size() != ndof_)
@@ -253,23 +252,19 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
         is_initialized_ = true;
     }
 
-    eigRobotState_.world_H_base = world_H_base;
-    eigRobotState_.jointPos = jointPos;
-    eigRobotState_.baseVel = baseVel;
-    eigRobotState_.jointVel = jointVel;
-    eigRobotState_.gravity = gravity;
+    robotData_.eigRobotState.world_H_base = world_H_base;
+    robotData_.eigRobotState.jointPos = jointPos;
+    robotData_.eigRobotState.baseVel = baseVel;
+    robotData_.eigRobotState.jointVel = jointVel;
+    robotData_.eigRobotState.gravity = gravity;
 
-    iDynTree::fromEigen(idynRobotState_.world_H_base,eigRobotState_.world_H_base);
-    iDynTree::toEigen(idynRobotState_.jointPos) = eigRobotState_.jointPos;
-    iDynTree::fromEigen(idynRobotState_.baseVel,eigRobotState_.baseVel);
-    iDynTree::toEigen(idynRobotState_.jointVel) = eigRobotState_.jointVel;
-    iDynTree::toEigen(idynRobotState_.gravity)  = eigRobotState_.gravity;
-
-    kinDynComp_.setRobotState(idynRobotState_.world_H_base
-                            ,idynRobotState_.jointPos
-                            ,idynRobotState_.baseVel
-                            ,idynRobotState_.jointVel
-                            ,idynRobotState_.gravity);
+    robotData_.idynRobotState.fromEigen(robotData_.eigRobotState);
+    
+    kinDynComp_.setRobotState(robotData_.idynRobotState.world_H_base
+                            ,robotData_.idynRobotState.jointPos
+                            ,robotData_.idynRobotState.baseVel
+                            ,robotData_.idynRobotState.jointVel
+                            ,robotData_.idynRobotState.gravity);
 }
 
 const std::string& RobotDynTree::getBaseFrame() const
@@ -292,123 +287,118 @@ unsigned int RobotDynTree::getConfigurationSpaceDimension() const
     return 6 + ndof_;
 }
 
-const iDynTree::Model& RobotDynTree::getRobotModel()
+const iDynTree::Model& RobotDynTree::getRobotModel() const
 {
     assertLoaded();
     return kinDynComp_.getRobotModel();
 }
 
-bool RobotDynTree::frameExists(const std::string& frame_name)
+bool RobotDynTree::frameExists(const std::__cxx11::string& frame_name) const
 {
     assertLoaded();
     return kinDynComp_.getFrameIndex(frame_name) >= 0;
 }
 
-std::string RobotDynTree::getJointName(unsigned int idx)
+std::string RobotDynTree::getJointName(unsigned int idx) const
 {
     assertLoaded();
     return kinDynComp_.model().getJointName(idx);
 }
 
-unsigned int RobotDynTree::getNrOfJoints()
+unsigned int RobotDynTree::getNrOfJoints() const
 {
     assertLoaded();
     return kinDynComp_.model().getNrOfJoints();
 }
 
-Eigen::Matrix<double,4,4,Eigen::RowMajor> RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
+const Eigen::Matrix4d& RobotDynTree::getTransform(const std::string& frameName)
 {
-    if(refFrameName.empty())
-        throw std::runtime_error("Provided reference frame is empty");
-    if(!frameExists(refFrameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << refFrameName << "\' is not part of the robot");
-
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
-
-    assertInitialized();
-    return iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
+    return getRelativeTransform(base_frame_,frameName);
 }
 
-const Eigen::Matrix<double,6,1> RobotDynTree::getFrameVel(const std::string& frameName)
+const Eigen::Matrix4d& RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
 {
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
-
+    assertFrameExists(refFrameName);
+    assertFrameExists(frameName);
     assertInitialized();
-    return iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
+    robotData_.eigTransform = iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
+    return robotData_.eigTransform;
 }
 
-Eigen::Map< const Eigen::Matrix<double,6,1> > RobotDynTree::getFrameBiasAcc(const std::string& frameName)
+const Eigen::Matrix<double,6,1>&  RobotDynTree::getFrameVel(const std::string& frameName)
 {
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
-
+    assertFrameExists(frameName);
     assertInitialized();
-    return iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
+    
+    robotData_.eigFrameVel = iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
+    return robotData_.eigFrameVel;
 }
 
-Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getFreeFloatingMassMatrix()
+const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string& frameName)
 {
+    assertFrameExists(frameName);
     assertInitialized();
-    kinDynComp_.getFreeFloatingMassMatrix(robotData_.idynMassMatrix);
-    return iDynTree::toEigen(robotData_.idynMassMatrix);
+    
+    robotData_.eigFrameBiasAcc = iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
+    return robotData_.eigFrameBiasAcc;
 }
 
-Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
+const Eigen::MatrixXd& RobotDynTree::getFreeFloatingMassMatrix()
 {
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
-
     assertInitialized();
-
-    kinDynComp_.getFrameFreeFloatingJacobian(frameName,robotData_.idynJacobianFb);
-    return iDynTree::toEigen(robotData_.idynJacobianFb);
+    
+    kinDynComp_.getFreeFloatingMassMatrix(robotData_.idynFFMassMatrix);
+    robotData_.eigFFMassMatrix = iDynTree::toEigen(robotData_.idynFFMassMatrix);
+    return robotData_.eigFFMassMatrix;
 }
 
-Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
+const Eigen::MatrixXd& RobotDynTree::getMassMatrix()
 {
-    if(refFrameName.empty())
-        throw std::runtime_error("Provided reference frame is empty");
-    if(!frameExists(refFrameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << refFrameName << "\' is not part of the robot");
+    getFreeFloatingMassMatrix();
+    robotData_.eigMassMatrix = robotData_.eigFFMassMatrix.block(6,6,ndof_,ndof_);
+    return robotData_.eigMassMatrix;
+}
 
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+const Eigen::MatrixXd& RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
+{
+    assertFrameExists(frameName);
+    assertInitialized();
 
+    kinDynComp_.getFrameFreeFloatingJacobian(frameName,robotData_.idynFFJacobian);
+    robotData_.eigFFJacobian = iDynTree::toEigen(robotData_.idynFFJacobian);
+    return robotData_.eigFFJacobian;
+}
+
+const Eigen::MatrixXd& RobotDynTree::getJacobian(const std::string& frameName)
+{
+    return getRelativeJacobian(base_frame_,frameName);
+}
+
+const Eigen::MatrixXd& RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
+{
+    assertFrameExists(refFrameName);
+    assertFrameExists(frameName);
     assertInitialized();
     kinDynComp_.getRelativeJacobian(kinDynComp_.getFrameIndex(refFrameName)
                                 ,kinDynComp_.getFrameIndex(frameName)
-                                ,robotData_.idynJacobianFb);
-    return iDynTree::toEigen(robotData_.idynJacobianFb);
+                                ,robotData_.idynJacobian);
+    robotData_.eigJacobian = iDynTree::toEigen(robotData_.idynJacobian);
+    return robotData_.eigJacobian;
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointPos()
+const Eigen::VectorXd& RobotDynTree::getJointPos() const
 {
-    return eigRobotState_.jointPos;
+    return robotData_.eigRobotState.jointPos;
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointVel()
+const Eigen::VectorXd& RobotDynTree::getJointVel() const
 {
-    return eigRobotState_.jointVel;
+    return robotData_.eigRobotState.jointVel;
 }
 
 bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
 {
-    if(frameName.empty())
-        throw std::runtime_error("Provided frame is empty");
-    if(!frameExists(frameName))
-        throw std::runtime_error(Formatter() << "Frame \'" << frameName << "\' is not part of the robot");
+    assertFrameExists(frameName);
 
     iDynTree::Transform idyntree_link_H_frame;
     iDynTree::fromEigen(idyntree_link_H_frame,link_H_frame);
