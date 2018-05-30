@@ -1,12 +1,5 @@
 #include <orca/orca.h>
-using namespace orca;
-using namespace orca::common;
-using namespace orca::optim;
-using namespace orca::task;
-using namespace orca::constraint;
-using namespace orca::robot;
-using namespace orca::math;
-using namespace orca::utils;
+using namespace orca::all;
 
 int main(int argc, char const *argv[])
 {
