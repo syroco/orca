@@ -1,6 +1,7 @@
 #include "orca/optim/QPSolver.h"
 #include "orca/utils/Logger.h"
 #include <qpOASES.hpp>
+#include <qpOASES/MessageHandling.hpp>
 #include <iostream>
 
 namespace orca
@@ -109,7 +110,7 @@ struct QPSolver::SolverImpl<QPSolver::qpOASES>
             if(ret != qpOASES::SUCCESSFUL_RETURN)
             {
                 qpoases_initialized_ = false;
-                LOG_WARNING << "[qpoases] Hotstart returned code " << ret << ", going back to init" << '\n';
+                LOG_WARNING << "[qpoases] Hotstart returned : " << qpOASES::MessageHandling::getErrorCodeMessage(ret) << '\n';
             }
 
         }
