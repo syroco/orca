@@ -87,7 +87,7 @@ private:
     Eigen::Matrix<double,6,1> wrench_zero_;
     std::shared_ptr<robot::RobotDynTree> robot_;
     bool is_activated_ = true;
-    const std::string& name_;
+    const std::string name_;
 };
 
 }
