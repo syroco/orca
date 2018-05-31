@@ -29,6 +29,14 @@ ROS or OROCOS user?
 
 We have written ROS and OROCOS wrappers for the ORCA library and done most of the heavy lifting so you can get started using the contoller right away. To learn more about these projects please check out their respective pages:
 
+
 ``ORCA_ROS``: https://github.com/syroco/orca_ros
+
+
+
+.. image:: ../_static/orca_ros_logo.png
+    :height: 50px
+    :align: center
+
 
 ``RTT_ORCA``: https://github.com/syroco/rtt_orca (Compatible with ORCA < version 2.0.0)
