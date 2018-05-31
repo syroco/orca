@@ -103,11 +103,11 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
-
-
-
     double dt = 0.001;
     double current_time = 0.0;
+
+
+    // The good stuff...
 
     TaskPrinter task_printer();
 
@@ -121,13 +121,15 @@ int main(int argc, char const *argv[])
     controller.activateTasksAndConstraints();
 
     std::cout << "[main] Starting 'RUN' while loop." << '\n';
-    while(current_time < 0.01)
+    while(current_time < dt*10.0) // Run 10 times.
     {
         std::cout << "[main] Running in while loop. Current time: " << current_time << '\n';
         controller.update(current_time, dt);
         current_time +=dt;
     }
     std::cout << "[main] Exiting 'RUN' while loop." << '\n';
+
+    std::cout << "\n\n\n" << '\n';
 
     std::cout << "[main] Deactivating tasks and constraints." << '\n';
     controller.deactivateTasksAndConstraints();
