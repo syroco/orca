@@ -41,50 +41,41 @@
 #include <orca/orca.h>
 #include <chrono>
 using namespace orca::all;
-
-class TaskMonitor {
-private:
-    bool is_activated_ = false;
-    bool is_deactivated_ = false;
-
-
-public:
-    TaskMonitor ()
-    {
-        std::cout << "TaskMonitor class constructed." << '\n';
-    }
-    bool isActivated(){return is_activated_;}
-    bool isDeactivated(){return is_deactivated_;}
-
-    void onActivation()
-    {
-        std::cout << "[TaskMonitor] Called 'onActivation' callback." << '\n';
-    }
-
-    void onActivated()
-    {
-        std::cout << "[TaskMonitor] Called 'onActivated' callback." << '\n';
-        is_activated_ = true;
-    }
-
-    void onUpdate(double current_time, double dt)
-    {
-        std::cout << "[TaskMonitor] Called 'onUpdate' callback." << '\n';
-        std::cout << "  >> current time: " << current_time << '\n';
-        std::cout << "  >> dt: " << dt << '\n';
-    }
-
-    void onDeactivation()
-    {
-        std::cout << "[TaskMonitor] Called 'onDeactivation' callback." << '\n';
-    }
-
-    void onDeactivated()
-    {
-        std::cout << "[TaskMonitor] Called 'onDeactivated' callback." << '\n';
-        is_deactivated_ = true;
-    }
-};
+// 
+// class MinJerkPositionTrajectory {
+// private:
+//     Eigen::Vector3d alpha_, sp_;
+//     double start_time_ = 0.0;
+//     bool first_call_ = true;
+//
+//
+// public:
+//     MinJerkPositionTrajectory (double duration, const Eigen::Vector3d& start_position, const Eigen::Vector3d& end_position)
+//     : duration_(duration)
+//     , sp_(start_position)
+//     , alpha_(end_position - start_position)
+//     {
+//     }
+//
+//     void resetTrajectory()
+//     {
+//         first_call_ = true;
+//     }
+//
+//     void getDesiredPosition(double current_time, const Eigen::Vector3d& p, const Eigen::Vector3d& v, const Eigen::Vector3d& a)
+//     {
+//         if(first_call_)
+//         {
+//             start_time_ = current_time;
+//             first_call_ = false;
+//         }
+//         double tau = (current_time - start_time_) / duration_;
+//
+//         p =                         sp_ + alpha_ * ( 10*pow(tau,3.0) - 15*pow(tau,4.0)  + 6*pow(tau,5.0)   );
+//         v = Eigen::Vector3d::Zero(nDoF) + alpha_ * ( 30*pow(tau,2.0) - 60*pow(tau,3.0)  + 30*pow(tau,4.0)  );
+//         a = Eigen::Vector3d::Zero(nDoF) + alpha_ * ( 60*pow(tau,1.0) - 180*pow(tau,2.0) + 120*pow(tau,3.0) );
+//     }
+// };
 
 
 
@@ -160,8 +151,13 @@ int main(int argc, char const *argv[])
     auto task_monitor = std::make_shared<TaskMonitor>();
 
     cart_task->onActivationCallback(std::bind(&TaskMonitor::onActivation, task_monitor));
-    cart_task->onActivatedCallback(std::bind(&TaskMonitor::onActivated, task_monitor));
-    cart_task->onUpdateCallback([&](double current_time, double dt){ task_monitor->onUpdate(current_time, dt); });
+    // cart_task->onActivatedCallback([&](){
+    //     traj.reset();
+    // }
+    // );
+    // cart_task->onUpdateCallback([&](double current_time, double dt){
+    //     Eigen::Vector3d p,v,a;
+    //  });
     cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));
     cart_task->onDeactivatedCallback(std::bind(&TaskMonitor::onDeactivated, task_monitor));
 
