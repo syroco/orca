@@ -109,6 +109,7 @@ namespace common
 
         void link(std::shared_ptr<common::TaskBase> e);
         
+        void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
         void onActivatedCallback(std::function<void(void)> cb);
         void onUpdateCallback(std::function<void(double,double)> cb);
@@ -120,6 +121,7 @@ namespace common
         std::shared_ptr<common::Wrench> wrench();
 
         virtual void onResize() = 0;
+        virtual void onResized() {};
         virtual void onActivation() {};
         virtual void onActivated() {};
         virtual bool rampUp(double time_since_start);
@@ -146,7 +148,7 @@ namespace common
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
         
-        
+        std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
         std::function<void(void)> on_activated_cb_;
         std::function<void(double,double)> on_update_cb_;
