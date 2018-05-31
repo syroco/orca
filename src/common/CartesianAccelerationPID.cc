@@ -95,7 +95,7 @@ const Vector6d& CartesianAccelerationPID::getCartesianVelocityError() const
     return cart_vel_err_;
 }
 
-void CartesianAccelerationPID::onUpdate(double current_time, double dt)
+void CartesianAccelerationPID::onCompute(double current_time, double dt)
 {
     // Compute Cartesian Position Error
     cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());

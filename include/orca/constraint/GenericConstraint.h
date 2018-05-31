@@ -128,7 +128,7 @@ public:
 
 protected:
     virtual void onResize() = 0;
-    virtual void onUpdate(double current_time, double dt);
+    virtual void onCompute(double current_time, double dt);
     virtual void onUpdateConstraintFunction(double current_time, double dt) = 0;
     /**
      * @brief Replace the constraint matrix with a new one

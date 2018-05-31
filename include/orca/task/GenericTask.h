@@ -88,7 +88,7 @@ public:
     virtual void onDeactivation();
     virtual bool rampDown(double time_since_stop);
 private:
-    virtual void onUpdate(double current_time, double dt);
+    virtual void onCompute(double current_time, double dt);
     virtual void computeQuadraticCost();
     math::WeightedEuclidianNormFunction euclidian_norm_;
     double weight_ = 1.0;

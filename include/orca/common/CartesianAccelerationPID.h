@@ -141,7 +141,7 @@ namespace orca
         protected:
             void onResize();
             void onActivation();
-            void onUpdate(double current_time, double dt);
+            void onCompute(double current_time, double dt);
             void onDeactivation(){}
         private:
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;

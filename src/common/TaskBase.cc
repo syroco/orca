@@ -309,7 +309,7 @@ void TaskBase::update(double current_time, double dt)
             if(on_update_begin_cb_)
                 on_update_begin_cb_(current_time,dt);
 
-            onUpdate(current_time, dt);
+            onCompute(current_time, dt);
 
             if(on_update_end_cb_)
                 on_update_end_cb_(current_time,dt);
@@ -334,13 +334,13 @@ void orca::common::TaskBase::onActivatedCallback(std::function<void ()> cb)
     this->on_activated_cb_ = cb;
 }
 
-void TaskBase::onUpdateBeginCallback(std::function<void(double,double)> cb)
+void TaskBase::onComputeBeginCallback(std::function<void(double,double)> cb)
 {
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateBegin callback";
     this->on_update_begin_cb_ = cb;
 }
 
-void TaskBase::onUpdateEndCallback(std::function<void(double,double)> cb)
+void TaskBase::onComputeEndCallback(std::function<void(double,double)> cb)
 {
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateEnd callback";
     this->on_update_end_cb_ = cb;

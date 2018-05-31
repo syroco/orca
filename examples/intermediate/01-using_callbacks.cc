@@ -168,8 +168,8 @@ int main(int argc, char const *argv[])
 
     cart_task->onActivationCallback(std::bind(&TaskMonitor::onActivation, task_monitor));
     cart_task->onActivatedCallback(std::bind(&TaskMonitor::onActivated, task_monitor));
-    cart_task->onUpdateBeginCallback(std::bind(&TaskMonitor::onUpdateBegin, task_monitor, std::placeholders::_1, std::placeholders::_2));
-    cart_task->onUpdateEndCallback(std::bind(&TaskMonitor::onUpdateEnd, task_monitor, std::placeholders::_1, std::placeholders::_2));
+    cart_task->onComputeBeginCallback(std::bind(&TaskMonitor::onUpdateBegin, task_monitor, std::placeholders::_1, std::placeholders::_2));
+    cart_task->onComputeEndCallback(std::bind(&TaskMonitor::onUpdateEnd, task_monitor, std::placeholders::_1, std::placeholders::_2));
     cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));
     cart_task->onDeactivatedCallback(std::bind(&TaskMonitor::onDeactivated, task_monitor));
 

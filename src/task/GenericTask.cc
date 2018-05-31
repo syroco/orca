@@ -109,7 +109,7 @@ bool GenericTask::rampUp(double time_since_start)
     }
 }
 
-void GenericTask::onUpdate(double current_time, double dt)
+void GenericTask::onCompute(double current_time, double dt)
 {
     this->onUpdateAffineFunction(current_time, dt);
     this->computeQuadraticCost();
