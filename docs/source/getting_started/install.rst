@@ -119,7 +119,7 @@ To do so simply run the following command:
 .. code-block:: bash
     :linenos:
 
-    orca-install-test
+    orca_install_test
 
 
 

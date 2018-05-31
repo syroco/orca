@@ -39,7 +39,53 @@
 */
 
 #include <orca/orca.h>
+#include <chrono>
 using namespace orca::all;
+
+class TaskMonitor {
+private:
+    bool is_activated_ = false;
+    bool is_deactivated_ = false;
+
+
+public:
+    TaskMonitor ()
+    {
+        std::cout << "TaskMonitor class constructed." << '\n';
+    }
+    bool isActivated(){return is_activated_;}
+    bool isDeactivated(){return is_deactivated_;}
+
+    void onActivation()
+    {
+        std::cout << "[TaskMonitor] Called 'onActivation' callback." << '\n';
+    }
+
+    void onActivated()
+    {
+        std::cout << "[TaskMonitor] Called 'onActivated' callback." << '\n';
+        is_activated_ = true;
+    }
+
+    void onUpdate(double current_time, double dt)
+    {
+        std::cout << "[TaskMonitor] Called 'onUpdate' callback." << '\n';
+        std::cout << "  >> current time: " << current_time << '\n';
+        std::cout << "  >> dt: " << dt << '\n';
+    }
+
+    void onDeactivation()
+    {
+        std::cout << "[TaskMonitor] Called 'onDeactivation' callback." << '\n';
+    }
+
+    void onDeactivated()
+    {
+        std::cout << "[TaskMonitor] Called 'onDeactivated' callback." << '\n';
+        is_deactivated_ = true;
+    }
+};
+
 
 
 
@@ -106,72 +152,51 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
-
-    controller.activateTasksAndConstraints();
-    // for each task, it calls task->activate(), that can call onActivationCallback() if it is set.
-    // To set it :
-    // task->setOnActivationCallback([&]()
-    // {
-    //      // Do some initialisation here
-    // });
-    // Note : you need to set it BEFORE calling
-    // controller.activateTasksAndConstraints();
-
-
-
-
-
-    double dt = 0.001;
+    double dt = 0.1;
     double current_time = 0.0;
-    Eigen::VectorXd trq_cmd(ndof);
-    Eigen::VectorXd acc_new(ndof);
 
-    controller.update(current_time, dt);
+    // The good stuff...
 
-    std::cout << "\n\n\n" << '\n';
-    std::cout << "====================================" << '\n';
-    std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
-    std::cout << "Desired State:\n" << cart_pos_ref.matrix() << '\n';
-    std::cout << "====================================" << '\n';
-    std::cout << "\n\n\n" << '\n';
-    std::cout << "Begining Simulation..." << '\n';
+    auto task_monitor = std::make_shared<TaskMonitor>();
 
-    for (; current_time < 2.0; current_time +=dt)
+    cart_task->onActivationCallback(std::bind(&TaskMonitor::onActivation, task_monitor));
+    cart_task->onActivatedCallback(std::bind(&TaskMonitor::onActivated, task_monitor));
+    cart_task->onUpdateCallback([&](double current_time, double dt){ task_monitor->onUpdate(current_time, dt); });
+    cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));
+    cart_task->onDeactivatedCallback(std::bind(&TaskMonitor::onDeactivated, task_monitor));
+
+    std::cout << "[main] Activating tasks and constraints." << '\n';
+    controller.activateTasksAndConstraints();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    std::cout << "[main] Starting 'RUN' while loop." << '\n';
+    while(!task_monitor->isActivated()) // Run 10 times.
     {
-
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
-
-        // if(current_time % 0.1 == 0.0)
-        // {
-        //
-        // }
-        std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
-
+        std::cout << "[main] 'RUN' while loop. Current time: " << current_time << '\n';
         controller.update(current_time, dt);
-
-        if(controller.solutionFound())
-        {
-            trq_cmd = controller.getJointTorqueCommand();
-        }
-        else
-        {
-            std::cout << "[warning] Didn't find a solution, using last valid solution." << '\n';
-        }
-
-        acc_new = robot->getMassMatrix().ldlt().solve(trq_cmd - robot->getJointGravityAndCoriolisTorques());
-
-        eigState.jointPos += eigState.jointVel * dt + ((acc_new*dt*dt)/2);
-        eigState.jointVel += acc_new * dt;
+        current_time +=dt;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
-    std::cout << "Simulation finished." << '\n';
-    std::cout << "\n\n\n" << '\n';
-    std::cout << "====================================" << '\n';
-    std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
-    // std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose(). - cart_pos_ref.translation() << '\n';
+    std::cout << "[main] Exiting 'RUN' while loop." << '\n';
+
+    std::cout << "-----------------\n";
+
+    std::cout << "[main] Deactivating tasks and constraints." << '\n';
+    controller.deactivateTasksAndConstraints();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    std::cout << "[main] Starting 'DEACTIVATION' while loop." << '\n';
+
+    while(!task_monitor->isDeactivated())
+    {
+        std::cout << "[main] 'DEACTIVATION' while loop. Current time: " << current_time << '\n';
+        controller.update(current_time, dt);
+        current_time += dt;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    std::cout << "[main] Exiting 'DEACTIVATION' while loop." << '\n';
 
 
-
-
-    // All objets will be destroyed here
+    std::cout << "[main] Exiting main()." << '\n';
     return 0;
 }

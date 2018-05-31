@@ -226,6 +226,9 @@ target_link_libraries(orca PUBLIC tinyxml)
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
+#################### ORCA Tests #########################
+add_subdirectory(tests)
+
 #################### Linter #########################
 add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
                     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
