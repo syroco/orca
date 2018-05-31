@@ -94,6 +94,7 @@ namespace common
 
         bool hasProblem() const;
         bool hasRobot() const;
+        bool dependsOnProblem() const;
         bool hasWrench() const;
         bool isRobotInitialized() const;
         State getState() const;

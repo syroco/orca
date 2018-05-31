@@ -114,9 +114,15 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 
     if(hasProblem())
     {
-        // Resize if we have all the parameters
         resize();
     }
+}
+
+bool TaskBase::dependsOnProblem() const
+{
+    return control_var_ == ControlVariable::ExternalWrench
+        || control_var_ == ControlVariable::ExternalWrenches
+        || control_var_ == ControlVariable::X;
 }
 
 bool TaskBase::rampUp(double time_since_start)
@@ -237,7 +243,10 @@ void TaskBase::update(double current_time, double dt)
     switch (state_)
     {
         case Init:
-            break;
+            throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+                << "Calling update, but the task state is Init.\n"
+                << "Please insert the task in the controller or set the robot model + "
+                << "set the problem to trigger a resize(). Then you'll be able to update the task.");
         case Resized:
             break;
         case Deactivated:
