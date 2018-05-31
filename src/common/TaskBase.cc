@@ -29,6 +29,11 @@ bool TaskBase::isActivated() const
     return state_ == Activated;
 }
 
+bool TaskBase::isComputing() const
+{
+    return state_ == Activating || state_ == Activated || state_ == Deactivating;
+}
+
 void TaskBase::print() const
 {
     std::cout << "[" << TaskBase::getName() << "]" << '\n';

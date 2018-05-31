@@ -25,7 +25,7 @@ Controller::Controller(const std::string& name
     {
         throw std::runtime_error(utils::Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
     }
-    insertNewProblem();
+    insertNewLevel();
 }
 
 void Controller::print() const
@@ -66,6 +66,31 @@ void Controller::setUpdateCallback(std::function<void(double,double)> update_cb)
     this->update_cb_ = update_cb;
 }
 
+bool Controller::isProblemDry(std::shared_ptr<const optim::Problem> problem)
+{
+    // Returns true if there is only one task computing something,
+    // and it's the GlobalRegularisation
+    int ntasks_computing = 0;
+    int task_index = 0;
+    for(auto t : problem->getTasks())
+    {
+        if(t->isComputing())
+            ntasks_computing++;
+
+        if(ntasks_computing > 1)
+            return false;
+        
+        task_index++;
+    }
+    // Here ntasks_computing == 1
+    for(auto t : problem->getTasks())
+    {
+        if(t->isComputing() || t->getName() == "GlobalRegularisation")
+            return true;
+    }
+    return false;
+}
+
 bool Controller::update(double current_time, double dt)
 {
     solution_found_ = false;
@@ -76,11 +101,24 @@ bool Controller::update(double current_time, double dt)
         {
             updateTasks(current_time,dt);
             updateConstraints(current_time,dt);
-            problems_.front()->build();
-            solution_found_ = problems_.front()->solve();
-
+            auto problem = getProblemAtLevel(0);
+            problem->build();
+            solution_found_ = problem->solve();
+            
             if(this->update_cb_)
                 this->update_cb_(current_time,dt);
+            
+            static bool print_warning = true;
+            if(solution_found_ && isProblemDry(problem) && print_warning)
+            {
+                print_warning = false;
+                LOG_WARNING << "\n\n" 
+                    <<" Solution found but the problem is dry !\n" 
+                    << "It means that an optimal solution is found but the problem \n"
+                    << "only has one task computing anything, ans it's the"
+                    << "GlobalRegularisation task (This will only be printed once)\n\n"
+                    << "/!\\ Resulting torques will cause the robot to fall /!\\";
+            }
 
             return solution_found_;
         }
@@ -114,6 +152,26 @@ bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
         return problems_.front()->addTask(task);
     }
     return false;
+}
+
+std::shared_ptr<task::GenericTask> Controller::getTask(const std::string& name, int level)
+{
+    auto problem = getProblemAtLevel(level);
+    for(auto t : problem->getTasks())
+        if(t->getName() == name)
+            return t;
+    throw std::runtime_error(utils::Formatter() << "Task " << name << " does not exist at level " << level);
+}
+
+std::shared_ptr<task::GenericTask> Controller::getTask(unsigned int index, int level)
+{
+    auto problem = getProblemAtLevel(level);
+    if(problem->getTasks().size() < index)
+        throw std::runtime_error(utils::Formatter() <<"Problem at level " << level << " only have " << problem->getTasks().size() << "tasks, cannot retrieve task index " << index);
+
+    auto it = problem->getTasks().begin();
+    std::advance(it, level);
+    return *it;
 }
 
 bool Controller::addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr)
@@ -198,7 +256,7 @@ void Controller::deactivateTasks()
     {
         for(auto t : problem->getTasks())
         {
-            if(t->getName() == "DynamicsEquation")
+            if(t->getName() == "GlobalRegularisation")
                 continue;
             t->deactivate();
         }
@@ -211,7 +269,7 @@ void Controller::deactivateConstraints()
     {
         for(auto c : problem->getConstraints())
         {
-            if(c->getName() == "GlobalRegularisation")
+            if(c->getName() == "DynamicsEquation")
                 continue;
             c->deactivate();
         }
@@ -224,7 +282,7 @@ void Controller::activateTasks()
     {
         for(auto t : problem->getTasks())
         {
-            if(t->getName() == "DynamicsEquation")
+            if(t->getName() == "GlobalRegularisation")
                 continue;
             t->activate();
         }
@@ -237,7 +295,7 @@ void Controller::activateConstraints()
     {
         for(auto c : problem->getConstraints())
         {
-            if(c->getName() == "GlobalRegularisation")
+            if(c->getName() == "DynamicsEquation")
                 continue;
             c->activate();
         }
@@ -275,27 +333,34 @@ void Controller::removeCoriolisTorquesFromSolution(bool do_remove)
     remove_coriolis_torques_ = do_remove;
 }
 
-std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globalRegularization(int level)
+std::shared_ptr<Problem> Controller::getProblemAtLevel(int level)
 {
     if(level < problems_.size())
     {
         auto it = problems_.begin();
         std::advance(it, level);
-        auto problem = *it;
-        for(auto t : problem->getTasks())
+        return *it;
+    }
+    throw std::runtime_error(utils::Formatter() << "Level " << level << " does not exist.\n"
+                            << "There is only " << problems_.size() << " level(s)");
+}
+
+std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globalRegularization(int level)
+{
+    auto problem = getProblemAtLevel(level);
+    for(auto t : problem->getTasks())
+    {
+        if(t->getName() == "GlobalRegularisation")
         {
-            if(t->getName() == "GlobalRegularisation")
-            {
-                return std::dynamic_pointer_cast<task::RegularisationTask<ControlVariable::X> >(t);
-            }
+            return std::dynamic_pointer_cast<task::RegularisationTask<ControlVariable::X> >(t);
         }
     }
     return 0;
 }
 
-void Controller::insertNewProblem()
+void Controller::insertNewLevel()
 {
-    LOG_INFO << "Inserting new MOOProblem at level " << problems_.size();
+    LOG_INFO << "Inserting new dry Problem at level " << problems_.size();
     auto problem = std::make_shared<Problem>(robot_,solver_type_);
     problems_.push_back(problem);
 
@@ -309,6 +374,8 @@ void Controller::insertNewProblem()
 
     dynamics_equation->activate();
     global_regularisation->activate();
+    
+    LOG_INFO << "Controller has now " << problems_.size() << " levels";
 }
 
 void Controller::updateTasks(double current_time, double dt)

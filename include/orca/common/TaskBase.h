@@ -78,6 +78,7 @@ namespace common
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
         bool isActivated() const;
+        bool isComputing() const;
         void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
 
         optim::ControlVariable getControlVariable() const;
