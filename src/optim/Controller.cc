@@ -79,7 +79,7 @@ bool Controller::isProblemDry(std::shared_ptr<const optim::Problem> problem)
 
         if(ntasks_computing > 1)
             return false;
-        
+
         task_index++;
     }
     // Here ntasks_computing == 1
@@ -104,16 +104,16 @@ bool Controller::update(double current_time, double dt)
             auto problem = getProblemAtLevel(0);
             problem->build();
             solution_found_ = problem->solve();
-            
+
             if(this->update_cb_)
                 this->update_cb_(current_time,dt);
-            
+
             static bool print_warning = true;
             if(solution_found_ && isProblemDry(problem) && print_warning)
             {
                 print_warning = false;
-                LOG_WARNING << "\n\n" 
-                    <<" Solution found but the problem is dry !\n" 
+                LOG_WARNING << "\n\n"
+                    <<" Solution found but the problem is dry !\n"
                     << "It means that an optimal solution is found but the problem \n"
                     << "only has one task computing anything, ans it's the"
                     << "GlobalRegularisation task (This will only be printed once)\n\n"
@@ -308,14 +308,14 @@ bool Controller::tasksAndConstraintsDeactivated()
     {
         for(auto t : problem->getTasks())
         {
-            if(t->getName() == "DynamicsEquation")
+            if(t->getName() == "GlobalRegularisation")
                 continue;
             if(t->getState() != common::TaskBase::Deactivated)
                 return false;
         }
         for(auto c : problem->getConstraints())
         {
-            if(c->getName() == "GlobalRegularisation")
+            if(c->getName() == "DynamicsEquation")
                 continue;
             if(c->getState() != common::TaskBase::Deactivated)
                 return false;
@@ -374,7 +374,7 @@ void Controller::insertNewLevel()
 
     dynamics_equation->activate();
     global_regularisation->activate();
-    
+
     LOG_INFO << "Controller has now " << problems_.size() << " levels";
 }
 
