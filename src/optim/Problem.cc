@@ -320,9 +320,7 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constraint->getState() == common::TaskBase::Activating
-                || constraint->getState() == common::TaskBase::Activated
-                || constraint->getState() == common::TaskBase::Deactivating)
+                if(constraint->isComputing())
                 {
                     data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constraint->getLowerBound());
                     data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constraint->getUpperBound());
