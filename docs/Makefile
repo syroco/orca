@@ -179,3 +179,6 @@ pseudoxml:
 
 livehtml:
 	sphinx-autobuild -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+
+liverebuild:
+	while true; do make html; sleep 0.5; done
