@@ -136,16 +136,17 @@ int main(int argc, char const *argv[])
     std::cout << "\n\n\n" << '\n';
     std::cout << "Begining Simulation..." << '\n';
 
-    for (; current_time < 2.0; current_time +=dt)
+    int print_counter = 0;
+    for (; current_time < 10.0; current_time +=dt)
     {
 
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
 
-        // if(current_time % 0.1 == 0.0)
-        // {
-        //
-        // }
-        std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
+        if(print_counter == 100)
+        {
+            std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
+            print_counter = 0;
+        }
+        ++print_counter;
 
         controller.update(current_time, dt);
 
@@ -155,19 +156,23 @@ int main(int argc, char const *argv[])
         }
         else
         {
-            std::cout << "[warning] Didn't find a solution, using last valid solution." << '\n';
+            std::cout << "[warning] Didn't find a solution. Stopping simulation." << '\n';
+            break;
         }
 
         acc_new = robot->getMassMatrix().ldlt().solve(trq_cmd - robot->getJointGravityAndCoriolisTorques());
 
         eigState.jointPos += eigState.jointVel * dt + ((acc_new*dt*dt)/2);
         eigState.jointVel += acc_new * dt;
+
+        robot->setRobotState(eigState.jointPos,eigState.jointVel);
+
     }
     std::cout << "Simulation finished." << '\n';
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
     std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
-    // std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose(). - cart_pos_ref.translation() << '\n';
+    std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1) - cart_pos_ref.translation() << '\n';
 
 
 

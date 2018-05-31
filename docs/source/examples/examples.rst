@@ -3,9 +3,6 @@
 Basic
 =======
 .. toctree::
-    :name: basic
-    :caption: Basic
-    :glob:
     :maxdepth: 2
 
     basic/01-simple_controller
@@ -14,9 +11,6 @@ Basic
 Intermediate
 =================
 .. toctree::
-    :name: intermediate
-    :caption: Intermediate
-    :glob:
     :maxdepth: 2
 
     intermediate/01-using_callbacks
@@ -25,9 +19,6 @@ Intermediate
 Gazebo
 =============
 .. toctree::
-    :name: gazebo
-    :caption: Gazebo
-    :glob:
     :maxdepth: 2
 
     gazebo/01-single_robot
@@ -39,9 +30,6 @@ Gazebo
 Plotting
 ============
 .. toctree::
-    :name: plotting
-    :caption: Plotting
-    :glob:
     :maxdepth: 2
 
     plotting/01-plotting_torques
