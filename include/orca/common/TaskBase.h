@@ -51,11 +51,29 @@ namespace orca
 
 namespace common
 {
+    /**
+    * @brief The common base class for tasks and constraints
+    *
+    * This class contains a model of the robot, the problem in which the tasks 
+    * is currently being used, and a state machine. Although this class is 
+    * called TaskBase, both tasks and constraints inherit from this.
+    */
     class TaskBase
     {
         friend optim::Problem;
     public:
-        enum State {Init,Resized,Deactivated,Activating,Activated,Deactivating,Error};
+        /**
+        * @brief Represents the internal state of the task
+        */
+        enum State {
+             Init /*!< Task is instanciated */
+            ,Resized /*!< The robot and the problem have been set */
+            ,Activating /*!< Task is running but ramping up */
+            ,Activated /*!< Task is running */
+            ,Deactivating /*!< Task is running but ramping down */
+            ,Deactivated /*!< Task has finishing ramping down and is now stopped */
+            ,Error /*!< Task update returned an error (not used yet) */
+        };
 
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
@@ -70,11 +88,7 @@ namespace common
         virtual void update(double current_time, double dt);
         virtual bool deactivate();
         virtual void print() const;
-        /**
-        * @brief Check if the constraint is inserted in the problem
-        *
-        * @return bool
-        */
+
         virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);
 
         bool hasProblem() const;
@@ -94,22 +108,28 @@ namespace common
         std::shared_ptr<const robot::RobotDynTree> getRobot() const;
 
         void link(std::shared_ptr<common::TaskBase> e);
-        void setUpdateCallback(std::function<void(double,double)> update_cb);
-        void setActivationCallback(std::function<void(void)> activation_cb);
-        void setDeactivationCallback(std::function<void(void)> deactivation_cb);
+        
+        void onActivationCallback(std::function<void(void)> cb);
+        void onActivatedCallback(std::function<void(void)> cb);
+        void onUpdateCallback(std::function<void(double,double)> cb);
+        void onDeactivationCallback(std::function<void(void)> cb);
+        void onDeactivatedCallback(std::function<void(void)> cb);
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<common::Wrench> wrench();
 
         virtual void onResize() = 0;
-        virtual void onActivation() = 0;
+        virtual void onActivation() {};
+        virtual void onActivated() {};
         virtual bool rampUp(double time_since_start);
         void setRampValue(double new_val);
         virtual void onUpdate(double current_time, double dt) = 0;
         virtual bool rampDown(double time_since_stop);
-        virtual void onDeactivation() = 0;
+        virtual void onDeactivation() {};
+        virtual void onDeactivated() {};
     private:
+        void assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const;
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;
@@ -125,9 +145,13 @@ namespace common
         std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
-        std::function<void(double,double)> update_cb_;
-        std::function<void(void)> activation_cb_;
-        std::function<void(void)> deactivation_cb_;
+        
+        
+        std::function<void(void)> on_activation_cb_;
+        std::function<void(void)> on_activated_cb_;
+        std::function<void(double,double)> on_update_cb_;
+        std::function<void(void)> on_deactivation_cb_;
+        std::function<void(void)> on_deactivated_cb_;
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;

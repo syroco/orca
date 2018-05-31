@@ -87,20 +87,8 @@ TaskBase::State TaskBase::getState() const
 
 void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
-    // Check if pointer is valid
-    if(!robot)
-    {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "<< "Robot is null");
-    }
-    // Check if robot model as any joints
-    if(robot->getNrOfDegreesOfFreedom() <= 0)
-    {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot does not seem to have any DOF");
-    }
-    // Check that we are in the Init state
-    if(state_ != Init) {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
-    }
+    assertRobotInitialized(robot);
+    
     // Check if we already have a robot
     if(robot_)
     {
@@ -171,16 +159,23 @@ const std::string& TaskBase::getName() const
 
 std::shared_ptr<RobotDynTree> TaskBase::robot()
 {
-    if(!robot_)
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not set");
+    assertRobotInitialized(robot_);
     return robot_;
 }
 
+void orca::common::TaskBase::assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const
+{
+    if(!robot)
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot is not set");
+    if(!robot->isInitialized())
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
+    if(robot->getNrOfDegreesOfFreedom() <= 0)
+        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF");
+}
 
 std::shared_ptr<const RobotDynTree> TaskBase::getRobot() const
 {
-    if(!robot_)
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not set");
+    assertRobotInitialized(robot_);
     return robot_;
 }
 
@@ -197,18 +192,24 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 
 bool TaskBase::activate()
 {
+    assertRobotInitialized(robot_);
+    
     if(state_ == Resized || state_ == Deactivated)
     {
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
 
-        state_ = Activating;
         this->activation_requested_ = true;
+        state_ = Activating;
 
         if(hasWrench())
             wrench_->activate();
 
         for(auto t : linked_elements_)
             t->activate();
+        
+        onActivation();
+        if(on_activation_cb_)
+            on_activation_cb_();
         return true;
     }
     else
@@ -232,54 +233,65 @@ void TaskBase::update(double current_time, double dt)
         case Deactivated:
             break;
         case Activating:
-        {
-            if(this->activation_requested_)
-            {
-                this->activation_requested_ = false;
-                start_time_ = current_time;
-                onActivation();
-                if(activation_cb_)
-                    activation_cb_();
-            }
-
-            if(this->rampUp(current_time - start_time_))
-            {
-                state_ = Activated;
-                if(this->getRampDuration() > 0)
-                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
-                else
-                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
-            }
-            break;
-        }
         case Activated:
-        {
-            if(hasWrench())
-                wrench_->update(current_time,dt);
-            this->onUpdate(current_time, dt);
-            if(update_cb_)
-                update_cb_(current_time,dt);
-            break;
-        }
         case Deactivating:
         {
-            if(this->deactivation_requested_)
+            if(state_ == Activating)
             {
-                this->deactivation_requested_ = false;
-                stop_time_ = current_time;
+                if(this->activation_requested_)
+                {
+                    this->activation_requested_ = false;
+                    start_time_ = current_time;
+                }
+
+                if(this->rampUp(current_time - start_time_))
+                {
+                    state_ = Activated;
+
+                    if(this->getRampDuration() > 0)
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
+                    else
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
+                    
+                    onActivated();
+                    if(on_activated_cb_)
+                        on_activated_cb_();
+                }
             }
 
-            if(this->rampDown(current_time - stop_time_))
+            if(state_ == Deactivating)
             {
-                state_ = Deactivated;
-                onDeactivation();
-                if(deactivation_cb_)
-                    deactivation_cb_();
-                if(this->getRampDuration() > 0)
-                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
-                else
-                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
+                if(this->deactivation_requested_)
+                {
+                    this->deactivation_requested_ = false;
+                    stop_time_ = current_time;
+                }
+
+                if(this->rampDown(current_time - stop_time_))
+                {
+                    state_ = Deactivated;
+
+                    if(this->getRampDuration() > 0)
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
+                    else
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
+                    
+                    onDeactivated();
+                    if(on_deactivated_cb_)
+                        on_deactivated_cb_();
+                    
+                    break;
+                }
             }
+            
+
+            if(hasWrench())
+                wrench_->update(current_time,dt);
+            
+            onUpdate(current_time, dt);
+            if(on_update_cb_)
+                on_update_cb_(current_time,dt);
+
             break;
         }
         default:
@@ -288,22 +300,34 @@ void TaskBase::update(double current_time, double dt)
     }
 }
 
-void TaskBase::setUpdateCallback(std::function<void(double,double)> update_cb)
+void TaskBase::onActivationCallback(std::function<void(void)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering update callback";
-    this->update_cb_ = update_cb;
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onActivation callback";
+    this->on_activation_cb_ = cb;
 }
 
-void TaskBase::setActivationCallback(std::function<void(void)> activation_cb)
+void orca::common::TaskBase::onActivatedCallback(std::function<void ()> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering activation callback";
-    this->activation_cb_ = activation_cb;
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onActivated callback";
+    this->on_activated_cb_ = cb;
 }
 
-void TaskBase::setDeactivationCallback(std::function<void(void)> deactivation_cb)
+void TaskBase::onUpdateCallback(std::function<void(double,double)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering deactivation callback";
-    this->deactivation_cb_ = deactivation_cb;
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdate callback";
+    this->on_update_cb_ = cb;
+}
+
+void TaskBase::onDeactivationCallback(std::function<void(void)> cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onDeactivation callback";
+    this->on_deactivation_cb_ = cb;
+}
+
+void orca::common::TaskBase::onDeactivatedCallback(std::function<void ()> cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onDeactivated callback";
+    this->on_deactivated_cb_ = cb;
 }
 
 bool TaskBase::deactivate()
@@ -320,6 +344,10 @@ bool TaskBase::deactivate()
 
         for(auto t : linked_elements_)
             t->deactivate();
+        
+        onDeactivation();
+        if(on_deactivation_cb_)
+            on_deactivation_cb_();
         return true;
     }
     else

@@ -20,11 +20,6 @@ void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::Ve
     max_ = max;
 }
 
-void JointLimitConstraint::onActivation()
-{
-    
-}
-
 void JointLimitConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
     constraintFunction().lowerBound() = min_ ;
