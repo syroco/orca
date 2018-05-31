@@ -283,8 +283,6 @@ void Controller::activateTasks()
     {
         for(auto t : problem->getTasks())
         {
-            if(t->getName() == "GlobalRegularisation")
-                continue;
             t->activate();
         }
     }
@@ -296,8 +294,6 @@ void Controller::activateConstraints()
     {
         for(auto c : problem->getConstraints())
         {
-            if(c->getName() == "DynamicsEquation")
-                continue;
             c->activate();
         }
     }
