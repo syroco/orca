@@ -6,6 +6,18 @@ using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::utils;
 
+#define assertRobotLoaded(robot) \
+    if(!robot) \
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not set"); \
+    if(robot->getNrOfDegreesOfFreedom() <= 0) \
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF. Did you loadModelFromURDF() ?");
+
+#define assertRobotInitialized(robot) \
+    assertRobotLoaded(robot); \
+    if(!robot->isInitialized()) \
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
+
+
 TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 : control_var_(control_var)
 , name_(name)
@@ -177,22 +189,6 @@ std::shared_ptr<RobotDynTree> TaskBase::robot()
 {
     assertRobotLoaded(robot_);
     return robot_;
-}
-
-void TaskBase::assertRobotLoaded(const std::shared_ptr<const robot::RobotDynTree>& robot) const
-{
-    if(!robot)
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not set");
-    if(robot->getNrOfDegreesOfFreedom() <= 0)
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF. Did you loadModelFromURDF() ?");
-}
-
-void TaskBase::assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const
-{
-    assertRobotLoaded(robot);
-    if(!robot->isInitialized())
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
-
 }
 
 std::shared_ptr<const RobotDynTree> TaskBase::getRobot() const

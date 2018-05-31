@@ -13,6 +13,24 @@ using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
 
+#define assertInitialized() \
+    if(!is_initialized_) \
+        orca_throw("Robot model is not initialized with at least one state (via setRobotState)");
+
+#define assertLoaded() \
+    if(ndof_ == 0) \
+        orca_throw("Robot model is not loaded");
+
+#define assertFrameExists(frame) \
+    if(frame.empty()) \
+        orca_throw("Provided frame is empty"); \
+    if(!frameExists(frame)) { \
+        print(); \
+        orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot"); \
+    }
+
+
+
 static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 {
     TiXmlElement* robotElement = doc->FirstChildElement("robot");
@@ -194,29 +212,6 @@ bool RobotDynTree::isInitialized() const
 void RobotDynTree::setGravity(const Eigen::Vector3d& g)
 {
     robotData_.eigRobotState.gravity = g;
-}
-
-void RobotDynTree::assertInitialized() const
-{
-    if(!is_initialized_)
-        orca_throw("Robot model is not initialized with at least one state (via setRobotState)");
-}
-
-void RobotDynTree::assertLoaded() const
-{
-    if(ndof_ == 0)
-        orca_throw("Robot model is not loaded");
-}
-
-void RobotDynTree::assertFrameExists(const std::string& frame) const
-{
-    if(frame.empty())
-        orca_throw("Provided frame is empty");
-    if(!frameExists(frame))
-    {
-        print();
-        orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot");
-    }
 }
 
 void RobotDynTree::setBaseFrame(const std::string& base_frame)
