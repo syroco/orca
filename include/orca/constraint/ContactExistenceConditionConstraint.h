@@ -1,9 +1,10 @@
-// This file is a part of the orca framework.
+// This file is a part of the ORCA framework.
 // Copyright 2017, ISIR / Universite Pierre et Marie Curie (UPMC)
-// Main contributor(s): Antoine Hoarau, hoarau@isir.upmc.fr
+// Copyright 2018, Fuzzy Logic Robotics
+// Main contributor(s): Antoine Hoarau, Ryan Lober, and
+// Fuzzy Logic Robotics <info@fuzzylogicrobotics.com>
 //
-// This software is a computer program whose purpose is to [describe
-// functionalities and technical features of your software].
+// ORCA is a whole-body reactive controller framework for robotics.
 //
 // This software is governed by the CeCILL-C license under French law and
 // abiding by the rules of distribution of free software.  You can  use,
@@ -30,6 +31,13 @@
 //
 // The fact that you are presently reading this means that you have had
 // knowledge of the CeCILL-C license and that you accept its terms.
+
+/** @file
+ @copyright 2018 Fuzzy Logic Robotics <info@fuzzylogicrobotics.com>
+ @author Antoine Hoarau
+ @author Ryan Lober
+*/
+
 
 #pragma once
 #include "orca/constraint/EqualityConstraint.h"
