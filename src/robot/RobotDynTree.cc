@@ -169,14 +169,17 @@ void RobotDynTree::print() const
     assertLoaded();
 
     std::cout << "Robot model " << getName() << '\n';
+    std::cout << "  Joints" << '\n';
     for(unsigned int i=0; i < joint_names_.size() ; i++)
     {
         std::cout << "      Joint " << i << " " << joint_names_[i] << '\n';
     }
+    std::cout << "  Frames" << '\n';
     for(unsigned int i=0; i < frame_names_.size() ; i++)
     {
         std::cout << "      Frame " << i << " " << frame_names_[i] << '\n';
     }
+    std::cout << "  Links" << '\n';
     for(unsigned int i=0; i < link_names_.size() ; i++)
     {
         std::cout << "      Link " << i << " " << link_names_[i] << '\n';
@@ -210,7 +213,10 @@ void RobotDynTree::assertFrameExists(const std::string& frame) const
     if(frame.empty())
         throw std::runtime_error("Provided frame is empty");
     if(!frameExists(frame))
+    {
+        print();
         throw std::runtime_error(Formatter() << "Frame \'" << frame << "\' is not part of the robot");
+    }
 }
 
 void RobotDynTree::setBaseFrame(const std::string& base_frame)
@@ -259,7 +265,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
     robotData_.eigRobotState.gravity = gravity;
 
     robotData_.idynRobotState.fromEigen(robotData_.eigRobotState);
-    
+
     kinDynComp_.setRobotState(robotData_.idynRobotState.world_H_base
                             ,robotData_.idynRobotState.jointPos
                             ,robotData_.idynRobotState.baseVel
@@ -329,7 +335,7 @@ const Eigen::Matrix<double,6,1>&  RobotDynTree::getFrameVel(const std::string& f
 {
     assertFrameExists(frameName);
     assertInitialized();
-    
+
     robotData_.eigFrameVel = iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
     return robotData_.eigFrameVel;
 }
@@ -338,7 +344,7 @@ const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string
 {
     assertFrameExists(frameName);
     assertInitialized();
-    
+
     robotData_.eigFrameBiasAcc = iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
     return robotData_.eigFrameBiasAcc;
 }
@@ -346,7 +352,7 @@ const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string
 const Eigen::MatrixXd& RobotDynTree::getFreeFloatingMassMatrix()
 {
     assertInitialized();
-    
+
     kinDynComp_.getFreeFloatingMassMatrix(robotData_.idynFFMassMatrix);
     robotData_.eigFFMassMatrix = iDynTree::toEigen(robotData_.idynFFMassMatrix);
     return robotData_.eigFFMassMatrix;
