@@ -113,7 +113,7 @@ int main(int argc, char const *argv[])
 
     cart_task->onActivationCb(std::bind(&TaskPrinter::onActivation, &task_printer));
     cart_task->onActivatedCb(std::bind(&TaskPrinter::onActivated, &task_printer));
-    cart_task->onUpdateCb(std::bind(&TaskPrinter::onUpdate, &task_printer, _1, _2));
+    cart_task->onUpdateCb(std::bind(&TaskPrinter::onUpdate, &task_printer, std::_1, std::_2));
     cart_task->onDeactivationCb(std::bind(&TaskPrinter::onDeactivation, &task_printer));
     cart_task->onDeactivatedCb(std::bind(&TaskPrinter::onDeactivated, &task_printer));
 
