@@ -68,61 +68,70 @@ int main(int argc, char const *argv[])
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
 
-    double dt = 0.001;
-    double current_time = 0;
-
     controller.activateTasksAndConstraints();
+    // for each task, it calls task->activate(), that can call onActivationCallback() if it is set.
+    // To set it :
+    // task->setOnActivationCallback([&]()
+    // {
+    //      // Do some initialisation here
+    // });
+    // Note : you need to set it BEFORE calling
+    // controller.activateTasksAndConstraints();
 
 
+
+
+
+    double dt = 0.001;
+    double current_time = 0.0;
+    Eigen::VectorXd trq_cmd(ndof);
+    Eigen::VectorXd acc_new(ndof);
+
+    controller.update(current_time, dt);
+
+    std::cout << "\n\n\n" << '\n';
+    std::cout << "====================================" << '\n';
+    std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    std::cout << "Desired State:\n" << cart_pos_ref.matrix() << '\n';
+    std::cout << "====================================" << '\n';
+    std::cout << "\n\n\n" << '\n';
+    std::cout << "Begining Simulation..." << '\n';
 
     for (; current_time < 2.0; current_time +=dt)
     {
+
         robot->setRobotState(eigState.jointPos,eigState.jointVel);
+
+        // if(current_time % 0.1 == 0.0)
+        // {
+        //
+        // }
+        std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
 
         controller.update(current_time, dt);
 
         if(controller.solutionFound())
         {
-            const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-            // The optimal joint acceleration command
-            const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-
-            // Send torques to the REAL robot (API is robot-specific)
-            //real_tobot->set_joint_torques(trq_cmd);
+            trq_cmd = controller.getJointTorqueCommand();
         }
         else
         {
-            // WARNING : Optimal solution is NOT found
-            // Switching to a fallback strategy
-            // Typical are :
-            // - Stop the robot (robot-specific method)
-            // - Compute KKT Solution and send to the robot (dangerous)
-            // - PID around the current position (dangerous)
-
-            // trq = controller.computeKKTTorques();
-            // Send torques to the REAL robot (API is robot-specific)
-            // real_tobot->set_joint_torques(trq_cmd);
+            std::cout << "[warning] Didn't find a solution, using last valid solution." << '\n';
         }
+
+        acc_new = robot->getMassMatrix().ldlt().solve(trq_cmd - robot->getJointGravityAndCoriolisTorques());
+
+        eigState.jointPos += eigState.jointVel * dt + ((acc_new*dt*dt)/2);
+        eigState.jointVel += acc_new * dt;
     }
-
-    // Print the last computed solution (just for fun)
-    const Eigen::VectorXd& full_solution = controller.getSolution();
-    const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-    const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-    LOG_INFO << "Full solution : " << full_solution.transpose();
-    LOG_INFO << "Joint Acceleration command : " << trq_acc.transpose();
-    LOG_INFO << "Joint Torque command       : " << trq_cmd.transpose();
-
-    // At some point you want to close the controller nicely
-    controller.deactivateTasksAndConstraints();
+    std::cout << "Simulation finished." << '\n';
+    std::cout << "\n\n\n" << '\n';
+    std::cout << "====================================" << '\n';
+    std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    // std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose(). - cart_pos_ref.translation() << '\n';
 
 
-    // Let all the tasks ramp down to zero
-    while(!controller.tasksAndConstraintsDeactivated())
-    {
-        current_time += dt;
-        controller.update(current_time,dt);
-    }
+
 
     // All objets will be destroyed here
     return 0;
