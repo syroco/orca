@@ -66,7 +66,7 @@ public:
     orca_exception(const std::string &arg, const char *file, int line) :
     std::runtime_error(arg) {
         std::ostringstream o;
-        o << file << ":" << line << ": " << arg;
+        o << "\033[31m" << file << ":" << line << ": " << arg << "\033[0m";
         msg = o.str();
     }
     ~orca_exception() throw() {}
