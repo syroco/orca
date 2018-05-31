@@ -58,9 +58,7 @@ public:
     Eigen::VectorXd& minLimit();
     Eigen::VectorXd& maxLimit();
 protected:
-    virtual void onActivation();
     virtual void onUpdateConstraintFunction(double current_time, double dt);
-    virtual void onDeactivation(){}
     virtual void onResize();
 private:
     Eigen::VectorXd min_,max_;

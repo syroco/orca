@@ -59,7 +59,6 @@ public:
 protected:
     void onActivation();
     void onUpdateConstraintFunction(double current_time, double dt);
-    void onDeactivation(){}
     void onResize();
 private:
     math::Vector6d frame_bias_acc_;

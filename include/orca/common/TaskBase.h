@@ -108,22 +108,28 @@ namespace common
         std::shared_ptr<const robot::RobotDynTree> getRobot() const;
 
         void link(std::shared_ptr<common::TaskBase> e);
-        void setUpdateCallback(std::function<void(double,double)> update_cb);
-        void setActivationCallback(std::function<void(void)> activation_cb);
-        void setDeactivationCallback(std::function<void(void)> deactivation_cb);
+        
+        void onActivationCallback(std::function<void(void)> cb);
+        void onActivatedCallback(std::function<void(void)> cb);
+        void onUpdateCallback(std::function<void(double,double)> cb);
+        void onDeactivationCallback(std::function<void(void)> cb);
+        void onDeactivatedCallback(std::function<void(void)> cb);
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotDynTree> robot();
         std::shared_ptr<common::Wrench> wrench();
 
         virtual void onResize() = 0;
-        virtual void onActivation() = 0;
+        virtual void onActivation() {};
+        virtual void onActivated() {};
         virtual bool rampUp(double time_since_start);
         void setRampValue(double new_val);
         virtual void onUpdate(double current_time, double dt) = 0;
         virtual bool rampDown(double time_since_stop);
-        virtual void onDeactivation() = 0;
+        virtual void onDeactivation() {};
+        virtual void onDeactivated() {};
     private:
+        void assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const;
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;
@@ -139,9 +145,13 @@ namespace common
         std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
-        std::function<void(double,double)> update_cb_;
-        std::function<void(void)> activation_cb_;
-        std::function<void(void)> deactivation_cb_;
+        
+        
+        std::function<void(void)> on_activation_cb_;
+        std::function<void(void)> on_activated_cb_;
+        std::function<void(double,double)> on_update_cb_;
+        std::function<void(void)> on_deactivation_cb_;
+        std::function<void(void)> on_deactivated_cb_;
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
