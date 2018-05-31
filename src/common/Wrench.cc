@@ -96,12 +96,6 @@ void Wrench::update(double current_time, double dt)
     if(base_ref_frame_.empty())
     {
         base_ref_frame_ = robot_->getBaseFrame();
-        LOG_WARNING << "[" << getName() << "] baseFrame is not set, setting it up to the robot base frame " << base_ref_frame_;
-    }
-
-    if(control_frame_.empty())
-    {
-        throw std::runtime_error(Formatter() << "[" << getName() << "] controlFrame is not set");
     }
 
     if(base_ref_frame_ == robot_->getBaseFrame())

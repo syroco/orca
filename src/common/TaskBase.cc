@@ -92,7 +92,7 @@ TaskBase::State TaskBase::getState() const
 
 void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
-    assertRobotInitialized(robot);
+    assertRobotLoaded(robot);
 
     // Check if we already have a robot
     if(robot_)
@@ -175,23 +175,29 @@ const std::string& TaskBase::getName() const
 
 std::shared_ptr<RobotDynTree> TaskBase::robot()
 {
-    assertRobotInitialized(robot_);
+    assertRobotLoaded(robot_);
     return robot_;
 }
 
-void orca::common::TaskBase::assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const
+void TaskBase::assertRobotLoaded(const std::shared_ptr<const robot::RobotDynTree>& robot) const
 {
     if(!robot)
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot is not set");
-    if(!robot->isInitialized())
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not set");
     if(robot->getNrOfDegreesOfFreedom() <= 0)
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF. Did you loadModelFromURDF() ?");
+}
+
+void TaskBase::assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const
+{
+    assertRobotLoaded(robot);
+    if(!robot->isInitialized())
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
+
 }
 
 std::shared_ptr<const RobotDynTree> TaskBase::getRobot() const
 {
-    assertRobotInitialized(robot_);
+    assertRobotLoaded(robot_);
     return robot_;
 }
 
@@ -199,7 +205,7 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 {
     if(!wrench_)
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
             << "This task control variabe is " << getControlVariable());
     }
@@ -208,7 +214,7 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 
 bool TaskBase::activate()
 {
-    assertRobotInitialized(robot_);
+    assertRobotLoaded(robot_);
 
     if(state_ == Resized || state_ == Deactivated)
     {
@@ -243,7 +249,7 @@ void TaskBase::update(double current_time, double dt)
     switch (state_)
     {
         case Init:
-            throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+            orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
                 << "Calling update, but the task state is Init.\n"
                 << "Please insert the task in the controller or set the robot model + "
                 << "set the problem to trigger a resize(). Then you'll be able to update the task.");
@@ -328,7 +334,7 @@ void TaskBase::onActivationCallback(std::function<void(void)> cb)
     this->on_activation_cb_ = cb;
 }
 
-void orca::common::TaskBase::onActivatedCallback(std::function<void ()> cb)
+void TaskBase::onActivatedCallback(std::function<void ()> cb)
 {
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onActivated callback";
     this->on_activated_cb_ = cb;
@@ -352,7 +358,7 @@ void TaskBase::onDeactivationCallback(std::function<void(void)> cb)
     this->on_deactivation_cb_ = cb;
 }
 
-void orca::common::TaskBase::onDeactivatedCallback(std::function<void ()> cb)
+void TaskBase::onDeactivatedCallback(std::function<void ()> cb)
 {
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onDeactivated callback";
     this->on_deactivated_cb_ = cb;
@@ -389,11 +395,11 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 {
     if(!problem)
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
     }
 
     if(state_ != Init) {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
     }
 
     if(hasProblem())
@@ -418,7 +424,7 @@ std::shared_ptr<const Problem> TaskBase::getProblem() const
 {
     if(!problem_)
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is not set");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is not set");
     }
     return problem_;
 }
@@ -427,17 +433,17 @@ void TaskBase::checkIfUpdatable() const
 {
     if(!hasRobot())
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not loaded");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not loaded");
     }
 
     if(!robot_->isInitialized())
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not initialised (first state not set)");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not initialised (first state not set)");
     }
 
     if(!hasProblem())
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] " << "Problem is not set");
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Problem is not set");
     }
 }
 
@@ -460,7 +466,7 @@ std::shared_ptr<const Wrench> TaskBase::getWrench() const
 {
     if(!wrench_)
     {
-        throw std::runtime_error(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
             << "This task control variabe is " << getControlVariable());
     }

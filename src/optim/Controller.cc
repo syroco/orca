@@ -384,15 +384,23 @@ void Controller::updateTasks(double current_time, double dt)
     {
         for(auto t : problem->getTasks())
         {
-            // Checking size
-            int cv = problem->getSize(t->getControlVariable());
-            if(t->cols() != cv)
+            try
             {
-                throw std::runtime_error(utils::Formatter() << "Size of task " << t->getName()
-                            << " (control var " << t->getControlVariable()
-                            << " should be " << cv << " but is " << t->cols() << ")");
+                // Checking size
+                int cv = problem->getSize(t->getControlVariable());
+                if(t->cols() != cv)
+                {
+                    throw std::runtime_error(utils::Formatter() << "Size of task " << t->getName()
+                                << " (control var " << t->getControlVariable()
+                                << " should be " << cv << " but is " << t->cols() << ")");
+                }
+                t->update(current_time,dt);
             }
-            t->update(current_time,dt);
+            catch(std::exception& e)
+            {
+                LOG_ERROR << "Task " << t->getName() << " threw an exception :\n" << e.what()
+                << "\nSetting the task in error." << '\n';
+            }
         }
     }
 }

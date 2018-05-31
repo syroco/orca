@@ -70,7 +70,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
         doc.Parse(modelString.c_str());
         if(!getRobotNameFromTinyXML(&doc,name_))
         {
-            throw std::runtime_error(Formatter() << "Could not extract automatically the robot name from the urdf." \
+            orca_throw(Formatter() << "Could not extract automatically the robot name from the urdf." \
                 << '\n'
                 << "Please use auto robot = std::make_shared<RobotDynTree>(\"my_robot_name\")"
                 << '\n'
@@ -82,7 +82,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
     mdlLoader.loadModelFromString(modelString);
 
     if(! kinDynComp_.loadRobotModel(mdlLoader.model()) )
-        throw std::runtime_error(Formatter() << "Could not load model from urdf string :\n" << modelString << "\n");
+        orca_throw(Formatter() << "Could not load model from urdf string :\n" << modelString << "\n");
 
     return load(kinDynComp_.model());
 }
@@ -135,7 +135,7 @@ bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
     std::string str((std::istreambuf_iterator<char>(t)),
                      std::istreambuf_iterator<char>());
     if( str.empty() )
-        throw std::runtime_error(Formatter() << "Could not load model from urdf file \'" << modelFile << "\'");
+        orca_throw(Formatter() << "Could not load model from urdf file \'" << modelFile << "\'");
 
     urdf_url_ = modelFile;
     return loadModelFromString(str);
@@ -199,23 +199,23 @@ void RobotDynTree::setGravity(const Eigen::Vector3d& g)
 void RobotDynTree::assertInitialized() const
 {
     if(!is_initialized_)
-        throw std::runtime_error("Robot model is not initialized with at least one state (via setRobotState)");
+        orca_throw("Robot model is not initialized with at least one state (via setRobotState)");
 }
 
 void RobotDynTree::assertLoaded() const
 {
     if(ndof_ == 0)
-        throw std::runtime_error("Robot model is not loaded");
+        orca_throw("Robot model is not loaded");
 }
 
 void RobotDynTree::assertFrameExists(const std::string& frame) const
 {
     if(frame.empty())
-        throw std::runtime_error("Provided frame is empty");
+        orca_throw("Provided frame is empty");
     if(!frameExists(frame))
     {
         print();
-        throw std::runtime_error(Formatter() << "Frame \'" << frame << "\' is not part of the robot");
+        orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot");
     }
 }
 
@@ -247,10 +247,10 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
     assertLoaded();
 
     if(jointPos.size() != ndof_)
-        throw std::runtime_error(Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << ndof_);
+        orca_throw(Formatter() << "JointPos size do not match with current configuration : provided " << jointPos.size() << ", expected " << ndof_);
 
     if(jointVel.size() != ndof_)
-        throw std::runtime_error(Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << ndof_);
+        orca_throw(Formatter() << "JointVel size do not match with current configuration : provided " << jointVel.size() << ", expected " << ndof_);
 
     if(!is_initialized_)
     {
@@ -276,7 +276,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
 const std::string& RobotDynTree::getBaseFrame() const
 {
     if(base_frame_.empty())
-        throw std::runtime_error("BaseFrame is empty. Please robot->setBaseFrame(\"some_frame_on_the_robot\")");
+        orca_throw("BaseFrame is empty. Please robot->setBaseFrame(\"some_frame_on_the_robot\")");
 
     assertLoaded();
     return base_frame_;

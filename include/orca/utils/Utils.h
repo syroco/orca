@@ -59,6 +59,23 @@ namespace orca
 namespace utils
 {
 
+// From https://stackoverflow.com/a/348862
+class orca_exception : public std::runtime_error {
+    std::string msg;
+public:
+    orca_exception(const std::string &arg, const char *file, int line) :
+    std::runtime_error(arg) {
+        std::ostringstream o;
+        o << file << ":" << line << ": " << arg;
+        msg = o.str();
+    }
+    ~orca_exception() throw() {}
+    const char *what() const throw() {
+        return msg.c_str();
+    }
+};
+#define orca_throw(arg) throw orca_exception(arg, __FILE__, __LINE__);
+
 class PosixTimer
 {
     typedef std::chrono::high_resolution_clock high_resolution_clock;

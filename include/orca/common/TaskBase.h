@@ -135,6 +135,7 @@ namespace common
         virtual void onDeactivated() {};
     private:
         void assertRobotInitialized(const std::shared_ptr<const robot::RobotDynTree>& robot) const;
+        void assertRobotLoaded(const std::shared_ptr<const robot::RobotDynTree>& robot) const;
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;

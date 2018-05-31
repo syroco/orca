@@ -16,8 +16,8 @@ void DynamicsEquationConstraint::onResize()
     idx_map_ = this->getProblem()->getIndexMap();
     size_map_ = this->getProblem()->getSizeMap();
 
-    ndof_ = this->robot()->getNrOfDegreesOfFreedom();
-    fulldim_ = this->robot()->getConfigurationSpaceDimension();
+    ndof_ = this->getRobot()->getNrOfDegreesOfFreedom();
+    fulldim_ = this->getRobot()->getConfigurationSpaceDimension();
 
     int optim_vector_size = size_map_[ControlVariable::X];
 
@@ -44,8 +44,7 @@ void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time,
     int i=0;
     for(auto w : wrenches_)
     {
-        if(w->isActivated())
-            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
+        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
         i++;
     }
 
