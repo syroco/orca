@@ -149,6 +149,7 @@ bool TaskBase::rampDown(double time_since_stop)
 
 void TaskBase::resize()
 {
+    LOG_INFO << "[" << TaskBase::getName() << "] Resizing";
     // Calling the user callback
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
@@ -173,6 +174,7 @@ void TaskBase::resize()
             // which is not what user expect
             break;
     }
+    LOG_INFO << "[" << TaskBase::getName() << "] Resizing done";
 }
 
 ControlVariable TaskBase::getControlVariable() const
@@ -210,14 +212,14 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 
 bool TaskBase::activate()
 {
-    assertRobotLoaded(robot_);
+    assertRobotInitialized(robot_);
 
     if(state_ == Resized || state_ == Deactivated)
     {
+        state_ = Activating;
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
 
         this->activation_requested_ = true;
-        state_ = Activating;
 
         if(hasWrench())
             wrench_->activate();
@@ -362,11 +364,11 @@ void TaskBase::onDeactivatedCallback(std::function<void ()> cb)
 
 bool TaskBase::deactivate()
 {
-    if(state_ == Activated || state_ == Init || state_ == Resized)
+    if(state_ == Activating || state_ == Activated)
     {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
-
         state_ = Deactivating;
+        LOG_INFO << "[" << TaskBase::getName() << "] Deactivate" << state_;
+
         this->deactivation_requested_ = true;
 
         if(hasWrench())
@@ -382,7 +384,9 @@ bool TaskBase::deactivate()
     }
     else
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not deactivate because state is " << state_;
+        LOG_ERROR << "[" << TaskBase::getName() << "] "
+            << "Could not deactivate because state is " << state_
+            << "\nDeactivation is only possible when state is Activating or Activated";
         return false;
     }
 }
