@@ -51,11 +51,29 @@ namespace orca
 
 namespace common
 {
+    /**
+    * @brief The common base class for tasks and constraints
+    *
+    * This class contains a model of the robot, the problem in which the tasks 
+    * is currently being used, and a state machine. Although this class is 
+    * called TaskBase, both tasks and constraints inherit from this.
+    */
     class TaskBase
     {
         friend optim::Problem;
     public:
-        enum State {Init,Resized,Deactivated,Activating,Activated,Deactivating,Error};
+        /**
+        * @brief Represents the internal state of the task
+        */
+        enum State {
+             Init /*!< Task is instanciated */
+            ,Resized /*!< The robot and the problem have been set */
+            ,Activating /*!< Task is running but ramping up */
+            ,Activated /*!< Task is running */
+            ,Deactivating /*!< Task is running but ramping down */
+            ,Deactivated /*!< Task has finishing ramping down and is now stopped */
+            ,Error /*!< Task update returned an error (not used yet) */
+        };
 
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
@@ -70,11 +88,7 @@ namespace common
         virtual void update(double current_time, double dt);
         virtual bool deactivate();
         virtual void print() const;
-        /**
-        * @brief Check if the constraint is inserted in the problem
-        *
-        * @return bool
-        */
+
         virtual bool setProblem(std::shared_ptr< const orca::optim::Problem > problem);
 
         bool hasProblem() const;
