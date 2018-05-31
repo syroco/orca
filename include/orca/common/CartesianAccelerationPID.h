@@ -46,20 +46,89 @@ namespace orca
         class CartesianAccelerationPID : public CartesianServoController
         {
         public:
+            /**
+            * @brief The cartesian acceleration PID helps any cartesian task servo around a desired
+            * cartesian pose, velocity and acceleration.
+            * \f[
+            *   \begin{split}
+            *    CartPID & = \ddot{X}_{des} + PID(X,\dot{X}) \\
+            *            & = \ddot{X}_{des} + K_P (X_{curr} - X_{des}) + K_I (X_{curr} - X_{des}) +  K_D (\dot{X}_{curr} - \dot{X}_{des})
+            *    \end{split}
+            * \f]
+            * 
+            * @param name The name of the component
+            */
             CartesianAccelerationPID(const std::string& name);
 
+            /**
+            * @brief Set the control frame desired cartesian pose w.r.t the base frame.
+            * This is usually something to get from a trajectory generator
+            * 
+            * @param cartesian_position_traj The desired pose w.r.t the base frame
+            * @param cartesian_velocity_traj The desired cartesian velocity in mixed representation
+            * @param cartesian_acceleration_traj The desired cartesian acceleration in mixed representation
+            */
             void setDesired(const Eigen::Matrix4d& cartesian_position_traj
                         , const Vector6d& cartesian_velocity_traj
                         , const Vector6d& cartesian_acceleration_traj);
+            /**
+            * @brief Returns the computed command
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getCommand() const;
+            /**
+            * @brief Returns the current pose of the control frame (w.r.t the base frame)
+            * 
+            * @return const Eigen::Matrix4d&
+            */
             const Eigen::Matrix4d& getCurrentCartesianPose() const;
+            /**
+            * @brief Returns the current cartesian velocity in mixed representation
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getCurrentCartesianVelocity() const;
+            /**
+            * @brief Returns desired pose (set with #setDesired)
+            * 
+            * @return const Eigen::Matrix4d&
+            */
             const Eigen::Matrix4d& getDesiredCartesianPose() const;
+            /**
+            * @brief Returns the desired cartesian acceleration (mixed representation)
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getDesiredCartesianVelocity() const;
+            /**
+            * @brief Return the desired cartesian acceleration
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getDesiredCartesianAcceleration() const;
+            /**
+            * @brief Returns the computed pose error as a 6D Vector [dx,dy,dz,drx,dry,drz]
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getCartesianPoseError() const;
+            /**
+            * @brief Returns the computed cartesian velocity
+            * 
+            * @return const orca::math::Vector6d&
+            */
             const Vector6d& getCartesianVelocityError() const;
+            /**
+            * @brief Outputs info on std::cout
+            * 
+            */
             void print() const;
+            /**
+            * @brief The dimension 6 pid controller
+            * 
+            * @return std::shared_ptr< orca::common::PIDController >
+            */
             std::shared_ptr<PIDController> pid();
         protected:
             void onResize();
