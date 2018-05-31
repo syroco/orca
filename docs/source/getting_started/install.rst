@@ -23,7 +23,7 @@ Always keep in mind that it's better to install the dependencies separately if y
 If you want to install the dependencies separately please read the following section: :ref:`install_deps`. Otherwise, if you just want to get coding, then jump ahead to :ref:`install_orca`.
 
 
-.. note:: You can almost always avoid calling sudo, by calling ``cmake .. -DCMAKE_INSTALL_PREFIX=/some/dir`` and exporting the ``CMAKE_PREFIX_PATH`` variable : ``export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/some/dir``.
+.. note:: You can almost always avoid calling sudo, by calling ``cmake .. -DCMAKE_INSTALL_PREFIX=/some/dir`` and exporting the ``CMAKE_PREFIX_PATH`` variable: ``export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/some/dir``.
 
 
 .. _install_deps:
@@ -37,7 +37,6 @@ Eigen
 ^^^^^^^^^^^^^^^
 
 .. code-block:: bash
-    :linenos:
 
     wget http://bitbucket.org/eigen/eigen/get/3.3.4.tar.bz2
     tar xjvf 3.3.4.tar.bz2
@@ -51,7 +50,6 @@ qpOASES
 ^^^^^^^^^^^^^^^
 
 .. code-block:: bash
-    :linenos:
 
     wget https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.zip
     unzip qpOASES-3.2.1.zip
@@ -66,7 +64,6 @@ iDynTree
 ^^^^^^^^^^^^^^^
 
 .. code-block:: bash
-    :linenos:
 
     git clone https://github.com/robotology/idyntree
     cd idyntree
@@ -82,7 +79,6 @@ Gazebo
 Examples are built with Gazebo 8. They can be adapted of course to be backwards compatible.
 
 .. code-block:: bash
-    :linenos:
 
     curl -ssL http://get.gazebosim.org | sh
 
@@ -97,7 +93,6 @@ Installing ORCA
 Whether or not you have installed the dependencies separately, you are now ready to clone, build and install ORCA. Hooray.
 
 .. code-block:: bash
-    :linenos:
 
     git clone https://github.com/syroco/orca
     cd orca
@@ -117,7 +112,6 @@ Assuming you followed the directions to the letter and encountered no compiler e
 To do so simply run the following command:
 
 .. code-block:: bash
-    :linenos:
 
     orca_install_test
 
