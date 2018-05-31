@@ -344,7 +344,7 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constraint->isActivated())
+                if(constraint->isComputing())
                 {
                     data_.A_.block(row_idx,start_idx,nrows,ncols) = constraint->getConstraintMatrix();
                     data_.lbA_.segment(row_idx,nrows) = data_.lbA_.segment(row_idx,nrows).cwiseMax(constraint->getLowerBound());
