@@ -42,7 +42,6 @@ Table of Contents
     :maxdepth: 2
 
     examples/examples
-    examples/basic/01-simple_controller
 
 .. toctree::
     :name: controller_formulation
@@ -68,15 +67,21 @@ Work on ORCA initially began in 2017 at the Institut des Systèmes Intelligents 
 
 Maintainers
 ---------------
-Antoine Hoarau
-Ryan Lober
-Fuzzy Logic Robotics (info@fuzzylogicrobotics.com)
+* Antoine Hoarau
+* Ryan Lober
+* Fuzzy Logic Robotics (info@fuzzylogicrobotics.com)
+
+
 
 Contributors
 ---------------
-Vincent Padois
-Lucas Joseph
-etc.
+* Vincent Padois
+
+
+
+Related Publications
+-------------------------
+
 
 
 Partner Institutions

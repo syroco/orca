@@ -20,9 +20,7 @@ Check out the :ref:`using_the_lib` page for information on how to include the OR
 Check out the API Documentation
 ====================================
 
-You can find the Doxygen generated API documentation at the following link: :ref:`api_docs`.
-
-This will help you navigate the ORCA API for your projects.
+You can find the Doxygen generated API documentation at the following link: :ref:`api_docs`. This will help you navigate the ORCA API for your projects.
 
 
 
@@ -31,6 +29,6 @@ ROS or OROCOS user?
 
 We have written ROS and OROCOS wrappers for the ORCA library and done most of the heavy lifting so you can get started using the contoller right away. To learn more about these projects please check out their respective pages:
 
-ORCA-ROS:
+``ORCA_ROS``: https://github.com/syroco/orca_ros
 
-RTT-ORCA:
+``RTT_ORCA``: https://github.com/syroco/rtt_orca (Compatible with ORCA < version 2.0.0)

@@ -1,11 +1,5 @@
 .. _orca_examples:
 
-**************************
-Examples
-**************************
-
-
-
 Basic
 =======
 .. toctree::
@@ -14,7 +8,7 @@ Basic
     :glob:
     :maxdepth: 2
 
-    basic/*
+    basic/01-simple_controller
 
 Intermediate
 =================

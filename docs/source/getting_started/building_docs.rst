@@ -35,6 +35,16 @@ Doxygen
 
 You can always install Doxygen from source by following:
 
+.. code-block:: bash
+
+    git clone https://github.com/doxygen/doxygen.git
+    cd doxygen
+    mkdir build
+    cd build
+    cmake -G "Unix Makefiles" ..
+    make
+    sudo make install
+
 but we would recommend installing the binaries.
 
 Linux:
@@ -58,10 +68,7 @@ OSX:
 Windows:
 ^^^^^^^^^^^
 
-
-.. code-block:: bash
-
-    poop
+Download the executable file here: http://www.stack.nl/~dimitri/doxygen/download.html and follow the install wizard.
 
 
 Building the docs with Sphinx
@@ -69,9 +76,11 @@ Building the docs with Sphinx
 
 .. code-block:: bash
 
+    cd [orca_root]
     cd docs/
     make html
 
+``[orca_root]`` is the path to wherever you cloned the repo i.e. ``/home/$USER/orca/``.
 
 
 How to browse
@@ -85,4 +94,4 @@ If you prefer to be a fancy-pants then you can launch a local web server by navi
 
     make livehtml
 
-You can browse the site at:
+This method has the advantage of automatically refreshing when you make changes to the ``.rst`` files. You can browse the site at: http://127.0.0.1:8000.

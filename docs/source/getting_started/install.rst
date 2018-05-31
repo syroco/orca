@@ -112,7 +112,7 @@ Whether or not you have installed the dependencies separately, you are now ready
 Testing your installation
 ================================
 
-Assuming you followed the directions to the letter and encountered no compiler errors along the way, then you are ready to get started with ORCA. Before moving on to the :ref:`tutorials`, let's first test the installation.
+Assuming you followed the directions to the letter and encountered no compiler errors along the way, then you are ready to get started with ORCA. Before moving on to the :ref:`examples`, let's first test the installation.
 
 To do so simply run the following command:
 
