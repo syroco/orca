@@ -93,7 +93,7 @@ const ConstraintFunction& GenericConstraint::getConstraintFunction() const
     return constraint_function_;
 }
 
-void GenericConstraint::onUpdate(double current_time, double dt)
+void GenericConstraint::onCompute(double current_time, double dt)
 {
     onUpdateConstraintFunction(current_time,dt);
 }

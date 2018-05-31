@@ -155,7 +155,7 @@ int main(int argc, char const *argv[])
 //     //     traj.reset();
 //     // }
 //     // );
-//     // cart_task->onUpdateCallback([&](double current_time, double dt){
+//     // cart_task->onComputeBeginCallback([&](double current_time, double dt){
 //     //     Eigen::Vector3d p,v,a;
 //     //  });
 //     cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));

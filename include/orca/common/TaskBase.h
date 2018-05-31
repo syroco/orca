@@ -114,8 +114,8 @@ namespace common
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
         void onActivatedCallback(std::function<void(void)> cb);
-        void onUpdateBeginCallback(std::function<void(double,double)> cb);
-        void onUpdateEndCallback(std::function<void(double,double)> cb);
+        void onComputeBeginCallback(std::function<void(double,double)> cb);
+        void onComputeEndCallback(std::function<void(double,double)> cb);
         void onDeactivationCallback(std::function<void(void)> cb);
         void onDeactivatedCallback(std::function<void(void)> cb);
     protected:
@@ -129,7 +129,7 @@ namespace common
         virtual void onActivated() {};
         virtual bool rampUp(double time_since_start);
         void setRampValue(double new_val);
-        virtual void onUpdate(double current_time, double dt) = 0;
+        virtual void onCompute(double current_time, double dt) = 0;
         virtual bool rampDown(double time_since_stop);
         virtual void onDeactivation() {};
         virtual void onDeactivated() {};
