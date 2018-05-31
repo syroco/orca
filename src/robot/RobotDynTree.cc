@@ -204,6 +204,11 @@ void RobotDynTree::print() const
     }
 }
 
+void RobotDynTree::onRobotInitializedCallback(std::function<void(void)> cb)
+{
+    robot_initialized_cb_ = cb;
+}
+
 bool RobotDynTree::isInitialized() const
 {
     return is_initialized_ && ndof_ > 0;
@@ -251,6 +256,8 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
     {
         LOG_DEBUG << "Robot is now initialized";
         is_initialized_ = true;
+        if(robot_initialized_cb_)
+            robot_initialized_cb_();
     }
 
     robotData_.eigRobotState.world_H_base = world_H_base;

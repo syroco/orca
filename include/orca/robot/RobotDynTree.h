@@ -288,7 +288,9 @@ public:
     const std::vector<std::string>& getFrameNames() const;
     const std::vector<std::string>& getJointNames() const;
     bool isInitialized() const;
+    void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
+    std::function<void(void)> robot_initialized_cb_;;
     bool load(const iDynTree::Model& model);
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;
