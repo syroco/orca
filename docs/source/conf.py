@@ -20,6 +20,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+
+import subprocess
+#
+# on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+#
+# if on_rtd:
+#     subprocess.call('cd ..; doxygen', shell=True)
+subprocess.call('cd ..; doxygen Doxyfile_RTD.in', shell=True)
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -39,8 +48,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'sphinx.ext.graphviz',
-        ]
+    'sphinx.ext.graphviz']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

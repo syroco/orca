@@ -27,6 +27,7 @@ Table of Contents
 
     getting_started/install
     getting_started/where_to_go
+    getting_started/api_docs
     getting_started/building_docs
     getting_started/using_the_lib
 
