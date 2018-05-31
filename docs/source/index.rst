@@ -1,11 +1,15 @@
-****************
-ORCA Control
-****************
+.. image:: _static/orca-b.png
+    :height: 200px
+    :align: center
+
+
+
 
 ORCA is a c++ whole-body reactive controller meant to compute the desired actuation torque
 of a robot given some tasks to perform and some constraints.
 
-About
+
+Introduction
 ==============
 
 

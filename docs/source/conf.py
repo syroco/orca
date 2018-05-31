@@ -64,8 +64,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ORCA'
-copyright = u'2017, Antoine Hoarau'
-author = u'Antoine Hoarau'
+copyright = u'2018, Fuzzy Logic Robotics'
+author = u'Antoine Hoarau & Ryan Lober'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -129,7 +129,7 @@ html_show_copyright = True
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_logo = '_static/orca-b.png'
+html_logo = '_static/orca-ls.png'
 
 html_theme_options = {
     'logo_only': True,
