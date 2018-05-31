@@ -114,7 +114,6 @@ int main(int argc, char const *argv[])
 
     double dt = 0.1;
     double current_time = 0.0;
-    int delay_ms = 500;
 
     // The good stuff...
 
@@ -122,13 +121,13 @@ int main(int argc, char const *argv[])
 
     cart_task->onActivationCallback(std::bind(&TaskMonitor::onActivation, task_monitor));
     cart_task->onActivatedCallback(std::bind(&TaskMonitor::onActivated, task_monitor));
-    cart_task->onUpdateCallback(std::bind(&TaskMonitor::onUpdate, task_monitor, std::placeholders::_1, std::placeholders::_2));
+    cart_task->onUpdateCallback([&](double current_time, double dt){ task_monitor->onUpdate(current_time, dt); });
     cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));
     cart_task->onDeactivatedCallback(std::bind(&TaskMonitor::onDeactivated, task_monitor));
 
     std::cout << "[main] Activating tasks and constraints." << '\n';
     controller.activateTasksAndConstraints();
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     std::cout << "[main] Starting 'RUN' while loop." << '\n';
     while(!task_monitor->isActivated()) // Run 10 times.
@@ -136,7 +135,7 @@ int main(int argc, char const *argv[])
         std::cout << "[main] 'RUN' while loop. Current time: " << current_time << '\n';
         controller.update(current_time, dt);
         current_time +=dt;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     std::cout << "[main] Exiting 'RUN' while loop." << '\n';
 
@@ -144,7 +143,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "[main] Deactivating tasks and constraints." << '\n';
     controller.deactivateTasksAndConstraints();
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     std::cout << "[main] Starting 'DEACTIVATION' while loop." << '\n';
 
@@ -153,7 +152,7 @@ int main(int argc, char const *argv[])
         std::cout << "[main] 'DEACTIVATION' while loop. Current time: " << current_time << '\n';
         controller.update(current_time, dt);
         current_time += dt;
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     std::cout << "[main] Exiting 'DEACTIVATION' while loop." << '\n';
 
