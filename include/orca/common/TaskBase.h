@@ -54,8 +54,8 @@ namespace common
     /**
     * @brief The common base class for tasks and constraints
     *
-    * This class contains a model of the robot, the problem in which the tasks 
-    * is currently being used, and a state machine. Although this class is 
+    * This class contains a model of the robot, the problem in which the tasks
+    * is currently being used, and a state machine. Although this class is
     * called TaskBase, both tasks and constraints inherit from this.
     */
     class TaskBase
@@ -109,11 +109,12 @@ namespace common
         std::shared_ptr<const robot::RobotDynTree> getRobot() const;
 
         void link(std::shared_ptr<common::TaskBase> e);
-        
+
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
         void onActivatedCallback(std::function<void(void)> cb);
-        void onUpdateCallback(std::function<void(double,double)> cb);
+        void onUpdateBeginCallback(std::function<void(double,double)> cb);
+        void onUpdateEndCallback(std::function<void(double,double)> cb);
         void onDeactivationCallback(std::function<void(void)> cb);
         void onDeactivatedCallback(std::function<void(void)> cb);
     protected:
@@ -148,11 +149,12 @@ namespace common
         std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
-        
+
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
         std::function<void(void)> on_activated_cb_;
-        std::function<void(double,double)> on_update_cb_;
+        std::function<void(double,double)> on_update_begin_cb_;
+        std::function<void(double,double)> on_update_end_cb_;
         std::function<void(void)> on_deactivation_cb_;
         std::function<void(void)> on_deactivated_cb_;
         //unsigned int getHierarchicalLevel() const;

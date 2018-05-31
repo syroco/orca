@@ -93,7 +93,7 @@ TaskBase::State TaskBase::getState() const
 void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
 {
     assertRobotInitialized(robot);
-    
+
     // Check if we already have a robot
     if(robot_)
     {
@@ -134,12 +134,12 @@ void TaskBase::resize()
     // Calling the user callback
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
-    
+
     for(auto e : linked_elements_)
         e->resize();
 
     this->onResize();
-    
+
     switch (state_)
     {
         case Init:
@@ -203,7 +203,7 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 bool TaskBase::activate()
 {
     assertRobotInitialized(robot_);
-    
+
     if(state_ == Resized || state_ == Deactivated)
     {
         LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
@@ -216,7 +216,7 @@ bool TaskBase::activate()
 
         for(auto t : linked_elements_)
             t->activate();
-        
+
         onActivation();
         if(on_activation_cb_)
             on_activation_cb_();
@@ -246,6 +246,9 @@ void TaskBase::update(double current_time, double dt)
         case Activated:
         case Deactivating:
         {
+            if(hasWrench())
+                wrench_->update(current_time,dt);
+
             if(state_ == Activating)
             {
                 if(this->activation_requested_)
@@ -262,7 +265,7 @@ void TaskBase::update(double current_time, double dt)
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
                     else
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
-                    
+
                     onActivated();
                     if(on_activated_cb_)
                         on_activated_cb_();
@@ -285,22 +288,22 @@ void TaskBase::update(double current_time, double dt)
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
                     else
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
-                    
+
                     onDeactivated();
                     if(on_deactivated_cb_)
                         on_deactivated_cb_();
-                    
+
                     break;
                 }
             }
-            
 
-            if(hasWrench())
-                wrench_->update(current_time,dt);
-            
+            if(on_update_begin_cb_)
+                on_update_begin_cb_(current_time,dt);
+
             onUpdate(current_time, dt);
-            if(on_update_cb_)
-                on_update_cb_(current_time,dt);
+
+            if(on_update_end_cb_)
+                on_update_end_cb_(current_time,dt);
 
             break;
         }
@@ -322,10 +325,16 @@ void orca::common::TaskBase::onActivatedCallback(std::function<void ()> cb)
     this->on_activated_cb_ = cb;
 }
 
-void TaskBase::onUpdateCallback(std::function<void(double,double)> cb)
+void TaskBase::onUpdateBeginCallback(std::function<void(double,double)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdate callback";
-    this->on_update_cb_ = cb;
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateBegin callback";
+    this->on_update_begin_cb_ = cb;
+}
+
+void TaskBase::onUpdateEndCallback(std::function<void(double,double)> cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateEnd callback";
+    this->on_update_end_cb_ = cb;
 }
 
 void TaskBase::onDeactivationCallback(std::function<void(void)> cb)
@@ -354,7 +363,7 @@ bool TaskBase::deactivate()
 
         for(auto t : linked_elements_)
             t->deactivate();
-        
+
         onDeactivation();
         if(on_deactivation_cb_)
             on_deactivation_cb_();

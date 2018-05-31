@@ -67,13 +67,19 @@ public:
         is_activated_ = true;
     }
 
-    void onUpdate(double current_time, double dt)
+    void onUpdateEnd(double current_time, double dt)
     {
-        std::cout << "[TaskMonitor] Called 'onUpdate' callback." << '\n';
+        std::cout << "[TaskMonitor] Called 'onUpdateBegin' callback." << '\n';
         std::cout << "  >> current time: " << current_time << '\n';
         std::cout << "  >> dt: " << dt << '\n';
     }
-
+    
+    void onUpdateBegin(double current_time, double dt)
+    {
+        std::cout << "[TaskMonitor] Called 'onUpdateEnd' callback." << '\n';
+        std::cout << "  >> current time: " << current_time << '\n';
+        std::cout << "  >> dt: " << dt << '\n';
+    }
     void onDeactivation()
     {
         std::cout << "[TaskMonitor] Called 'onDeactivation' callback." << '\n';
@@ -162,7 +168,8 @@ int main(int argc, char const *argv[])
 
     cart_task->onActivationCallback(std::bind(&TaskMonitor::onActivation, task_monitor));
     cart_task->onActivatedCallback(std::bind(&TaskMonitor::onActivated, task_monitor));
-    cart_task->onUpdateCallback(std::bind(&TaskMonitor::onUpdate, task_monitor, std::placeholders::_1, std::placeholders::_2));
+    cart_task->onUpdateBeginCallback(std::bind(&TaskMonitor::onUpdateBegin, task_monitor, std::placeholders::_1, std::placeholders::_2));
+    cart_task->onUpdateEndCallback(std::bind(&TaskMonitor::onUpdateEnd, task_monitor, std::placeholders::_1, std::placeholders::_2));
     cart_task->onDeactivationCallback(std::bind(&TaskMonitor::onDeactivation, task_monitor));
     cart_task->onDeactivatedCallback(std::bind(&TaskMonitor::onDeactivated, task_monitor));
 
