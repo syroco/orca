@@ -129,14 +129,19 @@ void TaskBase::resize()
     // Calling the user callback
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
-    this->onResize();
+    
     for(auto e : linked_elements_)
         e->resize();
 
+    this->onResize();
+    
     switch (state_)
     {
         case Init:
             state_ = Resized;
+            onResized();
+            if(on_resized_cb_)
+                on_resized_cb_();
             break;
         default:
             // NOTE: If the task is running, then just call instantaneous resize
