@@ -264,7 +264,7 @@ void Problem::build()
 {
     // Reset H and g
     data_.reset();
-
+    // Build Objective
     int iwrench = 0;
     for(auto task : tasks_)
     {
@@ -297,7 +297,9 @@ void Problem::build()
                       << " because H size is (" << Size(data_.H_) << ")");
         }
     }
-
+    // build constraints as
+    // lbA < Ax < ubA
+    // l < x < u <---- identity constraints
     int iAwrench = 0;
     iwrench = 0;
     int row_idx = 0;
@@ -327,6 +329,7 @@ void Problem::build()
             else
             {
                 // Error
+                constraint->print();
                 orca_throw(Formatter() << "Identity Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
@@ -338,7 +341,9 @@ void Problem::build()
                 iAwrench++;
             }
 
-            if(start_idx + nrows <= data_.lb_.size() )
+            if(start_idx + nrows <= data_.lb_.size()
+                && row_idx + nrows < data_.A_.rows()
+                && start_idx + ncols < data_.A_.cols() )
             {
                 if(constraint->isComputing())
                 {
@@ -356,6 +361,7 @@ void Problem::build()
             else
             {
                 // Error
+                constraint->print();
                 orca_throw(Formatter() << "Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
