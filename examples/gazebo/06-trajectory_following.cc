@@ -122,6 +122,30 @@ int main(int argc, char const *argv[])
         ,QPSolver::qpOASES
     );
 
+    const int ndof = robot->getNrOfDegreesOfFreedom();
+
+
+    auto joint_pos_task = controller.addTask<JointAccelerationTask>("JointPosTask");
+
+    // Eigen::VectorXd P(ndof);
+    // P.setConstant(100);
+    joint_pos_task->pid()->setProportionalGain(Eigen::VectorXd::Constant(ndof, 100));
+
+    // Eigen::VectorXd I(ndof);
+    // I.setConstant(1);
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof, 1));
+
+    // Eigen::VectorXd windupLimit(ndof);
+    // windupLimit.setConstant(10);
+    joint_pos_task->pid()->setWindupLimit(Eigen::VectorXd::Constant(ndof, 10));
+
+    // Eigen::VectorXd D(ndof);
+    // D.setConstant(10);
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof, 10));
+
+    joint_pos_task->setWeight(1.e-6);
+
+
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
     controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); //
@@ -139,7 +163,6 @@ int main(int argc, char const *argv[])
     cart_task->servoController()->pid()->setDerivativeGain(D);
 
 
-    const int ndof = robot->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
     controller.addConstraint(jnt_trq_cstr);
@@ -162,6 +185,9 @@ int main(int argc, char const *argv[])
     GazeboServer gzserver(argc,argv);
     auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
 
+
+    controller.globalRegularization()->euclidianNorm().setWeight(1.e-8);
+
     ///////////////////////////////////////
     ///////////////////////////////////////
     ///////////////////////////////////////
@@ -171,7 +197,8 @@ int main(int argc, char const *argv[])
     int traj_loops = 0;
     bool exit_control_loop = true;
     Eigen::Vector3d start_position, end_position;
-
+    Eigen::VectorXd controller_torques(ndof);
+    Eigen::VectorXd gravity_torques(ndof);
 
     cart_task->onActivationCallback([](){
         std::cout << "Activating CartesianTask..." << '\n';
@@ -223,13 +250,17 @@ int main(int argc, char const *argv[])
         }
     });
 
-    cart_task->onDeactivationCallback([&cart_task_activated](){
+    cart_task->onDeactivationCallback([&](){
         std::cout << "Deactivating task." << '\n';
         cart_task_activated = false;
+
+        std::cout << "\n\n\n" << '\n';
+        std::cout << "Last controller_torques:\n" << controller_torques << '\n';
     });
 
-    cart_task->onDeactivatedCallback([](){
-        std::cout << "CartesianTask deactivated. Stopping controller" << '\n';
+    cart_task->onDeactivatedCallback([&](){
+        std::cout << "CartesianTask deactivated." << '\n';
+        std::cout << "Last gravity_torques:\n" << gravity_torques << '\n';
     });
 
 
@@ -252,7 +283,8 @@ int main(int argc, char const *argv[])
         {
             if(controller.solutionFound())
             {
-                gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
+                controller_torques = controller.getJointTorqueCommand();
+                gzrobot.setJointTorqueCommand( controller_torques );
             }
             else
             {
@@ -261,11 +293,14 @@ int main(int argc, char const *argv[])
         }
         else
         {
-            gzrobot.setJointGravityTorques(robot->getJointGravityTorques());
+            gravity_torques = robot->getJointGravityTorques();
+            gzrobot.setJointGravityTorques(gravity_torques);
         }
     });
 
     std::cout << "Simulation running... (GUI with \'gzclient\')" << "\n";
     gzserver.run();
+
+
     return 0;
 }
