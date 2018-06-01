@@ -3,6 +3,9 @@
 An introduction to the ORCA callback system
 ====================================================
 
+.. note:: The source code for this example can be found in ``[orca_root]/examples/intermediate/02-using_callbacks.cc``, or alternatively on github at: https://github.com/syroco/orca/blob/dev/examples/intermediate/02-using_callbacks.cc
+
+
 .. code-block:: c++
     :linenos:
 

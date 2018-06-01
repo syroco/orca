@@ -25,7 +25,8 @@ Gazebo
     gazebo/02-multi_robot
     gazebo/03-set_robot_state
     gazebo/04-set_robot_state_gravity_compensation
-
+    gazebo/05-orca_gazebo
+    gazebo/06-trajectory_following
 
 Plotting
 ============
