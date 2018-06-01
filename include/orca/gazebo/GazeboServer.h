@@ -516,9 +516,16 @@ private:
     void worldUpdateEnd()
     {
         if(callback_)
-            callback_(world_->Iterations(),
-                      getSimTime(),
-                      getDt());
+            callback_(getIterations(),getSimTime(),getDt());
+    }
+
+    double getIterations()
+    {
+        #if GAZEBO_MAJOR_VERSION > 8
+            return world_->Iterations();
+        #else
+            return world_->GetIterations();
+        #endif
     }
 
     double getSimTime()

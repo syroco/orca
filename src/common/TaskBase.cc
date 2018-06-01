@@ -217,7 +217,7 @@ bool TaskBase::activate()
     if(state_ == Resized || state_ == Deactivated)
     {
         state_ = Activating;
-        LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
+        LOG_INFO << "[" << TaskBase::getName() << "] Activation requested";
 
         this->activation_requested_ = true;
 
@@ -227,9 +227,6 @@ bool TaskBase::activate()
         for(auto t : linked_elements_)
             t->activate();
 
-        onActivation();
-        if(on_activation_cb_)
-            on_activation_cb_();
         return true;
     }
     else
@@ -266,6 +263,10 @@ void TaskBase::update(double current_time, double dt)
             {
                 if(this->activation_requested_)
                 {
+                    LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
+                    onActivation();
+                    if(on_activation_cb_)
+                        on_activation_cb_();
                     this->activation_requested_ = false;
                     start_time_ = current_time;
                 }
@@ -277,7 +278,7 @@ void TaskBase::update(double current_time, double dt)
                     if(this->getRampDuration() > 0)
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
                     else
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
 
                     onActivated();
                     if(on_activated_cb_)
@@ -289,6 +290,10 @@ void TaskBase::update(double current_time, double dt)
             {
                 if(this->deactivation_requested_)
                 {
+                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
+                    onDeactivation();
+                    if(on_deactivation_cb_)
+                        on_deactivation_cb_();
                     this->deactivation_requested_ = false;
                     stop_time_ = current_time;
                 }
@@ -300,7 +305,7 @@ void TaskBase::update(double current_time, double dt)
                     if(this->getRampDuration() > 0)
                         LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
                     else
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "State is now " << state_;
+                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
 
                     onDeactivated();
                     if(on_deactivated_cb_)
@@ -367,7 +372,7 @@ bool TaskBase::deactivate()
     if(state_ == Activating || state_ == Activated)
     {
         state_ = Deactivating;
-        LOG_INFO << "[" << TaskBase::getName() << "] Deactivate" << state_;
+        LOG_INFO << "[" << TaskBase::getName() << "] Deactivation requested";
 
         this->deactivation_requested_ = true;
 
@@ -377,9 +382,6 @@ bool TaskBase::deactivate()
         for(auto t : linked_elements_)
             t->deactivate();
 
-        onDeactivation();
-        if(on_deactivation_cb_)
-            on_deactivation_cb_();
         return true;
     }
     else
