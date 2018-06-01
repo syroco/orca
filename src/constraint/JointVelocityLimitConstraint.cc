@@ -15,6 +15,8 @@ void JointVelocityLimitConstraint::onUpdateConstraintFunction(double current_tim
 {
     const Eigen::VectorXd& current_jnt_vel = this->robot()->getJointVel();
 
-    constraintFunction().lowerBound().noalias() = ( minLimit() - current_jnt_vel ) / horizon_ ;
-    constraintFunction().upperBound().noalias() = ( maxLimit() - current_jnt_vel ) / horizon_ ;
+    double horizon_dt = horizon_ * dt;
+
+    constraintFunction().lowerBound().noalias() = ( minLimit() - current_jnt_vel ) / ( horizon_dt );
+    constraintFunction().upperBound().noalias() = ( maxLimit() - current_jnt_vel ) / ( horizon_dt );
 }

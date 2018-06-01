@@ -31,6 +31,8 @@ void JointPositionLimitConstraint::onUpdateConstraintFunction(double current_tim
     const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
 
-    constraintFunction().lowerBound().noalias() = 2. * ( minLimit() - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
-    constraintFunction().upperBound().noalias() = 2. * ( maxLimit() - (current_jnt_pos + horizon_ * current_jnt_vel )) / ( horizon_ * horizon_ );
+    double horizon_dt = horizon_ * dt;
+
+    constraintFunction().lowerBound().noalias() = 2. * ( minLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
+    constraintFunction().upperBound().noalias() = 2. * ( maxLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
 }
