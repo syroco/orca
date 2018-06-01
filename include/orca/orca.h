@@ -64,6 +64,7 @@
 
 #include "orca/task/CartesianTask.h"
 #include "orca/task/JointTorqueTask.h"
+#include "orca/task/JointAccelerationTask.h"
 #include "orca/task/RegularisationTask.h"
 #include "orca/task/WrenchTask.h"
 
