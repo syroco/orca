@@ -297,6 +297,15 @@ public:
         brakes_ = enable;
     }
 
+    double getIterations()
+    {
+        #if GAZEBO_MAJOR_VERSION > 8
+            return world_->Iterations();
+        #else
+            return world_->GetIterations();
+        #endif
+    }
+
 protected:
     void worldUpdateBegin()
     {
@@ -311,7 +320,7 @@ protected:
 
         model_->SetEnabled(!brakes_); // Enable the robot when brakes are off
 
-        if(world_->Iterations() > 0 && !brakes_)
+        if(getIterations() > 0 && !brakes_)
         {
             for(int i=0 ; i < ndof_ ; ++i)
                 joints_[i]->SetForce(0,joint_torque_command_[i] + joint_gravity_torques_[i]);
@@ -375,7 +384,7 @@ protected:
             #else
                 double dt = world_->GetPhysicsEngine()->GetMaxStepSize();
             #endif
-            callback_(this->world_->Iterations(),sim_time,dt);
+            callback_(getIterations(),sim_time,dt);
         }
     }
 private:

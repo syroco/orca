@@ -301,7 +301,7 @@ const iDynTree::Model& RobotDynTree::getRobotModel() const
     return kinDynComp_.getRobotModel();
 }
 
-bool RobotDynTree::frameExists(const std::__cxx11::string& frame_name) const
+bool RobotDynTree::frameExists(const std::string& frame_name) const
 {
     assertLoaded();
     return kinDynComp_.getFrameIndex(frame_name) >= 0;
