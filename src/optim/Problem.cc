@@ -200,7 +200,7 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> constraint)
 void Problem::resize()
 {
     if(ndof_ == 0)
-        throw std::runtime_error(Formatter() << "Cannot resize if ndof is 0");
+        orca_throw(Formatter() << "Cannot resize if ndof is 0");
 
     int nvars = this->mapping_.generate(ndof_,wrenches_.size());
     int nconstr = computeNumberOfConstraintRows();
@@ -294,7 +294,7 @@ void Problem::build()
         {
             // Error
             task->print();
-            throw std::runtime_error(Formatter() << "Task " << task->getName() << " ptr " << task << " << block of size (" << Size(nrows,ncols) << ")"
+            orca_throw(Formatter() << "Task " << task->getName() << " ptr " << task << " << block of size (" << Size(nrows,ncols) << ")"
                       << "\nCould not fit at index [" << start_idx << ":" << start_idx << "]"
                       << " because H size is (" << Size(data_.H_) << ")");
         }
@@ -320,9 +320,7 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constraint->getState() == common::TaskBase::Activating
-                || constraint->getState() == common::TaskBase::Activated
-                || constraint->getState() == common::TaskBase::Deactivating)
+                if(constraint->isComputing())
                 {
                     data_.lb_.segment(start_idx ,nrows) = data_.lb_.segment(start_idx ,nrows).cwiseMax(constraint->getLowerBound());
                     data_.ub_.segment(start_idx ,nrows) = data_.ub_.segment(start_idx ,nrows).cwiseMin(constraint->getUpperBound());
@@ -331,7 +329,7 @@ void Problem::build()
             else
             {
                 // Error
-                throw std::runtime_error(Formatter() << "Identity Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
+                orca_throw(Formatter() << "Identity Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
         else
@@ -344,7 +342,7 @@ void Problem::build()
 
             if(start_idx + nrows <= data_.lb_.size() )
             {
-                if(constraint->isActivated())
+                if(constraint->isComputing())
                 {
                     data_.A_.block(row_idx,start_idx,nrows,ncols) = constraint->getConstraintMatrix();
                     data_.lbA_.segment(row_idx,nrows) = data_.lbA_.segment(row_idx,nrows).cwiseMax(constraint->getLowerBound());
@@ -360,7 +358,7 @@ void Problem::build()
             else
             {
                 // Error
-                throw std::runtime_error(Formatter() << "Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
+                orca_throw(Formatter() << "Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
             }
         }
     }

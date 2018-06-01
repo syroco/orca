@@ -7,6 +7,7 @@
 
 using namespace orca;
 using namespace orca::optim;
+using namespace orca::utils;
 
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotDynTree> robot
@@ -23,7 +24,7 @@ Controller::Controller(const std::string& name
 
     if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
     {
-        throw std::runtime_error(utils::Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
+        orca_throw(Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
     }
     insertNewLevel();
 }
@@ -52,7 +53,7 @@ const std::string& Controller::getName()
 std::shared_ptr<robot::RobotDynTree> Controller::robot()
 {
     if(!robot_)
-        throw std::runtime_error(utils::Formatter() << "Robot is not set");
+        orca_throw(Formatter() << "Robot is not set");
     return robot_;
 }
 
@@ -123,7 +124,7 @@ bool Controller::update(double current_time, double dt)
             return solution_found_;
         }
         default:
-            throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
+            orca_throw(Formatter() << "unsupported resolution strategy");
     }
 }
 
@@ -139,7 +140,7 @@ common::ReturnCode Controller::getReturnCode() const
         case ResolutionStrategy::OneLevelWeighted:
             return problems_.front()->getReturnCode();
         default:
-            throw std::runtime_error(utils::Formatter() << "unsupported resolution strategy");
+            orca_throw(Formatter() << "unsupported resolution strategy");
     }
 }
 
@@ -160,14 +161,14 @@ std::shared_ptr<task::GenericTask> Controller::getTask(const std::string& name, 
     for(auto t : problem->getTasks())
         if(t->getName() == name)
             return t;
-    throw std::runtime_error(utils::Formatter() << "Task " << name << " does not exist at level " << level);
+    orca_throw(Formatter() << "Task " << name << " does not exist at level " << level);
 }
 
 std::shared_ptr<task::GenericTask> Controller::getTask(unsigned int index, int level)
 {
     auto problem = getProblemAtLevel(level);
     if(problem->getTasks().size() < index)
-        throw std::runtime_error(utils::Formatter() <<"Problem at level " << level << " only have " << problem->getTasks().size() << "tasks, cannot retrieve task index " << index);
+        orca_throw(Formatter() <<"Problem at level " << level << " only have " << problem->getTasks().size() << "tasks, cannot retrieve task index " << index);
 
     auto it = problem->getTasks().begin();
     std::advance(it, level);
@@ -192,7 +193,7 @@ const Eigen::VectorXd& Controller::getSolution()
         case ResolutionStrategy::OneLevelWeighted:
             return problems_.front()->getSolution();
         default:
-            throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            orca_throw(Formatter() << "Unsupported resolution strategy");
     }
 }
 
@@ -203,7 +204,7 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
     {
         case ResolutionStrategy::OneLevelWeighted:
             if(!solutionFound())
-                throw std::runtime_error(utils::Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
+                orca_throw(Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
 
             joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
 
@@ -216,13 +217,13 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
             return joint_torque_command_;
 
         default:
-            throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            orca_throw(Formatter() << "Unsupported resolution strategy");
     }
 }
 
 const Eigen::VectorXd& Controller::computeKKTTorques()
 {
-    throw std::runtime_error(utils::Formatter() << "computeKKTTorques() is not yet implemented");
+    orca_throw(Formatter() << "computeKKTTorques() is not yet implemented");
     return kkt_torques_;
 }
 
@@ -234,7 +235,7 @@ const Eigen::VectorXd& Controller::getJointAccelerationCommand()
             joint_acceleration_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
             return joint_acceleration_command_;
         default:
-            throw std::runtime_error(utils::Formatter() << "Unsupported resolution strategy");
+            orca_throw(Formatter() << "Unsupported resolution strategy");
     }
 }
 
@@ -282,8 +283,6 @@ void Controller::activateTasks()
     {
         for(auto t : problem->getTasks())
         {
-            if(t->getName() == "GlobalRegularisation")
-                continue;
             t->activate();
         }
     }
@@ -295,8 +294,6 @@ void Controller::activateConstraints()
     {
         for(auto c : problem->getConstraints())
         {
-            if(c->getName() == "DynamicsEquation")
-                continue;
             c->activate();
         }
     }
@@ -341,7 +338,7 @@ std::shared_ptr<Problem> Controller::getProblemAtLevel(int level)
         std::advance(it, level);
         return *it;
     }
-    throw std::runtime_error(utils::Formatter() << "Level " << level << " does not exist.\n"
+    orca_throw(Formatter() << "Level " << level << " does not exist.\n"
                             << "There is only " << problems_.size() << " level(s)");
 }
 
@@ -372,9 +369,6 @@ void Controller::insertNewLevel()
     addConstraint(dynamics_equation);
     addTask(global_regularisation);
 
-    dynamics_equation->activate();
-    global_regularisation->activate();
-
     LOG_INFO << "Controller has now " << problems_.size() << " levels";
 }
 
@@ -388,7 +382,7 @@ void Controller::updateTasks(double current_time, double dt)
             int cv = problem->getSize(t->getControlVariable());
             if(t->cols() != cv)
             {
-                throw std::runtime_error(utils::Formatter() << "Size of task " << t->getName()
+                orca_throw(Formatter() << "Size of task " << t->getName()
                             << " (control var " << t->getControlVariable()
                             << " should be " << cv << " but is " << t->cols() << ")");
             }
@@ -407,7 +401,7 @@ void Controller::updateConstraints(double current_time, double dt)
             int cv = problem->getSize(c->getControlVariable());
             if(c->cols() != cv)
             {
-                throw std::runtime_error(utils::Formatter() << "Size of constraint " << c->getName()
+                orca_throw(Formatter() << "Size of constraint " << c->getName()
                             << " (control var " << c->getControlVariable()
                             << " should be " << cv << " but is " << c->cols() << ")");
             }

@@ -23,6 +23,7 @@ void GenericTask::print() const
     getEuclidianNorm().print();
     std::cout << " - Weight " << getWeight() << '\n';
     std::cout << " - Ramp   " << getCurrentRampValue() << '\n';
+    std::cout << " - Ramp duration " << getRampDuration() << '\n';
 }
 
 double GenericTask::getWeight() const

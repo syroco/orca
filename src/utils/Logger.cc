@@ -1,6 +1,7 @@
 #include "orca/utils/Logger.h"
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
+#include <plog/Formatters/FuncMessageFormatter.h>
 
 namespace plog
 {
@@ -26,8 +27,8 @@ namespace orca
 {
     namespace utils
     {
-        static plog::RollingFileAppender<plog::SimpleFormatter> fileAppender("orca-log.txt", 8000, 3);
-        static plog::ColorConsoleAppender<plog::SimpleFormatter> consoleAppender;
+        static plog::RollingFileAppender<plog::FuncMessageFormatter> fileAppender("orca-log.txt", 8000, 3);
+        static plog::ColorConsoleAppender<plog::FuncMessageFormatter> consoleAppender;
 
         Logger::Logger()
         {
@@ -79,12 +80,12 @@ namespace orca
             if(log_level == "none")
                 Logger::setLogLevel( LogLevel::none  );
         }
-        
+
 		void Logger::setLogLevel(int log_level)
         {
             Logger::setLogLevel(static_cast<LogLevel>(log_level));
         }
-        
+
 		void Logger::setLogLevel(LogLevel log_level)
         {
             plog::get()->setMaxSeverity(static_cast<plog::Severity>(log_level));

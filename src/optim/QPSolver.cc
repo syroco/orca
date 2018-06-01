@@ -14,7 +14,7 @@ QPSolver::QPSolver(QPSolver::SolverType solver_type)
             pimpl = std::unique_ptr<SolverImpl<qpOASES> >(new SolverImpl<qpOASES>);
             break;
         default:
-            throw std::runtime_error(Formatter() << "QPSolver " << solver_type << " not implemented");
+            orca_throw(Formatter() << "QPSolver " << solver_type << " not implemented");
     }
 }
 

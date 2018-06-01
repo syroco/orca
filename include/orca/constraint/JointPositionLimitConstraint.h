@@ -58,7 +58,7 @@ protected:
     virtual void onActivation();
     virtual void onUpdateConstraintFunction(double current_time, double dt);
 private:
-    double horizon_ = 3;
+    double horizon_ = 15;
 };
 
 }
