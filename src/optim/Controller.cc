@@ -206,7 +206,7 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
             if(!solutionFound())
                 orca_throw(Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
 
-            joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceTorque);
+            joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointTorque);
 
             if(remove_gravity_torques || remove_gravity_torques_)
                 joint_torque_command_ -= robot_->getJointGravityTorques();
@@ -232,7 +232,7 @@ const Eigen::VectorXd& Controller::getJointAccelerationCommand()
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
-            joint_acceleration_command_ = problems_.front()->getSolution(ControlVariable::JointSpaceAcceleration);
+            joint_acceleration_command_ = problems_.front()->getSolution(ControlVariable::JointAcceleration);
             return joint_acceleration_command_;
         default:
             orca_throw(Formatter() << "Unsupported resolution strategy");

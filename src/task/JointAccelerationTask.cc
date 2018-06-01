@@ -7,7 +7,7 @@ using namespace orca::common;
 using namespace orca::utils;
 
 JointAccelerationTask::JointAccelerationTask(const std::string& name)
-: GenericTask(name,ControlVariable::JointSpaceAcceleration)
+: GenericTask(name,ControlVariable::JointAcceleration)
 , pid_(std::make_shared<PIDController>())
 {
 

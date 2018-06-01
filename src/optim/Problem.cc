@@ -42,10 +42,10 @@ void Problem::print() const
           ControlVariable::X
         , ControlVariable::GeneralisedAcceleration
         , ControlVariable::FloatingBaseAcceleration
-        , ControlVariable::JointSpaceAcceleration
+        , ControlVariable::JointAcceleration
         , ControlVariable::GeneralisedTorque
         , ControlVariable::FloatingBaseWrench
-        , ControlVariable::JointSpaceTorque
+        , ControlVariable::JointTorque
         , ControlVariable::ExternalWrench
         , ControlVariable::ExternalWrenches
         , ControlVariable::Composite

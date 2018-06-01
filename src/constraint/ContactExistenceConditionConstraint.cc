@@ -6,7 +6,7 @@ using namespace orca::robot;
 using namespace orca::common;
 
 ContactExistenceConditionConstraint::ContactExistenceConditionConstraint(const std::string& name)
-: EqualityConstraint(name,ControlVariable::JointSpaceAcceleration)
+: EqualityConstraint(name,ControlVariable::JointAcceleration)
 {
 
 }

@@ -29,7 +29,7 @@ void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time,
     int acc_idx = idx_map_[ControlVariable::GeneralisedAcceleration];
     int acc_size = size_map_[ControlVariable::GeneralisedAcceleration];
     int fb_wrench_idx = idx_map_[ControlVariable::FloatingBaseWrench];
-    int jnt_trq_idx = idx_map_[ControlVariable::JointSpaceTorque];
+    int jnt_trq_idx = idx_map_[ControlVariable::JointTorque];
     int wrench_idx = idx_map_[ControlVariable::ExternalWrench];
 
     constraintFunction().constraintMatrix().setZero();

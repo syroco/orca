@@ -3,7 +3,7 @@ using namespace orca::constraint;
 using namespace orca::optim;
 
 JointVelocityLimitConstraint::JointVelocityLimitConstraint(const std::string& name)
-: JointLimitConstraint(name,ControlVariable::JointSpaceAcceleration)
+: JointLimitConstraint(name,ControlVariable::JointAcceleration)
 {}
 
 void JointVelocityLimitConstraint::setHorizon(double horizon)

@@ -9,10 +9,10 @@ unsigned int ControlVariableMapping::generate(unsigned int ndof, unsigned int nw
     size_map_[    ControlVariable::X                          ] = 2 * fulldim + nwrenches * 6;
     size_map_[    ControlVariable::GeneralisedAcceleration    ] = fulldim;
     size_map_[    ControlVariable::FloatingBaseAcceleration   ] = (floating_base_ ? 6 : 0);
-    size_map_[    ControlVariable::JointSpaceAcceleration     ] = ndof;
+    size_map_[    ControlVariable::JointAcceleration     ] = ndof;
     size_map_[    ControlVariable::GeneralisedTorque          ] = fulldim;
     size_map_[    ControlVariable::FloatingBaseWrench         ] = (floating_base_ ? 6 : 0);
-    size_map_[    ControlVariable::JointSpaceTorque           ] = ndof;
+    size_map_[    ControlVariable::JointTorque           ] = ndof;
     size_map_[    ControlVariable::ExternalWrench             ] = 6;
     size_map_[    ControlVariable::ExternalWrenches           ] = nwrenches * 6;
     size_map_[    ControlVariable::Composite                  ] = 0;
@@ -21,10 +21,10 @@ unsigned int ControlVariableMapping::generate(unsigned int ndof, unsigned int nw
     index_map_[    ControlVariable::X                          ] = 0;
     index_map_[    ControlVariable::GeneralisedAcceleration    ] = 0;
     index_map_[    ControlVariable::FloatingBaseAcceleration   ] = 0;
-    index_map_[    ControlVariable::JointSpaceAcceleration     ] = (floating_base_ ? 6 : 0);
+    index_map_[    ControlVariable::JointAcceleration     ] = (floating_base_ ? 6 : 0);
     index_map_[    ControlVariable::GeneralisedTorque          ] = fulldim;
     index_map_[    ControlVariable::FloatingBaseWrench         ] = fulldim;
-    index_map_[    ControlVariable::JointSpaceTorque           ] = fulldim + (floating_base_ ? 6 : 0);
+    index_map_[    ControlVariable::JointTorque           ] = fulldim + (floating_base_ ? 6 : 0);
     index_map_[    ControlVariable::ExternalWrench             ] = 2 * fulldim;
     index_map_[    ControlVariable::ExternalWrenches           ] = 2 * fulldim;
     index_map_[    ControlVariable::Composite                  ] = 0;
