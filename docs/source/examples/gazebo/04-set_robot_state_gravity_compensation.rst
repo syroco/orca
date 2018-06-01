@@ -3,6 +3,9 @@
 Set robot state with gravity compensation
 ==================================================
 
+.. note:: The source code for this example can be found in ``[orca_root]/examples/gazebo/04-set_robot_state_gravity_compensation.cc``, or alternatively on github at: https://github.com/syroco/orca/blob/dev/examples/gazebo/04-set_robot_state_gravity_compensation.cc
+
+
 .. code-block:: c++
     :linenos:
 

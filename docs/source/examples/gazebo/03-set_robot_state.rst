@@ -1,7 +1,10 @@
-.. _04-set_robot_state:
+.. _03-set_robot_state:
 
 Set robot state
 ======================
+
+.. note:: The source code for this example can be found in ``[orca_root]/examples/gazebo/03-set_robot_state.cc``, or alternatively on github at: https://github.com/syroco/orca/blob/dev/examples/gazebo/03-set_robot_state.cc
+
 
 .. code-block:: c++
     :linenos:

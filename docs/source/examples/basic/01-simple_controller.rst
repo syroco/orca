@@ -3,6 +3,8 @@
 Simple controller
 =========================
 
+.. note:: The source code for this example can be found in ``[orca_root]/examples/basic/01-simple_controller.cc``, or alternatively on github at: https://github.com/syroco/orca/blob/dev/examples/basic/01-simple_controller.cc
+
 .. code-block:: c++
     :linenos:
 
