@@ -77,11 +77,29 @@ namespace optim
         common::ReturnCode getReturnCode() const;
 
         bool addTask(std::shared_ptr<task::GenericTask> task);
-        
+
+        template<class T>
+        std::shared_ptr<T> addTask(const std::string& name)
+        {
+            auto t = std::make_shared<T>(name);
+            if(this->addTask(t))
+                return t;
+            return 0;
+        }
+
         std::shared_ptr<task::GenericTask> getTask(const std::string& name, int level = 0);
         std::shared_ptr<task::GenericTask> getTask(unsigned int index, int level = 0);
-        
+
         bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
+
+        template<class C>
+        std::shared_ptr<C> addConstraint(const std::string& name)
+        {
+            auto c = std::make_shared<C>(name);
+            if(this->addConstraint(c))
+                return c;
+            return 0;
+        }
 
         bool solutionFound() const;
 
@@ -109,7 +127,7 @@ namespace optim
 
         void removeGravityTorquesFromSolution(bool do_remove);
         void removeCoriolisTorquesFromSolution(bool do_remove);
-        
+
     private:
         bool isProblemDry(std::shared_ptr<const optim::Problem> problem);
         std::shared_ptr<Problem> getProblemAtLevel(int level);
