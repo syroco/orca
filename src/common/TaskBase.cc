@@ -212,7 +212,7 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 
 bool TaskBase::activate()
 {
-    assertRobotInitialized(robot_);
+    assertRobotLoaded(robot_);
 
     if(state_ == Resized || state_ == Deactivated)
     {
