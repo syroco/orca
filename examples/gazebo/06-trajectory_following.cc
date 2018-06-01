@@ -177,48 +177,62 @@ int main(int argc, char const *argv[])
         std::cout << "Activating CartesianTask..." << '\n';
     });
 
+    bool cart_task_activated = false;
+
     cart_task->onActivatedCallback([&](){
         start_position = cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1);
         end_position = cart_pos_ref.translation();
         traj.resetTrajectory(start_position, end_position);
-        std::cout << "CartesianTask activated. Begining trajectory." << '\n';
+        std::cout << "CartesianTask activated. Removing gravity compensation and begining motion." << '\n';
+        cart_task_activated = true;
     });
 
     cart_task->onComputeBeginCallback([&](double current_time, double dt){
-        Eigen::Vector3d p, v, a;
-        traj.getDesired(current_time, p, v, a);
-        cart_pos_ref.translation() = p;
-        cart_vel_ref.head(3) = v;
-        cart_acc_ref.head(3) = a;
-        cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+        if (cart_task->getState() == TaskBase::State::Activated)
+        {
+            Eigen::Vector3d p, v, a;
+            traj.getDesired(current_time, p, v, a);
+            cart_pos_ref.translation() = p;
+            cart_vel_ref.head(3) = v;
+            cart_acc_ref.head(3) = a;
+            cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+        }
     });
 
     cart_task->onComputeEndCallback([&](double current_time, double dt){
-        if (traj.isTrajectoryFinished()  )
+        if (cart_task->getState() == TaskBase::State::Activated)
         {
-            if (traj_loops < 4)
+            if (traj.isTrajectoryFinished()  )
             {
-                traj.resetTrajectory(end_position, start_position);
-                std::cout << "Changing trajectory direction." << '\n';
-                ++traj_loops;
-            }
-            else
-            {
-                std::cout << "Trajectory looping finished." << '\n';
-                exit_control_loop = true;
+                if (traj_loops < 5)
+                {
+                    // flip start and end positions.
+                    auto ep = end_position;
+                    end_position = start_position;
+                    start_position = ep;
+                    traj.resetTrajectory(start_position, end_position);
+                    std::cout << "Changing trajectory direction." << '\n';
+                    ++traj_loops;
+                }
+                else
+                {
+                    std::cout << "Trajectory looping finished. Deactivating task and starting gravity compensation." << '\n';
+                    cart_task->deactivate();
+                }
             }
         }
     });
 
-    cart_task->onDeactivationCallback([](){
+    cart_task->onDeactivationCallback([&cart_task_activated](){
         std::cout << "Deactivating task." << '\n';
+        cart_task_activated = false;
     });
 
     cart_task->onDeactivatedCallback([](){
         std::cout << "CartesianTask deactivated. Stopping controller" << '\n';
     });
 
-    controller.activateTasksAndConstraints();
+
 
     gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
     {
@@ -228,15 +242,26 @@ int main(int argc, char const *argv[])
                             ,gzrobot.getJointVelocities()
                             ,gzrobot.getGravity()
                         );
+        // All tasks need the robot to be initialized during the activation phase
+        if(n_iter == 1)
+            controller.activateTasksAndConstraints();
+
         controller.update(current_time, dt);
 
-        if(controller.solutionFound())
+        if (cart_task_activated)
         {
-            gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
+            if(controller.solutionFound())
+            {
+                gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
+            }
+            else
+            {
+                gzrobot.setBrakes(true);
+            }
         }
         else
         {
-            gzrobot.setBrakes(true);
+            gzrobot.setJointGravityTorques(robot->getJointGravityTorques());
         }
     });
 
