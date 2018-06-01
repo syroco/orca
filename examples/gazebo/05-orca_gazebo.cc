@@ -45,53 +45,6 @@
 using namespace orca::all;
 using namespace orca::gazebo;
 
-class MinJerkPositionTrajectory {
-private:
-    Eigen::Vector3d alpha_, sp_, ep_;
-    double duration_ = 0.0;
-    double start_time_ = 0.0;
-    bool first_call_ = true;
-    bool traj_finished_ = false;
-
-public:
-    MinJerkPositionTrajectory (double duration)
-    : duration_(duration)
-    {
-    }
-
-    bool isTrajectoryFinished(){return traj_finished_;}
-
-    void resetTrajectory(const Eigen::Vector3d& start_position, const Eigen::Vector3d& end_position)
-    {
-        sp_ = start_position;
-        ep_ = end_position;
-        alpha_ = ep_ - sp_;
-        first_call_ = true;
-        traj_finished_ = false;
-    }
-
-    void getDesired(double current_time, Eigen::Vector3d& p, Eigen::Vector3d& v, Eigen::Vector3d& a)
-    {
-        if(first_call_)
-        {
-            start_time_ = current_time;
-            first_call_ = false;
-        }
-        double tau = (current_time - start_time_) / duration_;
-        if(tau >= 1.0)
-        {
-            p = ep_;
-            v = Eigen::Vector3d::Zero();
-            a = Eigen::Vector3d::Zero();
-
-            traj_finished_ = true;
-            return;
-        }
-        p =                         sp_ + alpha_ * ( 10*pow(tau,3.0) - 15*pow(tau,4.0)  + 6*pow(tau,5.0)   );
-        v = Eigen::Vector3d::Zero() + alpha_ * ( 30*pow(tau,2.0) - 60*pow(tau,3.0)  + 30*pow(tau,4.0)  );
-        a = Eigen::Vector3d::Zero() + alpha_ * ( 60*pow(tau,1.0) - 180*pow(tau,2.0) + 120*pow(tau,3.0) );
-    }
-};
 
 
 int main(int argc, char const *argv[])
@@ -126,7 +79,7 @@ int main(int argc, char const *argv[])
     controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
+    cart_pos_ref.translation() = Eigen::Vector3d(0.5,-0.5,0.8); // x,y,z in meters
     cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
@@ -157,9 +110,6 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
-    double dt = 0.001;
-    double current_time = 0.0;
-
     GazeboServer gzserver(argc,argv);
     auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
 
@@ -168,8 +118,12 @@ int main(int argc, char const *argv[])
     ///////////////////////////////////////
     ///////////////////////////////////////
 
-    controller.activateTasksAndConstraints();
+    bool cart_task_activated = false;
 
+    cart_task->onActivatedCallback([&cart_task_activated](){
+        std::cout << "CartesianTask activated. Removing gravity compensation and begining motion." << '\n';
+        cart_task_activated = true;
+    });
 
     gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
     {
@@ -179,15 +133,25 @@ int main(int argc, char const *argv[])
                             ,gzrobot.getJointVelocities()
                             ,gzrobot.getGravity()
                         );
-        controller.update(current_time, dt);
+        // All tasks need the robot to be initialized during the activation phase
+        if(n_iter == 1)
+            controller.activateTasksAndConstraints();
 
-        if(controller.solutionFound())
+        controller.update(current_time, dt);
+        if (cart_task_activated)
         {
-            gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
+            if(controller.solutionFound())
+            {
+                gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
+            }
+            else
+            {
+                gzrobot.setBrakes(true);
+            }
         }
         else
         {
-            gzrobot.setBrakes(true);
+            gzrobot.setJointGravityTorques(robot->getJointGravityTorques());
         }
     });
 
