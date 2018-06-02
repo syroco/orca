@@ -67,7 +67,7 @@ RobotDynTree::RobotDynTree(const std::string& robot_name)
 
 RobotDynTree::~RobotDynTree()
 {
-    
+
 }
 
 const std::string& RobotDynTree::getName() const
@@ -110,6 +110,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
     }
     if(impl_->loadModelFromString(modelString))
     {
+        urdf_str_ = modelString;
         LOG_INFO << "Robot model " << getName() << " successfully loaded";
         return true;
     }
@@ -124,8 +125,12 @@ bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
     if( str.empty() )
         LOG_ERROR << "Could not load model from urdf file \'" << modelFile << "\' because file is empty";
 
-    urdf_url_ = modelFile;
-    return loadModelFromString(str);
+    if(loadModelFromString(str))
+    {
+        urdf_url_ = modelFile;
+        return true;
+    }
+    return false;
 }
 
 const std::string& RobotDynTree::getUrdfUrl() const

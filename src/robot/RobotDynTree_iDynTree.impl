@@ -142,15 +142,13 @@ private:
     RobotDataHelper robotData_;
     iDynTree::KinDynComputations kinDynComp_;
     std::string base_frame_;
-    std::string urdf_url_;
-    std::string urdf_str_;
     unsigned int ndof_ = 0;
     std::vector<std::string> joint_names_;
     std::vector<std::string> link_names_;
     std::vector<std::string> frame_names_;
 
 public:
-    
+
     const std::vector<std::string>& getLinkNames() const
     {
         return link_names_;
@@ -217,8 +215,6 @@ private:
         {
             link_names_.push_back( kinDynComp_.getRobotModel().getLinkName(i) );
         }
-
-
 
         return true;
     }

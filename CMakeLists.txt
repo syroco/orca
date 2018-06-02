@@ -6,7 +6,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(CMakePackageConfigHelpers)
-# include(ExternalProject)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -52,23 +51,10 @@ target_compile_definitions(${PROJECT_NAME}_priv_qpOASES PRIVATE __NO_COPYRIGHT__
 target_include_directories(${PROJECT_NAME}_priv_qpOASES PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/qpOASES-3.2.1/include>)
 
 #################### iDynTree #########################
-# set(iDynTree_INCLUDE_DIRS
-#     external/idyntree-0.8.1/src/core/include
-#     external/idyntree-0.8.1/src/estimation/include
-#     external/idyntree-0.8.1/src/high-level/include
-#     external/idyntree-0.8.1/src/inverse-kinematics/include
-#     external/idyntree-0.8.1/src/model/include
-#     external/idyntree-0.8.1/src/model_io/iKin-kdl/include
-#     external/idyntree-0.8.1/src/model_io/symoro/include
-#     external/idyntree-0.8.1/src/model_io/urdf/include
-#     external/idyntree-0.8.1/src/model_io/urdf-kdl/include
-#     external/idyntree-0.8.1/src/regressors/include
-#     external/idyntree-0.8.1/src/sensors/include
-# )
-
 set(sh_saved ${BUILD_SHARED_LIBS})
 
 set(BUILD_SHARED_LIBS OFF)
+SET(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "Build static idyntree libs")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1)
 
 set(BUILD_SHARED_LIBS ${sh_saved})
@@ -77,10 +63,16 @@ set(BUILD_SHARED_LIBS ${sh_saved})
 find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
-        INCLUDE_DIRS include
         LIBRARIES orca
-        CFG_EXTRAS orca-extras.cmake
     )
+else()
+    set(CATKIN_GLOBAL_BIN_DESTINATION bin)
+    set(CATKIN_GLOBAL_LIB_DESTINATION lib)
+    set(CATKIN_GLOBAL_LIBEXEC_DESTINATION lib)
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION include)
+    set(CATKIN_PACKAGE_LIB_DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
+    set(CATKIN_PACKAGE_BIN_DESTINATION ${CATKIN_GLOBAL_LIBEXEC_DESTINATION}/${PROJECT_NAME})
+    set(CATKIN_PACKAGE_INCLUDE_DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${PROJECT_NAME})
 endif()
 
 #################### ORCA #########################
@@ -206,32 +198,26 @@ add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
 # catkin devel support
 if(catkin_FOUND)
 
-    # add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
-    #                     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
-    #                     COMMAND ${CMAKE_COMMAND} -E copy
-    #                     ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
-    #                     ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaTargets.cmake
-    #                     COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-    #                  )
-    # add_custom_target(  ${PROJECT_NAME}-extras-copy ALL
-    #                     COMMAND ${CMAKE_COMMAND} -E copy
-    #                     ${PROJECT_SOURCE_DIR}/cmake/orca-extras.cmake
-    #                     ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orca-extras.cmake
-    #                     COMMENT "Copying 'orca-extras.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-    #                  )
+    add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
+                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
+                        COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
+                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaTargets.cmake
+                        COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+                     )
     add_custom_target(  ${PROJECT_NAME}-eigen-copy ALL
                         COMMAND ${CMAKE_COMMAND} -E copy
                         ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/FindEigen3.cmake
                         COMMENT "Copying 'FindEigen3.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
                      )
-    # add_custom_target(  ${PROJECT_NAME}-config-copy ALL
-    #                     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-    #                     COMMAND ${CMAKE_COMMAND} -E copy
-    #                     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-    #                     ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaConfig.cmake
-    #                     COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-    #                  )
+    add_custom_target(  ${PROJECT_NAME}-config-copy ALL
+                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+                        COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaConfig.cmake
+                        COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+                     )
 endif()
 
 
@@ -240,7 +226,7 @@ endif()
 install(TARGETS orca
         ${PROJECT_NAME}_priv_qpOASES
         ${PROJECT_NAME}_priv_tinyxml
-    DESTINATION lib/${PROJECT_NAME}
+    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     EXPORT orcaTargets
 )
 
@@ -254,60 +240,46 @@ install(DIRECTORY include/
   PATTERN "*.in" EXCLUDE
 )
 
-install(DIRECTORY external/plog-1.1.4/include/plog DESTINATION include)
+install(DIRECTORY external/plog-1.1.4/include/
+    DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+)
 
 install(FILES
     ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
-    DESTINATION share/${PROJECT_NAME}/cmake
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
 
+set(CONFIG_PACKAGE_LOCATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
+set(INCLUDE_INSTALL_DIR ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
+configure_package_config_file(cmake/orcaConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+    INSTALL_DESTINATION ${CONFIG_PACKAGE_LOCATION}
+    PATH_VARS INCLUDE_INSTALL_DIR
+)
+# Cmake Package
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
 
-# if(catkin_FOUND)
-#     configure_file(cmake/pkgConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigCatkin.cmake)
-#     file(READ ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigCatkin.cmake orca_config_catkin)
-#     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake ${orca_config_catkin})
-# endif()
+export(EXPORT orcaTargets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
+    NAMESPACE orca::
+)
 
-if(NOT catkin_FOUND)
-    message("
+export(PACKAGE orca)
 
-Plain cmake support
+# Plain cmake / catkin install space support
+install(EXPORT orcaTargets
+    FILE orcaTargets.cmake
+    NAMESPACE orca::
+    DESTINATION ${CONFIG_PACKAGE_LOCATION} # share/orca/cmake
+)
 
-
-
-    ")
-    set(CONFIG_PACKAGE_LOCATION share/${PROJECT_NAME}/cmake)
-    set(INCLUDE_INSTALL_DIR include/)
-
-    configure_package_config_file(cmake/orcaConfig.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-        INSTALL_DESTINATION ${CONFIG_PACKAGE_LOCATION}
-        PATH_VARS INCLUDE_INSTALL_DIR
-    )
-    # Cmake Package
-    write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY AnyNewerVersion
-    )
-
-    export(EXPORT orcaTargets
-        FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
-        NAMESPACE orca::
-    )
-
-    export(PACKAGE orca)
-
-    # Plain cmake / catkin install space support
-    install(EXPORT orcaTargets
-        FILE orcaTargets.cmake
-        NAMESPACE orca::
-        DESTINATION ${CONFIG_PACKAGE_LOCATION} # share/orca/cmake
-    )
-    install(FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
-        DESTINATION ${CONFIG_PACKAGE_LOCATION}
-    )
-endif()
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
+    DESTINATION ${CONFIG_PACKAGE_LOCATION}
+)
