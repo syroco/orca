@@ -34,7 +34,7 @@ if(NOT Eigen3_FOUND)
 endif()
 
 #################### TinyXML ###########################
-set(tinyxml_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1/extern/tinyxml/src)
+set(tinyxml_SOURCE_DIR external/idyntree-0.8.1/extern/tinyxml/src)
 add_library(${PROJECT_NAME}_priv_tinyxml STATIC
     ${tinyxml_SOURCE_DIR}/tinyxml.cpp
     ${tinyxml_SOURCE_DIR}/tinyxmlerror.cpp
