@@ -18,13 +18,13 @@ using namespace orca::math;
         orca_throw("Robot model is not initialized with at least one state (via setRobotState)");
 
 #define assertLoaded() \
-    if(getNrOfDegreesOfFreedom() == 0) \
+    if(impl_->getNrOfDegreesOfFreedom() == 0) \
         orca_throw("Robot model is not loaded");
 
 #define assertFrameExists(frame) \
     if(frame.empty()) \
         orca_throw("Provided frame is empty"); \
-    if(!frameExists(frame)) { \
+    if(!impl_->frameExists(frame)) { \
         print(); \
         orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot"); \
     }
