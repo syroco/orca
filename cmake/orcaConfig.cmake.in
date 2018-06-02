@@ -5,17 +5,14 @@
 
 @PACKAGE_INIT@
 
-if(EIGEN3_ROOTDIR)
-    set(ENV{EIGEN3_ROOT} @EIGEN3_ROOTDIR@)
+# include("${CMAKE_CURRENT_LIST_DIR}/orca-extras.cmake")
+find_package(catkin QUIET)
+if(catkin_FOUND)
+    find_package(Eigen3 REQUIRED)
+    include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
-find_package(Eigen3 REQUIRED)
-
-if(NOT TARGET iDynTree::idyntree-high-level)
-  find_package(iDynTree REQUIRED)
-endif()
-
-message(STATUS "
+message("
 
 ORCA : Optimization-based framework for Robotic Control Applications
 
