@@ -107,6 +107,10 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
                 << '\n'
                 << "Please use auto robot = std::make_shared<RobotDynTree>(\"my_robot_name\")";
         }
+        else
+        {
+            LOG_DEBUG << "Name extracted from URDF string : " << name_;
+        }
     }
     if(impl_->loadModelFromString(modelString))
     {
@@ -114,6 +118,8 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
         LOG_INFO << "Robot model " << getName() << " successfully loaded";
         return true;
     }
+    std::cerr << "modelString : \n" << modelString << "\n\n";
+    orca_throw(Formatter() << "Could not load robot model from string");
     return false;
 }
 
