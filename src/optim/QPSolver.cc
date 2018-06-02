@@ -11,7 +11,7 @@ QPSolver::QPSolver(QPSolver::SolverType solver_type)
     switch(solver_type)
     {
         case SolverType::qpOASES:
-            pimpl = std::unique_ptr<SolverImpl<qpOASES> >(new SolverImpl<qpOASES>);
+            pimpl = make_unique<SolverImpl<qpOASES> >();
             break;
         default:
             orca_throw(Formatter() << "QPSolver " << solver_type << " not implemented");
