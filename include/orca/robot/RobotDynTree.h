@@ -44,12 +44,6 @@
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
 
-// iDynTree headers
-#include <iDynTree/Model/FreeFloatingState.h>
-#include <iDynTree/KinDynComputations.h>
-#include <iDynTree/ModelIO/ModelLoader.h>
-#include <iDynTree/Core/EigenHelpers.h>
-
 namespace orca
 {
 namespace robot
@@ -58,7 +52,7 @@ namespace robot
  * Struct containing the floating robot state
  * using Eigen data structures.
  */
-struct EigenRobotState
+struct RobotState
 {
     void resize(int nrOfInternalDOFs)
     {
@@ -85,46 +79,7 @@ struct EigenRobotState
     Eigen::Vector3d gravity;
 };
 
-/**
- * Struct containing the floating robot state
- * using iDynTree data structures.
- * For the semantics of this structures,
- * see KinDynComputation::setRobotState method.
- */
-struct iDynTreeRobotState
-{
-    void resize(int nrOfInternalDOFs)
-    {
-        jointPos.resize(nrOfInternalDOFs);
-        jointVel.resize(nrOfInternalDOFs);
-        reset();
-    }
-
-    void reset()
-    {
-        world_H_base.Identity();
-        gravity(0) = 0;
-        gravity(1) = 0;
-        gravity(2) = -9.81;
-    }
-
-    void fromEigen(EigenRobotState& eigRobotState)
-    {
-        iDynTree::fromEigen(world_H_base,eigRobotState.world_H_base);
-        iDynTree::toEigen(jointPos) = eigRobotState.jointPos;
-        iDynTree::fromEigen(baseVel,eigRobotState.baseVel);
-        iDynTree::toEigen(jointVel) = eigRobotState.jointVel;
-        iDynTree::toEigen(gravity)  = eigRobotState.gravity;
-    }
-
-    iDynTree::Transform world_H_base;
-    iDynTree::VectorDynSize jointPos;
-    iDynTree::Twist         baseVel;
-    iDynTree::VectorDynSize jointVel;
-    iDynTree::Vector3       gravity;
-};
-
-struct EigenRobotAcceleration
+struct RobotAcceleration
 {
     void resize(int nrOfInternalDOFs)
     {
@@ -149,94 +104,12 @@ struct EigenRobotAcceleration
     Eigen::VectorXd jointAcc;
 };
 
-struct iDynTreeRobotAcceleration
-{
-    void resize(int nrOfInternalDOFs)
-    {
-        jointAcc.resize(nrOfInternalDOFs);
-        baseAcc.zero();
-        jointAcc.zero();
-    }
-
-    void zero()
-    {
-        baseAcc.zero();
-        jointAcc.zero();
-    }
-    iDynTree::Vector6 baseAcc;
-    iDynTree::VectorDynSize jointAcc;
-};
-
-struct RobotDataHelper
-{
-    void resize(const iDynTree::Model & model)
-    {
-        eigRobotState.resize(model.getNrOfDOFs());
-        idynRobotState.resize(model.getNrOfDOFs());
-        eigRobotAcc.resize(model.getNrOfDOFs());
-        idynRobotAcc.resize(model.getNrOfDOFs());
-
-        idynFFMassMatrix.resize(model);
-        eigFFMassMatrix = iDynTree::toEigen(idynFFMassMatrix);
-        eigMassMatrix.setZero(model.getNrOfDOFs(),model.getNrOfDOFs());
-
-        generalizedBiasForces.resize(model);
-        eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
-        generalizedGravityTorques.resize(model);
-        eigJointGravityTorques.setZero(6 + model.getNrOfDOFs());
-        extForces.resize(model);
-
-        eigJointGravityTorques.setZero(model.getNrOfDOFs());
-        eigJointCoriolisTorques.setZero(model.getNrOfDOFs());
-        eigJointGravityAndCoriolisTorques.setZero(model.getNrOfDOFs());
-
-        eigMinJointPos.setZero(model.getNrOfDOFs());
-        eigMaxJointPos.setZero(model.getNrOfDOFs());
-
-        eigRobotAcc.setZero();
-        idynRobotAcc.zero();
-        extForces.zero();
-
-        idynJacobian.resize(6,model.getNrOfDOFs());
-        eigJacobian = iDynTree::toEigen(idynJacobian);
-
-        idynFFJacobian.resize(model);
-        eigFFJacobian = iDynTree::toEigen(idynFFJacobian);
-    }
-
-    EigenRobotAcceleration eigRobotAcc;
-    iDynTreeRobotAcceleration idynRobotAcc;
-    iDynTree::FreeFloatingMassMatrix idynFFMassMatrix;
-    iDynTree::MatrixDynSize idynJacobian;
-    Eigen::MatrixXd eigFFJacobian;
-    Eigen::MatrixXd eigJacobian;
-    Eigen::MatrixXd eigFFMassMatrix;
-    Eigen::MatrixXd eigMassMatrix;
-    iDynTree::FrameFreeFloatingJacobian idynFFJacobian;
-    iDynTree::LinkNetExternalWrenches extForces;
-    iDynTree::Vector6 idynFrameBiasAcc;
-    iDynTree::Twist idynFrameVel;
-    iDynTree::Position idynPramePos;
-    iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
-    iDynTree::FreeFloatingGeneralizedTorques generalizedGravityTorques;
-    Eigen::VectorXd eigGeneralizedBiasForces;
-    Eigen::VectorXd eigJointGravityTorques;
-    Eigen::VectorXd eigJointCoriolisTorques;
-    Eigen::VectorXd eigJointGravityAndCoriolisTorques;
-    Eigen::VectorXd eigMinJointPos;
-    Eigen::VectorXd eigMaxJointPos;
-    EigenRobotState eigRobotState;
-    iDynTreeRobotState idynRobotState;
-    Eigen::Matrix<double,6,1> eigFrameBiasAcc;
-    Eigen::Matrix<double,6,1> eigFrameVel;
-    Eigen::Matrix4d eigTransform;
-};
-
 
 class RobotDynTree
 {
 public:
     RobotDynTree(const std::string& name="");
+    virtual ~RobotDynTree();
     const std::string& getName() const;
     bool loadModelFromFile(const std::string& modelFile);
     bool loadModelFromString(const std::string &modelString);
@@ -281,7 +154,6 @@ public:
     const Eigen::VectorXd& getJointGravityTorques();
     const Eigen::VectorXd& getJointCoriolisTorques();
     const Eigen::VectorXd& getJointGravityAndCoriolisTorques();
-    const iDynTree::Model& getRobotModel() const;
     unsigned int getNrOfJoints() const;
     std::string getJointName(unsigned int idx) const;
     const std::vector<std::string>& getLinkNames() const;
@@ -290,23 +162,19 @@ public:
     bool isInitialized() const;
     void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
-    std::function<void(void)> robot_initialized_cb_;;
-    bool load(const iDynTree::Model& model);
-    RobotDataHelper robotData_;
-    iDynTree::KinDynComputations kinDynComp_;
+    enum RobotDynTreeType { iDynTree, KDL };
+    RobotDynTreeType robot_kinematics_type_ = iDynTree;
+
+    std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
-    std::string base_frame_;
+
     std::string name_;
     std::string urdf_url_;
     std::string urdf_str_;
-    unsigned int ndof_ = 0;
-    std::vector<std::string> joint_names_;
-    std::vector<std::string> link_names_;
-    std::vector<std::string> frame_names_;
-// private:
-    // class iDynTreeImpl;                     // Forward declaration of the implementation class
-    // std::shared_ptr<iDynTreeImpl> robot_impl_;    // PIMPL
 
+private:
+    template<RobotDynTreeType type = iDynTree> struct RobotDynTreeImpl;
+    std::unique_ptr<RobotDynTreeImpl<> > impl_;
 };
 
 }

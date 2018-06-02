@@ -59,6 +59,12 @@ namespace orca
 namespace utils
 {
 
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique( Args&& ...args )
+{
+    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+}
+
 // From https://stackoverflow.com/a/348862
 class orca_exception : public std::runtime_error {
     std::string msg;

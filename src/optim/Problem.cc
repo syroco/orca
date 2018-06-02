@@ -342,8 +342,8 @@ void Problem::build()
             }
 
             if(start_idx + nrows <= data_.lb_.size()
-                && row_idx + nrows < data_.A_.rows()
-                && start_idx + ncols < data_.A_.cols() )
+                && row_idx + nrows <= data_.A_.rows()
+                && start_idx + ncols <= data_.A_.cols() )
             {
                 if(constraint->isComputing())
                 {
@@ -362,7 +362,12 @@ void Problem::build()
             {
                 // Error
                 constraint->print();
-                orca_throw(Formatter() << "Constraint " << constraint->getName() << " ptr " << constraint << " is out of band : start_idx + nrows > data_.lb_.size()");
+                if(start_idx + nrows <= data_.lb_.size())
+                    orca_throw(Formatter() << "Constraint " << constraint->getName() << " is out of band : start_idx + nrows > data_.lb_.size()");
+                if(row_idx + nrows <= data_.A_.rows())
+                    orca_throw(Formatter() << "Constraint " << constraint->getName() << " is out of band : row_idx + nrows <= data_.A_.rows()");
+                if(start_idx + ncols <= data_.A_.cols())
+                    orca_throw(Formatter() << "Constraint " << constraint->getName() << " is out of band : start_idx + ncols <= data_.A_.cols()");
             }
         }
     }
