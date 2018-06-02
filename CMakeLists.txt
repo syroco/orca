@@ -7,13 +7,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(CMakePackageConfigHelpers)
 
-#################### Xenomai ###########################
-find_package(Xenomai QUIET)
-
-if(XENOMAI_FOUND)
-    message(STATUS "Building with Xenomai mutexes")
-endif()
-
 #################### Eigen3 ###########################
 find_package(Eigen3 3.2.92 QUIET)
 
@@ -23,104 +16,85 @@ if(NOT Eigen3_FOUND)
     endif()
     message(WARNING "Using internal Eigen3 (3.3.90), please consider installing it standalone.")
     set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
-    # NOTE: removing the subdirectory as we just need the header path
-    # Adding the eigen project allows all the checks for processor features
-    # but also generate a lot of warnings/output that we don't really need
+    # NOTE: Adding the eigen project allows all the checks for processor features
+    # and system environnement libraries.
     # It might be useful to add this on a very particular system to get some
-    # very specific processor features.
-    #add_subdirectory(external/eigen-3.3.90/eigen3)
+    # very specific processor features and link agains the right BLAS for example.
+    # Ex of an issue in a Xenomai env : http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1482
+    # Some linking issues might happend, which are fixed with the 'auto' config
+    # of eigen subdir. This is considered necessary for the code to be portable
+    add_subdirectory(external/eigen-3.3.90/eigen3)
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
 endif()
 
 #################### TinyXML ###########################
-find_package(TinyXML QUIET)
-if(NOT TinyXML_FOUND)
-    message(WARNING "Using internal TinyXML (2.6.2), please consider installing it standalone.")
-    set(tinyxml_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1/extern/tinyxml/src)
-    include_directories(${tinyxml_SOURCE_DIR})
-    add_library(tinyxml
-        ${tinyxml_SOURCE_DIR}/tinyxml.cpp
-        ${tinyxml_SOURCE_DIR}/tinyxmlerror.cpp
-        ${tinyxml_SOURCE_DIR}/tinyxmlparser.cpp
-    )
-endif()
+set(tinyxml_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1/extern/tinyxml/src)
+include_directories(${tinyxml_SOURCE_DIR})
+add_library(${PROJECT_NAME}_priv_tinyxml STATIC
+    ${tinyxml_SOURCE_DIR}/tinyxml.cpp
+    ${tinyxml_SOURCE_DIR}/tinyxmlerror.cpp
+    ${tinyxml_SOURCE_DIR}/tinyxmlparser.cpp
+)
 
 #################### qpOASES ##########################
-find_package(qpOASES QUIET)
+set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include )
+file(GLOB qpOASES_srcs ${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
 
-if(NOT qpOASES_FOUND)
-    message(WARNING "Using internal qpOASES (3.2.1), please consider installing it standalone.")
-    set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include )
-    file(GLOB qpOASES_srcs ${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
-
-    add_library(qpOASES STATIC ${qpOASES_srcs})
-    target_compile_definitions(qpOASES PRIVATE __NO_COPYRIGHT__)
-    set(qpOASES_LIBRARIES qpOASES)
-    target_include_directories(qpOASES PRIVATE external/qpOASES-3.2.1/include)
-    install(DIRECTORY external/qpOASES-3.2.1/include
-            DESTINATION include
-            PATTERN ".svn" EXCLUDE
-    )
-else()
-    add_library(qpOASES UNKNOWN IMPORTED)
-endif()
+add_library(${PROJECT_NAME}_priv_qpOASES STATIC ${qpOASES_srcs})
+target_compile_definitions(${PROJECT_NAME}_priv_qpOASES PRIVATE __NO_COPYRIGHT__)
+target_include_directories(${PROJECT_NAME}_priv_qpOASES PRIVATE external/qpOASES-3.2.1/include)
 
 #################### iDynTree #########################
-find_package(iDynTree QUIET)
+set(iDynTree_INCLUDE_DIRS
+    external/idyntree-0.8.1/src/core/include
+    external/idyntree-0.8.1/src/estimation/include
+    external/idyntree-0.8.1/src/high-level/include
+    external/idyntree-0.8.1/src/icub/include
+    external/idyntree-0.8.1/src/inverse-kinematics/include
+    external/idyntree-0.8.1/src/model/include
+    external/idyntree-0.8.1/src/model_io/iKin-kdl/include
+    external/idyntree-0.8.1/src/model_io/symoro/include
+    external/idyntree-0.8.1/src/model_io/urdf/include
+    external/idyntree-0.8.1/src/model_io/urdf-kdl/include
+    external/idyntree-0.8.1/src/regressors/include
+    external/idyntree-0.8.1/src/sensors/include
+    external/idyntree-0.8.1/src/visualization/include
+    external/idyntree-0.8.1/src/yarp/include
+)
 
-if(NOT iDynTree_FOUND)
-    message(WARNING "Using internal iDynTree (0.8.1), please consider installing it standalone.")
+set(iDynTree_LIBRARIES_ALL
+    idyntree-core
+    idyntree-estimation
+    idyntree-high-level
+    idyntree-icub
+    idyntree-inverse-kinematics
+    idyntree-model
+    idyntree-modelio-urdf
+    idyntree-modelio-ikin-kdl
+    idyntree-modelio-symoro
+    idyntree-modelio-urdf-kdl
+    idyntree-regressors
+    idyntree-sensors
+    idyntree-visualization
+    idyntree-yarp
+)
 
-    set(iDynTree_INCLUDE_DIRS
-        external/idyntree-0.8.1/src/core/include
-        external/idyntree-0.8.1/src/estimation/include
-        external/idyntree-0.8.1/src/high-level/include
-        external/idyntree-0.8.1/src/icub/include
-        external/idyntree-0.8.1/src/inverse-kinematics/include
-        external/idyntree-0.8.1/src/model/include
-        external/idyntree-0.8.1/src/model_io/iKin-kdl/include
-        external/idyntree-0.8.1/src/model_io/symoro/include
-        external/idyntree-0.8.1/src/model_io/urdf/include
-        external/idyntree-0.8.1/src/model_io/urdf-kdl/include
-        external/idyntree-0.8.1/src/regressors/include
-        external/idyntree-0.8.1/src/sensors/include
-        external/idyntree-0.8.1/src/visualization/include
-        external/idyntree-0.8.1/src/yarp/include
-    )
+#set(IDYNTREE_SHARED_LIBRARY FALSE CACHE BOOL "Build iDynTree as a shared library")
+add_subdirectory(external/idyntree-0.8.1)
 
-    set(iDynTree_LIBRARIES_ALL
-        idyntree-core
-        idyntree-estimation
-        idyntree-high-level
-        idyntree-icub
-        idyntree-inverse-kinematics
-        idyntree-model
-        idyntree-modelio-urdf
-        idyntree-modelio-ikin-kdl
-        idyntree-modelio-symoro
-        idyntree-modelio-urdf-kdl
-        idyntree-regressors
-        idyntree-sensors
-        idyntree-visualization
-        idyntree-yarp
-    )
+foreach(l : ${iDynTree_LIBRARIES_ALL})
+    if(TARGET ${l})
+        list(APPEND iDynTree_LIBRARIES ${l})
+    endif()
+endforeach()
 
-    add_subdirectory(external/idyntree-0.8.1)
-
-    foreach(l : ${iDynTree_LIBRARIES_ALL})
-        if(TARGET ${l})
-            list(APPEND iDynTree_LIBRARIES ${l})
-        endif()
-    endforeach()
-
-    add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
-endif()
+add_library(iDynTree::idyntree-high-level ALIAS idyntree-high-level)
 
 #################### Catkin ###########################
 
-find_package(catkin QUIET COMPONENTS pluginlib)
+find_package(catkin QUIET)
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include #${EIGEN3_INCLUDE_DIR} ${iDynTree_INCLUDE_DIRS} external/qpOASES-3.2.1/include external/plog-1.1.3/include external/json-2.1.1/include
@@ -174,13 +148,6 @@ target_compile_features(orca PUBLIC
     cxx_generalized_initializers
 )
 
-if(XENOMAI_FOUND)
-    target_compile_definitions(orca PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
-    target_include_directories(orca PUBLIC ${XENOMAI_INCLUDE_DIRS})
-    target_link_libraries(orca PUBLIC ${XENOMAI_LIBRARIES})
-endif()
-
-
 target_include_directories(
       orca PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -218,10 +185,9 @@ if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     install(DIRECTORY external/matplotlibcpp/include/matplotlibcpp DESTINATION include/matplotlibcpp)
 endif()
 
-target_include_directories(orca PUBLIC $<TARGET_PROPERTY:iDynTree::idyntree-high-level,INCLUDE_DIRECTORIES>)
-target_link_libraries(orca PUBLIC iDynTree::idyntree-high-level)
-target_link_libraries(orca PUBLIC ${qpOASES_LIBRARIES})
-target_link_libraries(orca PUBLIC tinyxml)
+target_link_libraries(orca PRIVATE iDynTree::idyntree-high-level)
+target_link_libraries(orca PRIVATE ${PROJECT_NAME}_priv_qpOASES)
+target_link_libraries(orca PRIVATE ${PROJECT_NAME}_priv_tinyxml)
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
@@ -267,14 +233,6 @@ add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
 
 #################### ORCA Install #########################
 install(TARGETS orca DESTINATION lib EXPORT orcaTargets)
-
-if(NOT qpOASES_FOUND)
-    install(TARGETS qpOASES DESTINATION lib EXPORT orcaTargets)
-endif()
-
-if(NOT TinyXML_FOUND)
-    install(TARGETS tinyxml DESTINATION lib EXPORT orcaTargets)
-endif()
 
 install(DIRECTORY include/
   DESTINATION include
@@ -349,7 +307,6 @@ if(catkin_FOUND)
 endif()
 
 
-
 install(EXPORT orcaTargets
     FILE orcaTargets.cmake
     NAMESPACE orca::
@@ -358,5 +315,6 @@ install(EXPORT orcaTargets
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
+    ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
     DESTINATION ${CONFIG_PACKAGE_LOCATION}
 )
