@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
     robot->setGravity(Eigen::Vector3d(0,0,-9.81));
 
     // This is an helper function to store the whole state of the robot as eigen vectors/matrices. This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices. You can use it to fill data from either real robot and simulated robot.
-    EigenRobotState eigState;
+    RobotState eigState;
 
     // resize all the vectors/matrices to match the robot configuration
     eigState.resize(robot->getNrOfDegreesOfFreedom());
