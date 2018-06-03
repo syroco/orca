@@ -10,12 +10,13 @@ namespace optim
 {
 
 template<>
-struct QPSolver::SolverImpl<QPSolver::qpOASES>
+class QPSolver::SolverImpl<QPSolver::qpOASES>
 {
+private:
     std::unique_ptr<qpOASES::SQProblem> qpoases_;
     qpOASES::Options options_;
     bool qpoases_initialized_ = false;
-
+public:
     void resize(int nvar,int nconstr)
     {
         if(!qpoases_)

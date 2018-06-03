@@ -62,7 +62,7 @@ public:
     bool solve(orca::optim::ProblemData& data);
     common::ReturnCode getReturnCode() const;
 private:
-    template<SolverType type = qpOASES> struct SolverImpl;
+    template<SolverType type = qpOASES> class SolverImpl;
     std::unique_ptr<SolverImpl<> > pimpl;
     common::ReturnCode ret_ = common::ReturnCode::RET_INIT_FAILED;
 };
