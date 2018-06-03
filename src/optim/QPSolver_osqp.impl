@@ -23,6 +23,7 @@ public:
     {
         c_free(data_.A);
         c_free(data_.P);
+        osqp_cleanup(work_);
     }
     void resize(int nvar,int nconstr)
     {
@@ -30,6 +31,8 @@ public:
         {
             LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
             setDefaultOptions();
+            data_.n = nvar;
+            data_.m = nconstr;
             work_ = osqp_setup(&data_, &settings_);
         }
         // else if(nvar != qpoases_->getNV() || nconstr != qpoases_->getNC() )
@@ -45,19 +48,10 @@ public:
 
     void setPrintLevel(int level)
     {
-        // if(!qpoases_)
-        //     throw std::runtime_error("qpsolver pointer is null");
-        //
-        // switch (level)
-        // {
-        //     case -2:    qpoases_->setPrintLevel(qpOASES::PL_DEBUG_ITER);  break;
-        //     case -1:    qpoases_->setPrintLevel(qpOASES::PL_TABULAR);     break;
-        //     case  0:    qpoases_->setPrintLevel(qpOASES::PL_NONE);        break;
-        //     case  1:    qpoases_->setPrintLevel(qpOASES::PL_LOW);         break;
-        //     case  2:    qpoases_->setPrintLevel(qpOASES::PL_MEDIUM);      break;
-        //     case  3:    qpoases_->setPrintLevel(qpOASES::PL_HIGH);        break;
-        //     default: break;
-        // }
+        if(!work_)
+            throw std::runtime_error("osqp pointer is null");
+
+        osqp_update_verbose(work_,level);
     }
 
     void setDefaultOptions()
@@ -75,6 +69,13 @@ public:
 
     common::ReturnCode solve(ProblemData& data )
     {
+        // data_.n = n;
+        // data_.m = m;
+        // data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        // data_.q = q;
+        // data_.A = csc_matrix(data.m, data.n, A_nnz, A_x, A_i, A_p);
+        // data_.l = l;
+        // data_.u = u;
         osqp_solve(work_);
 // solved	OSQP_SOLVED	1
 // solved inaccurate	OSQP_SOLVED_INACCURATE	2
@@ -139,17 +140,17 @@ public:
 
     void getPrimalSolution(Eigen::VectorXd& solution)
     {
-        // if(!qpoases_)
-        //     throw std::runtime_error("qpsolver pointer is null");
-        //
-        // int nv = qpoases_->getNV();
-        // if(solution.size() != nv)
-        // {
-        //     std::stringstream err;
-        //     err << "Provided vector size is " << solution.size() << ",but the number of variable is " << nv << std::endl;
-        //     throw std::runtime_error(err.str());
-        // }
-        // qpoases_->getPrimalSolution(solution.data());
+        if(!work_)
+            throw std::runtime_error("osqp pointer is null");
+
+        int nv = work_->data->n;
+        if(solution.size() != nv)
+        {
+            std::stringstream err;
+            err << "Provided vector size is " << solution.size() << ",but the number of variable is " << nv << std::endl;
+            throw std::runtime_error(err.str());
+        }
+        solution = Eigen::Map<Eigen::VectorXd>(work_->solution->x, work_->data->n, 1);
     }
 };
 
