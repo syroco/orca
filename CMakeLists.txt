@@ -52,7 +52,7 @@ if(NOT Eigen3_FOUND)
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
     add_library(Eigen3::Eigen ALIAS eigen)
 else()
-    message("Eigen3 ${EIGEN3_VERSION} (> 3.2.92) found at ${EIGEN3_INCLUDE_DIR}")
+    message("Eigen3 ${EIGEN3_VERSION} (> 3.1) found at ${EIGEN3_INCLUDE_DIR}")
 endif()
 
 #################### TinyXML ###########################
