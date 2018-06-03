@@ -27,7 +27,7 @@ if(NOT Eigen3_FOUND)
     # Ex of an issue in a Xenomai env : http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1482
     # Some linking issues might happend, which are fixed with the 'auto' config
     # of eigen subdir. This is considered necessary for the code to be portable
-    add_subdirectory(external/eigen-3.3.90/eigen3 EXCLUDE_FROM_ALL)
+    add_subdirectory(external/eigen-3.3.90/eigen3)
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
@@ -43,7 +43,7 @@ add_library(${PROJECT_NAME}_priv_tinyxml STATIC
 target_include_directories(${PROJECT_NAME}_priv_tinyxml PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${tinyxml_SOURCE_DIR}>)
 
 #################### qpOASES ##########################
-set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include )
+set(qpOASES_INCLUDE_DIRS external/qpOASES-3.2.1/include)
 file(GLOB qpOASES_srcs ${PROJECT_SOURCE_DIR}/external/qpOASES-3.2.1/src/*.cpp)
 
 add_library(${PROJECT_NAME}_priv_qpOASES STATIC ${qpOASES_srcs})
@@ -55,7 +55,7 @@ set(sh_saved ${BUILD_SHARED_LIBS})
 
 set(BUILD_SHARED_LIBS OFF)
 SET(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "Build static idyntree libs")
-add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1)
+add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
 
 set(BUILD_SHARED_LIBS ${sh_saved})
 
@@ -71,6 +71,8 @@ else()
     set(CATKIN_GLOBAL_LIBEXEC_DESTINATION lib)
     set(CATKIN_GLOBAL_INCLUDE_DESTINATION include)
     set(CATKIN_PACKAGE_LIB_DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
+    set(CATKIN_GLOBAL_SHARE_DESTINATION share)
+    set(CATKIN_PACKAGE_SHARE_DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROJECT_NAME})
     set(CATKIN_PACKAGE_BIN_DESTINATION ${CATKIN_GLOBAL_LIBEXEC_DESTINATION}/${PROJECT_NAME})
     set(CATKIN_PACKAGE_INCLUDE_DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${PROJECT_NAME})
 endif()
@@ -143,9 +145,11 @@ if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     install(DIRECTORY external/matplotlibcpp/include/matplotlibcpp/ DESTINATION include/matplotlibcpp)
 endif()
 
-target_link_libraries(orca PRIVATE idyntree-high-level)
-target_link_libraries(orca PRIVATE ${PROJECT_NAME}_priv_qpOASES)
-target_link_libraries(orca PRIVATE ${PROJECT_NAME}_priv_tinyxml)
+target_link_libraries(orca PRIVATE
+    idyntree-high-level
+    ${PROJECT_NAME}_priv_qpOASES
+    ${PROJECT_NAME}_priv_tinyxml
+)
 
 #################### ORCA Examples #########################
 add_subdirectory(examples)
@@ -226,12 +230,13 @@ endif()
 install(TARGETS orca
         ${PROJECT_NAME}_priv_qpOASES
         ${PROJECT_NAME}_priv_tinyxml
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     EXPORT orcaTargets
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 install(DIRECTORY include/
-  DESTINATION include
+  DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
   FILES_MATCHING
   PATTERN "*.h"
   PATTERN "*.hh"
@@ -249,12 +254,10 @@ install(FILES
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
 
-set(CONFIG_PACKAGE_LOCATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
-set(INCLUDE_INSTALL_DIR ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-
+set(INCLUDE_INSTALL_DIR ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 configure_package_config_file(cmake/orcaConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-    INSTALL_DESTINATION ${CONFIG_PACKAGE_LOCATION}
+    INSTALL_DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
     PATH_VARS INCLUDE_INSTALL_DIR
 )
 # Cmake Package
@@ -264,22 +267,19 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
-export(EXPORT orcaTargets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
-    NAMESPACE orca::
-)
-
 export(PACKAGE orca)
 
 # Plain cmake / catkin install space support
 install(EXPORT orcaTargets
     FILE orcaTargets.cmake
     NAMESPACE orca::
-    DESTINATION ${CONFIG_PACKAGE_LOCATION} # share/orca/cmake
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
+
+# install(SCRIPT cmake/fixExportTargetsBug.cmake)
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
-    DESTINATION ${CONFIG_PACKAGE_LOCATION}
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
