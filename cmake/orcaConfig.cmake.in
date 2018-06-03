@@ -5,16 +5,17 @@
 
 @PACKAGE_INIT@
 
-find_package(catkin QUIET)
-if(catkin_FOUND)
-    find_package(Eigen3 REQUIRED)
-    include_directories(${EIGEN3_INCLUDE_DIR})
-endif()
+#find_package(catkin QUIET)
+
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 message(STATUS "
 
                           ORCA
 Optimization-based framework for Robotic Control Applications
+
+EIGEN3_INCLUDE_DIR : ${EIGEN3_INCLUDE_DIR}
 
 ")
 

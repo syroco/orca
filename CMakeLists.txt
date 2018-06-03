@@ -12,14 +12,23 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 #################### Eigen3 ###########################
-find_package(Eigen3 3.2.92 QUIET)
+if(EIGEN3_INCLUDE_DIR)
+    unset(EIGEN3_INCLUDE_DIR CACHE)
+endif()
 
+find_package(Eigen3 QUIET)
+if(Eigen3_FOUND)
+    set(some_eigen3_include_dir ${EIGEN3_INCLUDE_DIR})
+    set(some_eigen3_version ${EIGEN3_VERSION})
+endif()
+
+# iDynTree requires Eigen > 3.2.95
+find_package(Eigen3 3.2.92 QUIET)
 if(NOT Eigen3_FOUND)
     if(EIGEN3_INCLUDE_DIR)
         unset(EIGEN3_INCLUDE_DIR CACHE)
     endif()
-    message(WARNING "Using internal Eigen3 (3.3.90), please consider installing it standalone.")
-    set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
+
     # NOTE: Adding the eigen project allows all the checks for processor features
     # and system environnement libraries.
     # It might be useful to add this on a very particular system to get some
@@ -27,10 +36,23 @@ if(NOT Eigen3_FOUND)
     # Ex of an issue in a Xenomai env : http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1482
     # Some linking issues might happend, which are fixed with the 'auto' config
     # of eigen subdir. This is considered necessary for the code to be portable
-    add_subdirectory(external/eigen-3.3.90/eigen3)
+    set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
+    if(some_eigen3_found)
+        message(WARNING "Using internal Eigen3 (3.3.90) for the build. ORCA will not exporting it as the system has version ${some_eigen3_version} at ${some_eigen3_include_dir}")
+        # it means we have it on the system, just not the right version
+        # so we dont mess with the system libs
+        add_subdirectory(external/eigen-3.3.90/eigen3 EXCLUDE_FROM_ALL)
+    else()
+        message(WARNING "Using internal Eigen3 (3.3.90) for the build. ORCA will export it as the system does not seem to have eigen3 installed")
+        # export/install the package as we really dont have eigen on the system
+        add_subdirectory(external/eigen-3.3.90/eigen3)
+    endif()
     set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
+    add_library(Eigen3::Eigen ALIAS eigen)
+else()
+    message("Eigen3 ${EIGEN3_VERSION} (> 3.2.92) found at ${EIGEN3_INCLUDE_DIR}")
 endif()
 
 #################### TinyXML ###########################
@@ -117,15 +139,15 @@ target_include_directories(
       $<INSTALL_INTERFACE:include>
 )
 
-if(NOT Eigen3_FOUND)
-    target_include_directories(
-          orca PUBLIC
-          $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
-          $<INSTALL_INTERFACE:include/eigen3>
-      )
-else()
-    target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
-endif()
+# if(NOT Eigen3_FOUND)
+#     target_include_directories(
+#           orca PUBLIC
+#           $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+#           $<INSTALL_INTERFACE:include/eigen3>
+#       )
+# else()
+#     target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
+# endif()
 
 
 target_include_directories(
@@ -134,6 +156,7 @@ target_include_directories(
       $<INSTALL_INTERFACE:include>
   )
 
+#################### Matplotlib #########################
 find_package(PythonLibs QUIET)
 find_package(NumPy QUIET)
 if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
@@ -147,7 +170,9 @@ if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     install(DIRECTORY external/matplotlibcpp/include/matplotlibcpp/ DESTINATION include/matplotlibcpp)
 endif()
 
+#################### Private linking #########################
 target_link_libraries(orca PRIVATE
+    Eigen3::Eigen
     idyntree-high-level
     ${PROJECT_NAME}_priv_qpOASES
     ${PROJECT_NAME}_priv_tinyxml

@@ -1,7 +1,7 @@
 add_executable(01-simple_controller 01-simple_controller.cc)
-target_link_libraries(01-simple_controller orca)
+target_link_libraries(01-simple_controller orca Eigen3::Eigen)
 install(TARGETS 01-simple_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
 
 add_executable(02-simulating_results 02-simulating_results.cc)
-target_link_libraries(02-simulating_results orca)
+target_link_libraries(02-simulating_results orca Eigen3::Eigen)
 install(TARGETS 02-simulating_results DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
