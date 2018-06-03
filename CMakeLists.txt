@@ -51,12 +51,14 @@ target_compile_definitions(${PROJECT_NAME}_priv_qpOASES PRIVATE __NO_COPYRIGHT__
 target_include_directories(${PROJECT_NAME}_priv_qpOASES PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/qpOASES-3.2.1/include>)
 
 #################### iDynTree #########################
+if(NOT BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+endif()
 set(sh_saved ${BUILD_SHARED_LIBS})
 
 set(BUILD_SHARED_LIBS OFF)
 SET(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "Build static idyntree libs")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
-
 set(BUILD_SHARED_LIBS ${sh_saved})
 
 #################### Catkin ###########################
@@ -267,6 +269,15 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
+export(EXPORT orcaTargets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
+    NAMESPACE orca::
+)
+
+# This creates a package in ~/.cmake so we don't have to 'make install'
+# and extend the CMAKE_PREFIX_PATH. This is equivalent to installing in /usr or
+# /usr/local (standard path) but without sudo rights.
+# With this, any cmake project calling find_package(orca) will find orca::orca
 export(PACKAGE orca)
 
 # Plain cmake / catkin install space support
@@ -275,8 +286,6 @@ install(EXPORT orcaTargets
     NAMESPACE orca::
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
-
-# install(SCRIPT cmake/fixExportTargetsBug.cmake)
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake

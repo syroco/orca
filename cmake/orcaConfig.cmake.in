@@ -17,5 +17,5 @@ message(STATUS "
 Optimization-based framework for Robotic Control Applications
 
 ")
-add_library(iDynTree::idyntree-high-level UNKNOWN IMPORTED)
+
 include("${CMAKE_CURRENT_LIST_DIR}/orcaTargets.cmake")
