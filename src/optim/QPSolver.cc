@@ -1,6 +1,7 @@
 #include "orca/optim/QPSolver.h"
 #include "orca/utils/Utils.h"
 #include "QPSolver_qpOASES.impl"
+#include "QPSolver_osqp.impl"
 #include <iostream>
 using namespace orca::optim;
 using namespace orca::utils;

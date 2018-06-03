@@ -72,6 +72,8 @@ add_library(${PROJECT_NAME}_priv_qpOASES STATIC ${qpOASES_srcs})
 target_compile_definitions(${PROJECT_NAME}_priv_qpOASES PRIVATE __NO_COPYRIGHT__)
 target_include_directories(${PROJECT_NAME}_priv_qpOASES PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/qpOASES-3.2.1/include>)
 
+#################### OSQP #########################
+add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 #################### iDynTree #########################
 if(NOT BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
@@ -175,6 +177,7 @@ target_link_libraries(orca PRIVATE
     Eigen3::Eigen
     idyntree-high-level
     ${PROJECT_NAME}_priv_qpOASES
+    osqp
     ${PROJECT_NAME}_priv_tinyxml
 )
 

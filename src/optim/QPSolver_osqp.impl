@@ -1,0 +1,157 @@
+#include "orca/optim/QPSolver.h"
+#include "orca/utils/Logger.h"
+#include <osqp.h>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <iostream>
+
+namespace orca
+{
+namespace optim
+{
+
+template<>
+class QPSolver::SolverImpl<QPSolver::osqp>
+{
+private:
+    OSQPSettings settings_;
+    OSQPWorkspace* work_ = 0;
+    OSQPData data_;
+    // bool qpoases_initialized_ = false;
+public:
+    virtual ~SolverImpl<QPSolver::osqp>()
+    {
+        c_free(data_.A);
+        c_free(data_.P);
+    }
+    void resize(int nvar,int nconstr)
+    {
+        if(!work_)
+        {
+            LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
+            setDefaultOptions();
+            work_ = osqp_setup(&data_, &settings_);
+        }
+        // else if(nvar != qpoases_->getNV() || nconstr != qpoases_->getNC() )
+        // {
+        //     LOG_INFO << "[QPSolver] Resize qpOASES::SQProblem (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
+        //     options_ = qpoases_->getOptions();
+        //     qpoases_.reset(new qpOASES::SQProblem(nvar,nconstr,qpOASES::HST_POSDEF));
+        //     qpoases_->setOptions(options_);
+        //
+        //     qpoases_initialized_ = false;
+        // }
+    }
+
+    void setPrintLevel(int level)
+    {
+        // if(!qpoases_)
+        //     throw std::runtime_error("qpsolver pointer is null");
+        //
+        // switch (level)
+        // {
+        //     case -2:    qpoases_->setPrintLevel(qpOASES::PL_DEBUG_ITER);  break;
+        //     case -1:    qpoases_->setPrintLevel(qpOASES::PL_TABULAR);     break;
+        //     case  0:    qpoases_->setPrintLevel(qpOASES::PL_NONE);        break;
+        //     case  1:    qpoases_->setPrintLevel(qpOASES::PL_LOW);         break;
+        //     case  2:    qpoases_->setPrintLevel(qpOASES::PL_MEDIUM);      break;
+        //     case  3:    qpoases_->setPrintLevel(qpOASES::PL_HIGH);        break;
+        //     default: break;
+        // }
+    }
+
+    void setDefaultOptions()
+    {
+        osqp_set_default_settings(&settings_);
+        // if(!qpoases_)
+        //     throw std::runtime_error("qpsolver pointer is null");
+        //
+        // options_.setToMPC(); // setToReliable() // setToDefault()
+        // options_.enableRegularisation = qpOASES::BT_FALSE; // since we specify the type of Hessian matrix, we do not need automatic regularisation
+        // options_.enableEqualities = qpOASES::BT_TRUE; // Specifies whether equalities shall be  always treated as active constraints.
+        // qpoases_->setOptions( options_ );
+        // qpoases_->setPrintLevel(qpOASES::PL_NONE);
+    }
+
+    common::ReturnCode solve(ProblemData& data )
+    {
+        osqp_solve(work_);
+// solved	OSQP_SOLVED	1
+// solved inaccurate	OSQP_SOLVED_INACCURATE	2
+// maximum iterations reached	OSQP_MAX_ITER_REACHED	-2
+// primal infeasible	OSQP_PRIMAL_INFEASIBLE	-3
+// primal infeasible inaccurate	OSQP_PRIMAL_INFEASIBLE_INACCURATE	3
+// dual infeasible	OSQP_DUAL_INFEASIBLE	-4
+// dual infeasible inaccurate	OSQP_DUAL_INFEASIBLE_INACCURATE	4
+// interrupted by user	OSQP_SIGINT	-5
+// run time limit reached	OSQP_TIME_LIMIT_REACHED	-6
+// unsolved	OSQP_UNSOLVED
+//         if(!qpoases_)
+//             throw std::runtime_error("qpsolver pointer is null");
+//
+//         int nWSR = 1000000;
+//         qpOASES::returnValue ret;
+//
+//         if(!qpoases_initialized_)
+//         {
+//             // Initialise the problem, once it has found a solution, we can hotstart
+//             ret = qpoases_->init(   data.H_.data()
+//                                         , data.g_.data()
+//                                         , data.A_.data()
+//                                         , data.lb_.data()
+//                                         , data.ub_.data()
+//                                         , data.lbA_.data()
+//                                         , data.ubA_.data()
+//                                         , nWSR
+// //                                         , 0 // cputime
+// //                                         , 0 // xOpt
+// //                                         , 0 // yOpt
+// //                                         , &guessedBounds
+//                                         );
+//
+//             // Keep init if it didn't work
+//             if(ret == qpOASES::RET_INIT_FAILED)
+//                 LOG_WARNING << "[qpoases] Init called but returned code " << ret << ", I will keep trying to init" << '\n';
+//             else
+//                 qpoases_initialized_ = true;
+//         }
+//         else
+//         {
+//             // Otherwise let's reuse the previous solution to find a solution faster
+//             ret = qpoases_->hotstart( data.H_.data()
+//                                         , data.g_.data()
+//                                         , data.A_.data()
+//                                         , data.lb_.data()
+//                                         , data.ub_.data()
+//                                         , data.lbA_.data()
+//                                         , data.ubA_.data()
+//                                         , nWSR);
+//             if(ret != qpOASES::SUCCESSFUL_RETURN)
+//             {
+//                 qpoases_initialized_ = false;
+//                 LOG_WARNING << "[qpoases] Hotstart returned : " << qpOASES::MessageHandling::getErrorCodeMessage(ret) << '\n';
+//             }
+//
+//         }
+//         // NOTE : for now, orca return codes == qpoases return code
+//         return static_cast<common::ReturnCode>(ret);
+    }
+
+    void getPrimalSolution(Eigen::VectorXd& solution)
+    {
+        // if(!qpoases_)
+        //     throw std::runtime_error("qpsolver pointer is null");
+        //
+        // int nv = qpoases_->getNV();
+        // if(solution.size() != nv)
+        // {
+        //     std::stringstream err;
+        //     err << "Provided vector size is " << solution.size() << ",but the number of variable is " << nv << std::endl;
+        //     throw std::runtime_error(err.str());
+        // }
+        // qpoases_->getPrimalSolution(solution.data());
+    }
+};
+
+} // namespace optim
+} // namespace orca
