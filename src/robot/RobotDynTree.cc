@@ -92,6 +92,11 @@ const std::vector<std::string>& RobotDynTree::getJointNames() const
 
 bool RobotDynTree::loadModelFromString(const std::string &modelString)
 {
+    if( modelString.empty() )
+    {
+        LOG_ERROR << "Model string is empty";
+        return false;
+    }
     // Extract the model name from the URDF
     // WARNING : in multi robot environnement + ROS
     // This will cause topic names collisions as they are based on robot names
@@ -126,10 +131,13 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
 bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
 {
     std::ifstream t(modelFile);
+    if( !t.good() )
+    {
+        LOG_ERROR << "Could not load model from urdf file \'" << modelFile << "\' because file is empty";
+        return false;
+    }
     std::string str((std::istreambuf_iterator<char>(t)),
                      std::istreambuf_iterator<char>());
-    if( str.empty() )
-        LOG_ERROR << "Could not load model from urdf file \'" << modelFile << "\' because file is empty";
 
     if(loadModelFromString(str))
     {
