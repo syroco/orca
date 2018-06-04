@@ -73,6 +73,9 @@ target_compile_definitions(${PROJECT_NAME}_priv_qpOASES PRIVATE __NO_COPYRIGHT__
 target_include_directories(${PROJECT_NAME}_priv_qpOASES PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/qpOASES-3.2.1/include>)
 
 #################### OSQP #########################
+set(UNITTESTS OFF CACHE BOOL "")
+set(PROFILING OFF CACHE BOOL "")
+set(ENABLE_MKL_PARDISO OFF CACHE BOOL "")
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 #################### iDynTree #########################
 if(NOT BUILD_SHARED_LIBS)
@@ -81,7 +84,7 @@ endif()
 set(sh_saved ${BUILD_SHARED_LIBS})
 
 set(BUILD_SHARED_LIBS OFF)
-SET(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "Build static idyntree libs")
+set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${sh_saved})
 
