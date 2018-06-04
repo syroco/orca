@@ -5,210 +5,337 @@ Simple controller
 
 .. note:: The source code for this example can be found in ``[orca_root]/examples/basic/01-simple_controller.cc``, or alternatively on github at: https://github.com/syroco/orca/blob/dev/examples/basic/01-simple_controller.cc
 
+
+Objective
+-------------------
+In this example we want to show the basics of using ORCA. Here, we create a minimal controller with one task and some common constraints.
+
+
+Introduction
+-------------------
+
+First we need to include the appropriate headers and use the right namespaces. When you are getting started the easiest solution is to use the helper header ``orca.h`` and helper namespace ``orca::all`` which include all the necessary headers and opens up all their namespaces. This helps with reducing the verbosity of the examples here but is not recommended for production builds because it will cause code bloat.
+
+
 .. code-block:: c++
-    :linenos:
 
     #include <orca/orca.h>
     using namespace orca::all;
 
+
+We then create our ``main()`` function...
+
+.. code-block:: c++
+
     int main(int argc, char const *argv[])
+
+
+and parse the command line arguments:
+
+.. code-block:: c++
+
+    if(argc < 2)
     {
-        // Get the urdf file from the command line
-        if(argc < 2)
-        {
-            std::cerr << "Usage : " << argv[0] << " /path/to/robot-urdf.urdf (optionally -l debug/info/warning/error)" << "\n";
-            return -1;
-        }
-        std::string urdf_url(argv[1]);
+        std::cerr << "Usage : " << argv[0] << " /path/to/robot-urdf.urdf (optionally -l debug/info/warning/error)" << "\n";
+        return -1;
+    }
+    std::string urdf_url(argv[1]);
 
-        //  Parse logger level as --log_level (or -l) debug/warning etc
-        orca::utils::Logger::parseArgv(argc, argv);
-
-        // Create the kinematic model that is shared by everybody. Here you can pass a robot name
-        auto robot = std::make_shared<RobotDynTree>();
-
-         //  If you don't pass a robot name, it is extracted from the urdf
-        robot->loadModelFromFile(urdf_url);
-
-        // All the transformations (end effector pose for example) will be expressed wrt this base frame
-        robot->setBaseFrame("base_link");
-
-        // Sets the world gravity (Optional)
-        robot->setGravity(Eigen::Vector3d(0,0,-9.81));
-
-        // This is an helper function to store the whole state of the robot as eigen vectors/matrices. This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices. You can use it to fill data from either real robot and simulated robot.
-        EigenRobotState eigState;
-
-        // resize all the vectors/matrices to match the robot configuration
-        eigState.resize(robot->getNrOfDegreesOfFreedom());
-
-        // Set the initial state to zero (arbitrary). @note: here we only set q,qot because this example asserts we have a fixed base robot
-        eigState.jointPos.setZero();
-        eigState.jointVel.setZero();
-
-        // Set the first state to the robot
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
-        // Now is the robot is considered 'initialized'
+    orca::utils::Logger::parseArgv(argc, argv);
 
 
-        // Instanciate an ORCA Controller
-        orca::optim::Controller controller(
-            "controller"
-            ,robot
-            ,orca::optim::ResolutionStrategy::OneLevelWeighted
-            ,QPSolver::qpOASES
-        );
-        // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
-
-        // Cartesian Task
-        auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-        // Add the task to the controller to initialize it.
-        controller.addTask(cart_task);
-        // Set the frame you want to control. Here we want to control the link_7.
-        cart_task->setControlFrame("link_7"); //
-
-        // Set the pose desired for the link_7
-        Eigen::Affine3d cart_pos_ref;
-
-        // Setting the translational components.
-        cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
+ORCA provides a utility class called ``Logger`` which, as its name implies, helps log output. See the API documentation for more information on logging levels.
 
 
 
-        // Rotation is done with a Matrix3x3 and it can be initialized in a few ways. Note that each of these methods produce equivalent Rotation matrices in this case.
+Setup
+--------------
 
-        // Example 1 : create a quaternion from Euler anglers ZYZ convention
+Now we get to the good stuff. We start by creating a robot model which gives us access to the robot's kinematics and dynamics.
+
+.. code-block:: c++
+
+    auto robot = std::make_shared<RobotDynTree>();
+    robot->loadModelFromFile(urdf_url);
+    robot->setBaseFrame("base_link");
+    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
+
+We first instantiate a ``shared_ptr`` to the class ``RobotDynTree``. We can pass a robot name, but if we don't, it is extracted from the urdf, which is loaded from a file in ``robot->loadModelFromFile(urdf_url);``. If the URDF is parsed then we need to set the base frame in which all transformations (e.g. end effector pose) are expressed in ``robot->setBaseFrame("base_link");``. Finally we manually set the gravity vector ``robot->setGravity(Eigen::Vector3d(0,0,-9.81));`` (this is optional).
+
+The next step is to set the initial state of the robot. For your convenience, ORCA provides a helper class called ``EigenRobotState`` which stores the whole state of the robot as eigen vectors/matrices.
+This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices.
+You can use it to fill data from either a real robot or simulated robot.
+
+
+.. code-block:: c++
+
+    EigenRobotState eigState;
+    eigState.resize(robot->getNrOfDegreesOfFreedom());
+    eigState.jointPos.setZero();
+    eigState.jointVel.setZero();
+    robot->setRobotState(eigState.jointPos,eigState.jointVel);
+
+First we resize all the vectors/matrices to match the robot configuration and set the joint positions and velocities to zero. Initial joint positions are often non-zero but we are lazy and ``setZero()`` is so easy to type. Finally, we set the robot state, ``robot->setRobotState(eigState.jointPos,eigState.jointVel);``. Now the robot is considered 'initialized'.
+
+.. note:: Here we only set :math:`\boldsymbol{q}, \dot{\boldsymbol{q}}` because in this example we are dealing with a fixed base robot.
+
+
+
+
+Creating the Controller
+-----------------------------
+
+
+With the robot created and initialized, we can construct a ``Controller``:
+
+.. code-block:: c++
+
+    // Instanciate an ORCA Controller
+    orca::optim::Controller controller(
+        "controller"
+        ,robot
+        ,orca::optim::ResolutionStrategy::OneLevelWeighted
+        ,QPSolver::qpOASES
+    );
+
+To do so we pass a name, ``"controller"``, the robot model, ``robot``, a ``ResolutionStrategy``, ``orca::optim::ResolutionStrategy::OneLevelWeighted``, and a solver, ``QPSolver::qpOASES``.
+
+.. note:: As of now, the only supported solver is ``qpOASES``, however ``OSQP`` will be integrated in a future release.
+
+.. note:: Other ``ResolutionStrategy`` options include: ``MultiLevelWeighted``, and ``Generalized``. Please be aware that these strategies are not yet officially supported.
+
+If your robot's low level controller takes into account the gravity and coriolis torques already (Like with KUKA LWR) then you can tell the controller to remove these components from the torques computed by the solver. Setting them to false keeps the components in the solution (this is the default behavior).
+
+
+.. code-block:: c++
+
+    controller.removeGravityTorquesFromSolution(true);
+    controller.removeCoriolisTorquesFromSolution(true);
+
+
+
+
+
+Adding Tasks
+--------------------
+
+With the controller created we can now start adding tasks. In this introductory example, we add only a Cartesian acceleration task for the end-effector.
+
+.. code-block:: c++
+
+    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    controller.addTask(cart_task);
+
+A ``shared_ptr`` to a ``CartesianTask`` is created with a unique name, ``CartTask-EE``. The task is then added to the controller to initialize it.
+
+For this task, we want to control ``link_7``,
+
+.. code-block:: c++
+    cart_task->setControlFrame("link_7");
+
+
+And set its desired pose:
+
+.. code-block:: c++
+
+    Eigen::Affine3d cart_pos_ref;
+    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
+    cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
+
+
+We also set the desired cartesian velocity and acceleration to zero.
+
+.. code-block:: c++
+
+    Vector6d cart_vel_ref = Vector6d::Zero();
+    Vector6d cart_acc_ref = Vector6d::Zero();
+
+
+.. note:: Rotation is done with a Matrix3x3 and it can be initialized in a few ways. Note that each of these methods produce equivalent Rotation matrices in this case.
+
+    **Example 1:** create a quaternion from Euler anglers ZYZ convention
+
+    .. code-block:: c++
+
         Eigen::Quaterniond quat;
         quat = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ())
              * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
              * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
         cart_pos_ref.linear() = quat.toRotationMatrix();
 
-        // Example 2 : create a quaternion from RPY convention
+    **Example 2:** create a quaternion from RPY convention
+
+    .. code-block:: c++
+
         cart_pos_ref.linear() = quatFromRPY(0,0,0).toRotationMatrix();
 
-        // Example 3 : create a quaternion from Kuka Convention
+    **Example 3:** create a quaternion from Kuka Convention
+
+    .. code-block:: c++
+
         cart_pos_ref.linear() = quatFromKukaConvention(0,0,0).toRotationMatrix();
 
-        // Example 4 : use an Identity quaternion
+    **Example 4:** use an Identity quaternion
+
+    .. code-block:: c++
+
         cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
 
 
-        // Set the desired cartesian velocity and acceleration to zero
-        Vector6d cart_vel_ref = Vector6d::Zero();
-        Vector6d cart_acc_ref = Vector6d::Zero();
 
-        // Now set the servoing PID
-        Vector6d P;
-        P << 1000, 1000, 1000, 10, 10, 10;
-        cart_task->servoController()->pid()->setProportionalGain(P);
-        Vector6d D;
-        D << 100, 100, 100, 1, 1, 1;
-        cart_task->servoController()->pid()->setDerivativeGain(D);
+The desired values are set on the servo controller because ``CartesianTask`` expects a cartesian acceleration, which is computed automatically by the servo controller.
+
+.. code-block:: c++
+
+    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
 
-        // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
-        cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+Now set the servoing PID
 
-        // Get the number of actuated joints
-        const int ndof = robot->getNrOfDegreesOfFreedom();
-
-        // Joint torque limit is usually given by the robot manufacturer
-        auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
-
-        // Add the constraint to the controller to initialize - it is not read from the URDF for now.
-        controller.addConstraint(jnt_trq_cstr);
-        Eigen::VectorXd jntTrqMax(ndof);
-        jntTrqMax.setConstant(200.0);
-        jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
-
-        // Joint position limits are automatically extracted from the URDF model. Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
-        auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
-
-        // Add the constraint to the controller to initialize
-        controller.addConstraint(jnt_pos_cstr);
-
-        // Joint velocity limits are usually given by the robot manufacturer
-        auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
-
-        // Add the constraint to the controller to initialize - it is not read from the URDF for now.
-        controller.addConstraint(jnt_vel_cstr);
-        Eigen::VectorXd jntVelMax(ndof);
-        jntVelMax.setConstant(2.0);
-        jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
+.. code-block:: c++
+    Vector6d P;
+    P << 1000, 1000, 1000, 10, 10, 10;
+    cart_task->servoController()->pid()->setProportionalGain(P);
+    Vector6d D;
+    D << 100, 100, 100, 1, 1, 1;
+    cart_task->servoController()->pid()->setDerivativeGain(D);
 
 
-        double dt = 0.001;
-        double current_time = 0;
-
-        controller.activateTasksAndConstraints();
 
 
-        // If your robot's low level controller takes into account the gravity and coriolis torques already (Like with KUKA LWR) then you can tell the controller to remove these components from the torques computed by the solver. Setting them to false keeps the components in the solution (this is the default behavior).
-        controller.removeGravityTorquesFromSolution(true);
-        controller.removeCoriolisTorquesFromSolution(true);
 
-        // Now you can run the control loop
-        for (; current_time < 2.0; current_time +=dt)
+
+Adding Constraints
+--------------------
+
+Now we add some constraints. We start with a joint torque constraint for all the actuated DoF. To create it we first get the number of actuated joints from the model.
+
+.. code-block:: c++
+
+    const int ndof = robot->getNrOfDegreesOfFreedom();
+
+
+
+The joint torque limit is usually given by the robot manufacturer and included in most robot descriptions, but for now it is not parsed directely from the URDF - so we need to add it manually.
+
+.. code-block:: c++
+
+    auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
+    controller.addConstraint(jnt_trq_cstr);
+    Eigen::VectorXd jntTrqMax(ndof);
+    jntTrqMax.setConstant(200.0);
+    jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
+
+
+We first create a ``shared_ptr`` with a unique name, ``auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");`` and add it to the controller ``controller.addConstraint(jnt_trq_cstr);``. We then set the torque limits to :math:`\pm{}200 Nm`.
+
+
+Contrary to torque limits, joint position limits are automatically extracted from the URDF model. Note that you can set them if you want by simply doing ``jnt_pos_cstr->setLimits(jntPosMin,jntPosMax)``.
+
+.. code-block:: c++
+
+    auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
+    controller.addConstraint(jnt_pos_cstr);
+
+
+
+Joint velocity limits are usually given by the robot manufacturer but like the torque limits, must be added manually for now.
+
+.. code-block:: c++
+
+    auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
+    controller.addConstraint(jnt_vel_cstr);
+    Eigen::VectorXd jntVelMax(ndof);
+    jntVelMax.setConstant(2.0);
+    jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
+
+
+With the tasks anc constraints created and added to the controller, we can begin the control loop.
+
+
+Control Loop
+--------------------
+
+The control loop is where the robot model is updated using the current state information from the real or simulated robot, the control problem is formulated and solved, and the resultant joint torques are sent to the robot actuators. For this example, we simply calculate the joint torques :math:`\boldsymbol{\tau}` at each control time step and do nothing with them. This is because we are not interacting with a real robot or a simulated robot.
+
+
+.. code-block:: c++
+
+    double dt = 0.001;
+    double current_time = 0;
+
+    controller.activateTasksAndConstraints();
+
+    // Now you can run the control loop
+    for (; current_time < 2.0; current_time +=dt)
+    {
+        // Here you can get the data from you REAL robot (API is robot-specific)
+        // Something like :
+            // eigState.jointPos = myRealRobot.getJointPositions();
+            // eigState.jointVel = myRealRobot.getJointVelocities();
+
+        // Now update the internal kinematic model with data from the REAL robot
+        robot->setRobotState(eigState.jointPos,eigState.jointVel);
+
+        // Step the controller + solve the internal optimal problem
+        controller.update(current_time, dt);
+
+        // Do what you want with the solution
+        if(controller.solutionFound())
         {
-            // Here you can get the data from you REAL robot (API is robot-specific)
-            // Something like :
-                // eigState.jointPos = myRealRobot.getJointPositions();
-                // eigState.jointVel = myRealRobot.getJointVelocities();
+            // The whole optimal solution [AccFb, Acc, Tfb, T, eWrenches]
+            const Eigen::VectorXd& full_solution = controller.getSolution();
+            // The optimal joint torque command
+            const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+            // The optimal joint acceleration command
+            const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
-            // Now update the internal kinematic model with data from the REAL robot
-            robot->setRobotState(eigState.jointPos,eigState.jointVel);
-
-            // Step the controller + solve the internal optimal problem
-            controller.update(current_time, dt);
-
-            // Do what you want with the solution
-            if(controller.solutionFound())
-            {
-                // The whole optimal solution [AccFb, Acc, Tfb, T, eWrenches]
-                const Eigen::VectorXd& full_solution = controller.getSolution();
-                // The optimal joint torque command
-                const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-                // The optimal joint acceleration command
-                const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-
-                // Send torques to the REAL robot (API is robot-specific)
-                //real_tobot->set_joint_torques(trq_cmd);
-            }
-            else
-            {
-                // WARNING : Optimal solution is NOT found
-                // Switching to a fallback strategy
-                // Typical are :
-                // - Stop the robot (robot-specific method)
-                // - Compute KKT Solution and send to the robot (dangerous)
-                // - PID around the current position (dangerous)
-
-                // trq = controller.computeKKTTorques();
-                // Send torques to the REAL robot (API is robot-specific)
-                // real_tobot->set_joint_torques(trq_cmd);
-            }
+            // Send torques to the REAL robot (API is robot-specific)
+            //real_tobot->set_joint_torques(trq_cmd);
         }
-
-        // Print the last computed solution (just for fun)
-        const Eigen::VectorXd& full_solution = controller.getSolution();
-        const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-        const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-        LOG_INFO << "Full solution : " << full_solution.transpose();
-        LOG_INFO << "Joint Acceleration command : " << trq_acc.transpose();
-        LOG_INFO << "Joint Torque command       : " << trq_cmd.transpose();
-
-        // At some point you want to close the controller nicely
-        controller.deactivateTasksAndConstraints();
-
-
-        // Let all the tasks ramp down to zero
-        while(!controller.tasksAndConstraintsDeactivated())
+        else
         {
-            current_time += dt;
-            controller.update(current_time,dt);
-        }
+            // WARNING : Optimal solution is NOT found
+            // Switching to a fallback strategy
+            // Typical are :
+            // - Stop the robot (robot-specific method)
+            // - Compute KKT Solution and send to the robot (dangerous)
+            // - PID around the current position (dangerous)
 
-        // All objets will be destroyed here
-        return 0;
+            // trq = controller.computeKKTTorques();
+            // Send torques to the REAL robot (API is robot-specific)
+            // real_tobot->set_joint_torques(trq_cmd);
+        }
     }
+
+
+
+Shutting Things Down
+-----------------------
+
+.. code-block:: c++
+
+    // At some point you want to close the controller nicely
+    controller.deactivateTasksAndConstraints();
+
+
+    // Let all the tasks ramp down to zero
+    while(!controller.tasksAndConstraintsDeactivated())
+    {
+        current_time += dt;
+        controller.update(current_time,dt);
+    }
+
+    // All objets will be destroyed here
+    return 0;
+
+
+
+.. _simple_controller_full_code_listing:
+
+Full Code Listing
+---------------------------
+
+.. literalinclude:: ../../../../examples/basic/01-simple_controller.cc
+   :language: c++
+   :linenos:
