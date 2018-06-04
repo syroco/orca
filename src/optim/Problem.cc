@@ -213,10 +213,14 @@ void Problem::resize()
         resizeProblemData(this->number_of_variables_,this->number_of_constraints_rows_);
         resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
 
+        // Only resize tasks that depends on the problem changing size
+        // TODO : account for joint changes
         for(auto t : tasks_)
-            t->resize();
+            if(t->dependsOnProblem())
+                t->resize();
         for(auto c : constraints_)
-            c->resize();
+            if(c->dependsOnProblem())
+                c->resize();
     }
 }
 

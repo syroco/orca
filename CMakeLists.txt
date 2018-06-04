@@ -76,6 +76,7 @@ target_include_directories(${PROJECT_NAME}_priv_qpOASES PUBLIC $<BUILD_INTERFACE
 set(UNITTESTS OFF CACHE BOOL "")
 set(PROFILING OFF CACHE BOOL "")
 set(ENABLE_MKL_PARDISO OFF CACHE BOOL "")
+set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes to match eigen sparseviews")
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 #################### iDynTree #########################
 if(NOT BUILD_SHARED_LIBS)

@@ -1,4 +1,4 @@
-#include "orca/optim/QPSolver.h"
+#include "orca/optim/QPSolverImpl.h"
 #include "orca/utils/Logger.h"
 #include <osqp.h>
 #include <Eigen/Dense>
@@ -10,40 +10,63 @@ namespace orca
 namespace optim
 {
 
-template<>
-class QPSolver::SolverImpl<QPSolver::osqp>
+class QPSolverImpl_osqp : public QPSolverImpl
 {
 private:
     OSQPSettings settings_;
     OSQPWorkspace* work_ = 0;
-    OSQPData data_;
-    // bool qpoases_initialized_ = false;
+    OSQPData osqp_data_;
+    Eigen::SparseMatrix<double> Ps_;
+    Eigen::SparseMatrix<double> As_;
+    bool osqp_initialized_ = false;
 public:
-    virtual ~SolverImpl<QPSolver::osqp>()
+    virtual ~QPSolverImpl_osqp()
     {
-        c_free(data_.A);
-        c_free(data_.P);
         osqp_cleanup(work_);
+        c_free(osqp_data_.A);
+        c_free(osqp_data_.P);
     }
     void resize(int nvar,int nconstr)
     {
+        if(nvar <= 0 || nconstr <= 0)
+            return;
         if(!work_)
         {
-            LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
             setDefaultOptions();
-            data_.n = nvar;
-            data_.m = nconstr;
-            work_ = osqp_setup(&data_, &settings_);
+
         }
-        // else if(nvar != qpoases_->getNV() || nconstr != qpoases_->getNC() )
-        // {
-        //     LOG_INFO << "[QPSolver] Resize qpOASES::SQProblem (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
-        //     options_ = qpoases_->getOptions();
-        //     qpoases_.reset(new qpOASES::SQProblem(nvar,nconstr,qpOASES::HST_POSDEF));
-        //     qpoases_->setOptions(options_);
-        //
-        //     qpoases_initialized_ = false;
-        // }
+
+        Eigen::MatrixXd P(nvar,nvar);
+        P.setConstant(1);
+        Ps_ = P.sparseView();
+        Eigen::MatrixXd A(nconstr,nvar);
+        A.setConstant(1);
+        As_ = A.sparseView();
+        Eigen::VectorXd x(nvar);
+        x.setConstant(1);
+        Eigen::VectorXd l(nconstr);
+        l.setConstant(1);
+
+        osqp_data_.n = nvar;
+        osqp_data_.m = nconstr;
+        //osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        osqp_data_.P = csc_matrix(nvar, nvar, Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
+        osqp_data_.q =  x.data();
+        osqp_data_.A = csc_matrix(nconstr, nvar, As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
+        osqp_data_.l = l.data();
+        osqp_data_.u = l.data();
+
+        // SparseMatrix<double> sparse = dense.sparseView();
+        // int m_ = sparse.innerSize(); // number of rows
+        // int n_ = sparse.outerSize(); // number of columns
+        // int nzmax_ = sparse.nonZeros(); // maximum number of entries (non-zeros)
+        // int *p_ = sparse.outerIndexPtr(); // column pointers (size n+1) (col indices (size nzmax)
+        // int *i_ = sparse.innerIndexPtr(); // row indices, size nzmax starting from 0
+        // double *x_ = sparse.valuePtr();
+        LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
+        work_ = osqp_setup(&osqp_data_, &settings_);
+        setPrintLevel(1);
+        LOG_INFO << "[QPSolver] osqp setup done" ;
     }
 
     void setPrintLevel(int level)
@@ -57,26 +80,64 @@ public:
     void setDefaultOptions()
     {
         osqp_set_default_settings(&settings_);
-        // if(!qpoases_)
-        //     throw std::runtime_error("qpsolver pointer is null");
-        //
-        // options_.setToMPC(); // setToReliable() // setToDefault()
-        // options_.enableRegularisation = qpOASES::BT_FALSE; // since we specify the type of Hessian matrix, we do not need automatic regularisation
-        // options_.enableEqualities = qpOASES::BT_TRUE; // Specifies whether equalities shall be  always treated as active constraints.
-        // qpoases_->setOptions( options_ );
-        // qpoases_->setPrintLevel(qpOASES::PL_NONE);
     }
 
     common::ReturnCode solve(ProblemData& data )
     {
-        // data_.n = n;
-        // data_.m = m;
-        // data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
-        // data_.q = q;
-        // data_.A = csc_matrix(data.m, data.n, A_nnz, A_x, A_i, A_p);
-        // data_.l = l;
-        // data_.u = u;
-        osqp_solve(work_);
+        // osqp_data_.n = n;
+        // osqp_data_.m = m;
+        // osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        // osqp_data_.q = data.g_.data();
+        // osqp_data_.A = csc_matrix(data.m, data.n, A_nnz, A_x, A_i, A_p);
+        // osqp_data_.l = l;
+        // osqp_data_.u = u;
+        // osqp_data_.n = nvar;
+        // osqp_data_.m = nconstr;
+        // osqp_data_.P = csc_matrix(nvar, nvar, Ps.nonZeros(), Ps.valuePtr(), Ps.innerIndexPtr(), Ps.outerIndexPtr());
+        // osqp_data_.q =  x.data();
+        // osqp_data_.A = csc_matrix(nconstr, nvar, As.nonZeros(), As.valuePtr(), As.innerIndexPtr(), As.outerIndexPtr());
+        // osqp_data_.l = l.data();
+        // osqp_data_.u = l.data();
+        // osqp_update_P
+        if(osqp_update_lin_cost(work_,data.g_.data()) != 0)
+        {
+            std::cerr << "Could not update g" << '\n';
+        }
+        if(osqp_update_bounds(work_,data.lbA_.data(),data.ubA_.data()) != 0)
+        {
+            std::cerr << "Could not update bounds" << '\n';
+        }
+
+        Eigen::MatrixXd P = data.H_;
+        Eigen::MatrixXd A = data.A_;
+        Ps_ = P.sparseView();
+        As_ = A.sparseView();
+        Ps_.makeCompressed();
+        As_.makeCompressed();
+
+        if(osqp_update_P_A(work_,Ps_.valuePtr(),
+                              Ps_.innerIndexPtr(),
+                              Ps_.nonZeros(),
+                              As_.valuePtr(),
+                              As_.innerIndexPtr(),
+                              As_.nonZeros()) != 0)
+        {
+          std::cerr << "Could not update P and A" << '\n';
+        }
+
+        if(!osqp_initialized_)
+        {
+            osqp_solve(work_);
+            if(work_->info->status_val == OSQP_SOLVED)
+            {
+                osqp_initialized_ = true;
+                return common::ReturnCode::SUCCESSFUL_RETURN;
+            }
+            return common::ReturnCode::RET_QP_NOT_SOLVED;
+        }
+
+
+
 // solved	OSQP_SOLVED	1
 // solved inaccurate	OSQP_SOLVED_INACCURATE	2
 // maximum iterations reached	OSQP_MAX_ITER_REACHED	-2
