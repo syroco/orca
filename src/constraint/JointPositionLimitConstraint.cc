@@ -7,7 +7,7 @@ using namespace orca::robot;
 using namespace orca::common;
 
 JointPositionLimitConstraint::JointPositionLimitConstraint(const std::string& name)
-: JointLimitConstraint(name,ControlVariable::JointSpaceAcceleration)
+: JointLimitConstraint(name,ControlVariable::JointAcceleration)
 {}
 
 void JointPositionLimitConstraint::setJointLimitsFromRobotModel()

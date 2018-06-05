@@ -10,7 +10,7 @@ using namespace orca::utils;
 
 
 JointTorqueTask::JointTorqueTask(const std::string& name)
-: GenericTask(name,ControlVariable::JointSpaceTorque)
+: GenericTask(name,ControlVariable::JointTorque)
 , pid_(std::make_shared<PIDController>())
 {
 

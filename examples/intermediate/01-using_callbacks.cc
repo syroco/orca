@@ -110,7 +110,7 @@ int main(int argc, char const *argv[])
     robot->loadModelFromFile(urdf_url);
     robot->setBaseFrame("base_link");
     robot->setGravity(Eigen::Vector3d(0,0,-9.81));
-    EigenRobotState eigState;
+    RobotState eigState;
     eigState.resize(robot->getNrOfDegreesOfFreedom());
     eigState.jointPos.setZero();
     eigState.jointVel.setZero();

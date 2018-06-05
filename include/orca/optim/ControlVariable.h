@@ -51,10 +51,10 @@ namespace optim
           X
         , GeneralisedAcceleration
         , FloatingBaseAcceleration
-        , JointSpaceAcceleration
+        , JointAcceleration
         , GeneralisedTorque
         , FloatingBaseWrench
-        , JointSpaceTorque
+        , JointTorque
         , ExternalWrench
         , ExternalWrenches
         , Composite
@@ -68,10 +68,10 @@ namespace optim
             case ControlVariable::X :                           os << "X"; break;
             case ControlVariable::GeneralisedAcceleration :     os << "GeneralisedAcceleration"; break;
             case ControlVariable::FloatingBaseAcceleration :    os << "FloatingBaseAcceleration"; break;
-            case ControlVariable::JointSpaceAcceleration :      os << "JointSpaceAcceleration"; break;
+            case ControlVariable::JointAcceleration :      os << "JointAcceleration"; break;
             case ControlVariable::GeneralisedTorque :           os << "GeneralisedTorque"; break;
             case ControlVariable::FloatingBaseWrench :          os << "FloatingBaseWrench"; break;
-            case ControlVariable::JointSpaceTorque :            os << "JointSpaceTorque"; break;
+            case ControlVariable::JointTorque :            os << "JointTorque"; break;
             case ControlVariable::ExternalWrench :              os << "ExternalWrench"; break;
             case ControlVariable::ExternalWrenches :            os << "ExternalWrenches"; break;
             case ControlVariable::Composite :                   os << "Composite"; break;

@@ -357,7 +357,7 @@ Typically at the end of the execution you would either stop the robot or put it 
 Conclusion
 --------------
 
-In this example you have seen all of the necessary steps to getting an ORCA controller up and running. In the next examples we will look at more realistic examples where the controller interacts with a robot/simulation. 
+In this example you have seen all of the necessary steps to getting an ORCA controller up and running. In the next examples we will look at more realistic examples where the controller interacts with a robot/simulation.
 
 
 .. _simple_controller_full_code_listing:

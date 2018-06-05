@@ -44,6 +44,7 @@
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
 #include "orca/optim/ProblemData.h"
+#include "orca/optim/QPSolverImpl.h"
 #include "orca/common/ReturnCode.h"
 
 namespace orca
@@ -62,8 +63,7 @@ public:
     bool solve(orca::optim::ProblemData& data);
     common::ReturnCode getReturnCode() const;
 private:
-    template<SolverType type = qpOASES> struct SolverImpl;
-    std::unique_ptr<SolverImpl<> > pimpl;
+    std::unique_ptr<QPSolverImpl> pimpl;
     common::ReturnCode ret_ = common::ReturnCode::RET_INIT_FAILED;
 };
 

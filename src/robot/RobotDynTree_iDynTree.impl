@@ -1,0 +1,440 @@
+// iDynTree headers
+#include <iDynTree/Model/FreeFloatingState.h>
+#include <iDynTree/KinDynComputations.h>
+#include <iDynTree/ModelIO/ModelLoader.h>
+#include <iDynTree/Core/EigenHelpers.h>
+
+#include "orca/utils/Utils.h"
+#include "orca/math/Utils.h"
+#include "orca/robot/RobotDynTree.h"
+
+namespace orca
+{
+namespace robot
+{
+struct iDynTreeRobotAcceleration
+{
+    void resize(int nrOfInternalDOFs)
+    {
+        jointAcc.resize(nrOfInternalDOFs);
+        baseAcc.zero();
+        jointAcc.zero();
+    }
+
+    void zero()
+    {
+        baseAcc.zero();
+        jointAcc.zero();
+    }
+    iDynTree::Vector6 baseAcc;
+    iDynTree::VectorDynSize jointAcc;
+};
+
+/**
+ * Struct containing the floating robot state
+ * using iDynTree data structures.
+ * For the semantics of this structures,
+ * see KinDynComputation::setRobotState method.
+ */
+struct iDynTreeRobotState
+{
+    void resize(int nrOfInternalDOFs)
+    {
+        jointPos.resize(nrOfInternalDOFs);
+        jointVel.resize(nrOfInternalDOFs);
+        reset();
+    }
+
+    void reset()
+    {
+        world_H_base.Identity();
+        gravity(0) = 0;
+        gravity(1) = 0;
+        gravity(2) = -9.81;
+    }
+
+    void fromEigen(RobotState& eigRobotState)
+    {
+        iDynTree::fromEigen(world_H_base,eigRobotState.world_H_base);
+        iDynTree::toEigen(jointPos) = eigRobotState.jointPos;
+        iDynTree::fromEigen(baseVel,eigRobotState.baseVel);
+        iDynTree::toEigen(jointVel) = eigRobotState.jointVel;
+        iDynTree::toEigen(gravity)  = eigRobotState.gravity;
+    }
+
+    iDynTree::Transform world_H_base;
+    iDynTree::VectorDynSize jointPos;
+    iDynTree::Twist         baseVel;
+    iDynTree::VectorDynSize jointVel;
+    iDynTree::Vector3       gravity;
+};
+
+struct RobotDataHelper
+{
+    void resize(const iDynTree::Model & model)
+    {
+        eigRobotState.resize(model.getNrOfDOFs());
+        idynRobotState.resize(model.getNrOfDOFs());
+        eigRobotAcc.resize(model.getNrOfDOFs());
+        idynRobotAcc.resize(model.getNrOfDOFs());
+
+        idynFFMassMatrix.resize(model);
+        eigFFMassMatrix = iDynTree::toEigen(idynFFMassMatrix);
+        eigMassMatrix.setZero(model.getNrOfDOFs(),model.getNrOfDOFs());
+
+        generalizedBiasForces.resize(model);
+        eigGeneralizedBiasForces.setZero(6 + model.getNrOfDOFs());
+        generalizedGravityTorques.resize(model);
+        eigJointGravityTorques.setZero(6 + model.getNrOfDOFs());
+        extForces.resize(model);
+
+        eigJointGravityTorques.setZero(model.getNrOfDOFs());
+        eigJointCoriolisTorques.setZero(model.getNrOfDOFs());
+        eigJointGravityAndCoriolisTorques.setZero(model.getNrOfDOFs());
+
+        eigMinJointPos.setZero(model.getNrOfDOFs());
+        eigMaxJointPos.setZero(model.getNrOfDOFs());
+
+        eigRobotAcc.setZero();
+        idynRobotAcc.zero();
+        extForces.zero();
+
+        idynJacobian.resize(6,model.getNrOfDOFs());
+        eigJacobian = iDynTree::toEigen(idynJacobian);
+
+        idynFFJacobian.resize(model);
+        eigFFJacobian = iDynTree::toEigen(idynFFJacobian);
+    }
+
+    RobotAcceleration eigRobotAcc;
+    iDynTreeRobotAcceleration idynRobotAcc;
+    iDynTree::FreeFloatingMassMatrix idynFFMassMatrix;
+    iDynTree::MatrixDynSize idynJacobian;
+    Eigen::MatrixXd eigFFJacobian;
+    Eigen::MatrixXd eigJacobian;
+    Eigen::MatrixXd eigFFMassMatrix;
+    Eigen::MatrixXd eigMassMatrix;
+    iDynTree::FrameFreeFloatingJacobian idynFFJacobian;
+    iDynTree::LinkNetExternalWrenches extForces;
+    iDynTree::Vector6 idynFrameBiasAcc;
+    iDynTree::Twist idynFrameVel;
+    iDynTree::Position idynPramePos;
+    iDynTree::FreeFloatingGeneralizedTorques generalizedBiasForces;
+    iDynTree::FreeFloatingGeneralizedTorques generalizedGravityTorques;
+    Eigen::VectorXd eigGeneralizedBiasForces;
+    Eigen::VectorXd eigJointGravityTorques;
+    Eigen::VectorXd eigJointCoriolisTorques;
+    Eigen::VectorXd eigJointGravityAndCoriolisTorques;
+    Eigen::VectorXd eigMinJointPos;
+    Eigen::VectorXd eigMaxJointPos;
+    RobotState eigRobotState;
+    iDynTreeRobotState idynRobotState;
+    Eigen::Matrix<double,6,1> eigFrameBiasAcc;
+    Eigen::Matrix<double,6,1> eigFrameVel;
+    Eigen::Matrix4d eigTransform;
+};
+
+template<>
+class RobotDynTree::RobotDynTreeImpl<RobotDynTree::iDynTree>
+{
+
+private:
+    RobotDataHelper robotData_;
+    iDynTree::KinDynComputations kinDynComp_;
+    std::string base_frame_;
+    unsigned int ndof_ = 0;
+    std::vector<std::string> joint_names_;
+    std::vector<std::string> link_names_;
+    std::vector<std::string> frame_names_;
+
+public:
+
+    const std::vector<std::string>& getLinkNames() const
+    {
+        return link_names_;
+    }
+
+    const std::vector<std::string>& getFrameNames() const
+    {
+        return frame_names_;
+    }
+
+    const std::vector<std::string>& getJointNames() const
+    {
+        return joint_names_;
+    }
+
+    bool loadModelFromString(const std::string &modelString)
+    {
+        iDynTree::ModelLoader mdlLoader;
+        if(!mdlLoader.loadModelFromString(modelString))
+        {
+            LOG_ERROR << "Could not load model from urdf string :\n" << modelString;
+            return false;
+        }
+        if(! kinDynComp_.loadRobotModel(mdlLoader.model()) )
+        {
+            LOG_ERROR << "Could not load model from urdf string :\n" << modelString;
+            return false;
+        }
+
+        return load(kinDynComp_.model());
+    }
+
+private:
+    bool load(const iDynTree::Model& model)
+    {
+        robotData_.resize(model);
+
+        ndof_ = model.getNrOfDOFs();
+
+        joint_names_.clear();
+        for(unsigned int i = 0 ; i < ndof_ ; i++)
+        {
+            double min = 0,max = 0;
+            if(kinDynComp_.model().getJoint(i)->hasPosLimits())
+            {
+                robotData_.eigMinJointPos[i] = kinDynComp_.model().getJoint(i)->getMinPosLimit(0);
+                robotData_.eigMaxJointPos[i] = kinDynComp_.model().getJoint(i)->getMaxPosLimit(0);
+            }
+            else
+            {
+                LOG_WARNING << "Joint " << i << " does not have position limits, settings [ -inf , +inf ]";
+                robotData_.eigMinJointPos[i] = - orca::math::Infinity;
+                robotData_.eigMaxJointPos[i] =   orca::math::Infinity;
+            }
+            // NOTE: iDyntree stores all the joints as [actuated joints + fixed joints]
+            // Important distinction then : Number of degrees of freedom != number of joints in the model !
+            joint_names_.push_back( kinDynComp_.getRobotModel().getJointName(i) );
+        }
+
+        frame_names_.clear();
+        for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfFrames() ; i++)
+        {
+            frame_names_.push_back( kinDynComp_.getRobotModel().getFrameName(i) );
+        }
+        link_names_.clear();
+        for(unsigned int i=0; i < kinDynComp_.getRobotModel().getNrOfLinks() ; i++)
+        {
+            link_names_.push_back( kinDynComp_.getRobotModel().getLinkName(i) );
+        }
+
+        return true;
+    }
+
+public:
+    const Eigen::VectorXd& getMinJointPos()
+    {
+        return robotData_.eigMinJointPos;
+    }
+    const Eigen::VectorXd& getMaxJointPos()
+    {
+        return robotData_.eigMaxJointPos;
+    }
+
+    void setGravity(const Eigen::Vector3d& g)
+    {
+        robotData_.eigRobotState.gravity = g;
+    }
+
+    const Eigen::Vector3d& getGravity()
+    {
+        return robotData_.eigRobotState.gravity;
+    }
+
+    void setBaseFrame(const std::string& base_frame)
+    {
+        base_frame_ = base_frame;
+        kinDynComp_.setFloatingBase( base_frame_ );
+    }
+
+    const Eigen::Matrix<double,6,1>& getBaseVelocity()
+    {
+        return robotData_.eigRobotState.baseVel;
+    }
+
+    const Eigen::Matrix4d& getWorldToBaseTransform()
+    {
+        return robotData_.eigRobotState.world_H_base;
+    }
+
+    void setRobotState(const Eigen::VectorXd& jointPos
+                    , const Eigen::VectorXd& jointVel)
+    {
+        setRobotState(jointPos,jointVel,robotData_.eigRobotState.gravity);
+    }
+    void setRobotState(const Eigen::VectorXd& jointPos
+                    , const Eigen::VectorXd& jointVel
+                    , const Eigen::Vector3d& gravity)
+    {
+        setRobotState(robotData_.eigRobotState.world_H_base,jointPos,robotData_.eigRobotState.baseVel,jointVel,gravity);
+    }
+
+    void setRobotState(const Eigen::Matrix4d& world_H_base
+                    , const Eigen::VectorXd& jointPos
+                    , const Eigen::Matrix<double,6,1>& baseVel
+                    , const Eigen::VectorXd& jointVel
+                    , const Eigen::Vector3d& gravity)
+    {
+        robotData_.eigRobotState.world_H_base = world_H_base;
+        robotData_.eigRobotState.jointPos = jointPos;
+        robotData_.eigRobotState.baseVel = baseVel;
+        robotData_.eigRobotState.jointVel = jointVel;
+        robotData_.eigRobotState.gravity = gravity;
+
+        robotData_.idynRobotState.fromEigen(robotData_.eigRobotState);
+
+        kinDynComp_.setRobotState(robotData_.idynRobotState.world_H_base
+                                ,robotData_.idynRobotState.jointPos
+                                ,robotData_.idynRobotState.baseVel
+                                ,robotData_.idynRobotState.jointVel
+                                ,robotData_.idynRobotState.gravity);
+    }
+
+    const std::string& getBaseFrame() const
+    {
+        return base_frame_;
+    }
+
+    unsigned int getNrOfDegreesOfFreedom() const
+    {
+        return ndof_;
+    }
+
+    unsigned int getConfigurationSpaceDimension() const
+    {
+        return 6 + ndof_;
+    }
+
+    const iDynTree::Model& getRobotModel() const
+    {
+        return kinDynComp_.getRobotModel();
+    }
+
+    bool frameExists(const std::string& frame_name) const
+    {
+        return kinDynComp_.getFrameIndex(frame_name) >= 0;
+    }
+
+    std::string getJointName(unsigned int idx) const
+    {
+        return kinDynComp_.model().getJointName(idx);
+    }
+
+    unsigned int getNrOfJoints() const
+    {
+        return kinDynComp_.model().getNrOfJoints();
+    }
+
+    const Eigen::Matrix4d& getTransform(const std::string& frameName)
+    {
+        return getRelativeTransform(base_frame_,frameName);
+    }
+
+    const Eigen::Matrix4d& getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
+    {
+        robotData_.eigTransform = iDynTree::toEigen(kinDynComp_.getRelativeTransform(refFrameName,frameName).asHomogeneousTransform());
+        return robotData_.eigTransform;
+    }
+
+    const Eigen::Matrix<double,6,1>&  getFrameVel(const std::string& frameName)
+    {
+        robotData_.eigFrameVel = iDynTree::toEigen(kinDynComp_.getFrameVel(frameName));
+        return robotData_.eigFrameVel;
+    }
+
+    const Eigen::Matrix<double,6,1>& getFrameBiasAcc(const std::string& frameName)
+    {
+        robotData_.eigFrameBiasAcc = iDynTree::toEigen(kinDynComp_.getFrameBiasAcc(frameName));
+        return robotData_.eigFrameBiasAcc;
+    }
+
+    const Eigen::MatrixXd& getFreeFloatingMassMatrix()
+    {
+        kinDynComp_.getFreeFloatingMassMatrix(robotData_.idynFFMassMatrix);
+        robotData_.eigFFMassMatrix = iDynTree::toEigen(robotData_.idynFFMassMatrix);
+        return robotData_.eigFFMassMatrix;
+    }
+
+    const Eigen::MatrixXd& getMassMatrix()
+    {
+        getFreeFloatingMassMatrix();
+        robotData_.eigMassMatrix = robotData_.eigFFMassMatrix.block(6,6,ndof_,ndof_);
+        return robotData_.eigMassMatrix;
+    }
+
+    const Eigen::MatrixXd& getFrameFreeFloatingJacobian(const std::string& frameName)
+    {
+        kinDynComp_.getFrameFreeFloatingJacobian(frameName,robotData_.idynFFJacobian);
+        robotData_.eigFFJacobian = iDynTree::toEigen(robotData_.idynFFJacobian);
+        return robotData_.eigFFJacobian;
+    }
+
+    const Eigen::MatrixXd& getJacobian(const std::string& frameName)
+    {
+        return getRelativeJacobian(base_frame_,frameName);
+    }
+
+    const Eigen::MatrixXd& getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
+    {
+        kinDynComp_.getRelativeJacobian(kinDynComp_.getFrameIndex(refFrameName)
+                                    ,kinDynComp_.getFrameIndex(frameName)
+                                    ,robotData_.idynJacobian);
+        robotData_.eigJacobian = iDynTree::toEigen(robotData_.idynJacobian);
+        return robotData_.eigJacobian;
+    }
+
+    const Eigen::VectorXd& getJointPos() const
+    {
+        return robotData_.eigRobotState.jointPos;
+    }
+
+    const Eigen::VectorXd& getJointVel() const
+    {
+        return robotData_.eigRobotState.jointVel;
+    }
+
+    bool addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
+    {
+        iDynTree::Transform idyntree_link_H_frame;
+        iDynTree::fromEigen(idyntree_link_H_frame,link_H_frame);
+        auto model = this->kinDynComp_.model();
+        if(!model.addAdditionalFrameToLink(linkName,frameName,idyntree_link_H_frame))
+            return false;
+        return load(model);
+    }
+
+    const Eigen::VectorXd& getJointGravityTorques()
+    {
+        kinDynComp_.generalizedGravityForces(robotData_.generalizedGravityTorques);
+        robotData_.eigJointGravityTorques = iDynTree::toEigen(robotData_.generalizedGravityTorques.jointTorques());
+        return robotData_.eigJointGravityTorques;
+    }
+
+    const Eigen::VectorXd& getJointCoriolisTorques()
+    {
+        generalizedBiasForces();
+        getJointGravityTorques();
+        robotData_.eigJointCoriolisTorques = robotData_.eigJointGravityAndCoriolisTorques - robotData_.eigJointGravityTorques;
+        return robotData_.eigJointCoriolisTorques;
+    }
+
+    const Eigen::VectorXd& getJointGravityAndCoriolisTorques()
+    {
+        generalizedBiasForces();
+        return robotData_.eigJointGravityAndCoriolisTorques;
+    }
+
+    const Eigen::VectorXd& generalizedBiasForces()
+    {
+        kinDynComp_.generalizedBiasForces(robotData_.generalizedBiasForces);
+        robotData_.eigGeneralizedBiasForces.head(6) = iDynTree::toEigen(robotData_.generalizedBiasForces.baseWrench());
+        robotData_.eigJointGravityAndCoriolisTorques = iDynTree::toEigen(robotData_.generalizedBiasForces.jointTorques());
+        robotData_.eigGeneralizedBiasForces.tail(ndof_) = robotData_.eigJointGravityAndCoriolisTorques;
+        return robotData_.eigGeneralizedBiasForces;
+    }
+
+};
+
+} // namespace optim
+} // namespace orca

@@ -1,0 +1,176 @@
+#include "orca/optim/QPSolverImpl.h"
+#include "orca/utils/Logger.h"
+#include <osqp.h>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <iostream>
+
+namespace orca
+{
+namespace optim
+{
+
+class QPSolverImpl_osqp : public QPSolverImpl
+{
+private:
+    OSQPSettings settings_;
+    OSQPWorkspace* work_ = 0;
+    OSQPData osqp_data_;
+    Eigen::SparseMatrix<double> Ps_;
+    Eigen::SparseMatrix<double> As_;
+    bool osqp_initialized_ = false;
+public:
+    virtual ~QPSolverImpl_osqp()
+    {
+        osqp_cleanup(work_);
+        c_free(osqp_data_.A);
+        c_free(osqp_data_.P);
+    }
+    void resize(int nvar,int nconstr)
+    {
+        if(nvar <= 0 || nconstr <= 0)
+            return;
+        if(!work_)
+        {
+            setDefaultOptions();
+
+        }
+
+        Eigen::MatrixXd P(nvar,nvar);
+        P.setConstant(1);
+        Ps_ = P.sparseView();
+        Eigen::MatrixXd A(nconstr,nvar);
+        A.setConstant(1);
+        As_ = A.sparseView();
+        Eigen::VectorXd x(nvar);
+        x.setConstant(1);
+        Eigen::VectorXd l(nconstr);
+        l.setConstant(1);
+
+        osqp_data_.n = nvar;
+        osqp_data_.m = nconstr;
+        //osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        osqp_data_.P = csc_matrix(nvar, nvar, Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
+        osqp_data_.q =  x.data();
+        osqp_data_.A = csc_matrix(nconstr, nvar, As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
+        osqp_data_.l = l.data();
+        osqp_data_.u = l.data();
+
+        // SparseMatrix<double> sparse = dense.sparseView();
+        // int m_ = sparse.innerSize(); // number of rows
+        // int n_ = sparse.outerSize(); // number of columns
+        // int nzmax_ = sparse.nonZeros(); // maximum number of entries (non-zeros)
+        // int *p_ = sparse.outerIndexPtr(); // column pointers (size n+1) (col indices (size nzmax)
+        // int *i_ = sparse.innerIndexPtr(); // row indices, size nzmax starting from 0
+        // double *x_ = sparse.valuePtr();
+        LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
+        work_ = osqp_setup(&osqp_data_, &settings_);
+        setPrintLevel(1);
+        LOG_INFO << "[QPSolver] osqp setup done" ;
+    }
+
+    void setPrintLevel(int level)
+    {
+        if(!work_)
+            throw std::runtime_error("osqp pointer is null");
+
+        osqp_update_verbose(work_,level);
+    }
+
+    void setDefaultOptions()
+    {
+        osqp_set_default_settings(&settings_);
+    }
+
+    common::ReturnCode solve(ProblemData& data )
+    {
+        // osqp_data_.n = n;
+        // osqp_data_.m = m;
+        // osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        // osqp_data_.q = data.g_.data();
+        // osqp_data_.A = csc_matrix(data.m, data.n, A_nnz, A_x, A_i, A_p);
+        // osqp_data_.l = l;
+        // osqp_data_.u = u;
+        // osqp_data_.n = nvar;
+        // osqp_data_.m = nconstr;
+        // osqp_data_.P = csc_matrix(nvar, nvar, Ps.nonZeros(), Ps.valuePtr(), Ps.innerIndexPtr(), Ps.outerIndexPtr());
+        // osqp_data_.q =  x.data();
+        // osqp_data_.A = csc_matrix(nconstr, nvar, As.nonZeros(), As.valuePtr(), As.innerIndexPtr(), As.outerIndexPtr());
+        // osqp_data_.l = l.data();
+        // osqp_data_.u = l.data();
+        // osqp_update_P
+        if(osqp_update_lin_cost(work_,data.g_.data()) != 0)
+        {
+            std::cerr << "Could not update g" << '\n';
+        }
+
+        // TODO : check in lib if necessary
+        data.lbA_ = data.lbA_.cwiseMax(-OSQP_INFTY);
+        data.ubA_ = data.ubA_.cwiseMin(OSQP_INFTY);
+
+        if(osqp_update_bounds(work_,data.lbA_.data(),data.ubA_.data()) != 0)
+        {
+            std::cerr << "Could not update bounds" << '\n';
+        }
+
+        // Eigen::MatrixXd P = data.H_;
+        // Eigen::MatrixXd A = data.A_;
+        // Ps_ = P.sparseView();
+        // As_ = A.sparseView();
+        Ps_ = data.H_.sparseView();
+        As_ = data.A_.sparseView();
+        // Ps_.makeCompressed();
+        // As_.makeCompressed();
+
+        if(osqp_update_P_A(work_,Ps_.valuePtr(),
+                              Ps_.innerIndexPtr(),
+                              Ps_.nonZeros(),
+                              As_.valuePtr(),
+                              As_.innerIndexPtr(),
+                              As_.nonZeros()) != 0)
+        {
+          std::cerr << "Could not update P and A" << '\n';
+        }
+
+        osqp_solve(work_);
+
+        if(work_->info->status_val == OSQP_SOLVED)
+        {
+            if(solutionContainsNan())
+            {
+                data.print();
+                return common::ReturnCode::RET_QP_NOT_SOLVED;
+            }
+            return common::ReturnCode::SUCCESSFUL_RETURN;
+        }
+
+        return common::ReturnCode::RET_QP_NOT_SOLVED;
+    }
+
+    bool solutionContainsNan()
+    {
+        for (size_t i = 0; i < work_->data->n; i++) {
+            if(work_->solution->x[i] != work_->solution->x[i])
+                return true;
+        }
+        return false;
+    }
+
+    void getPrimalSolution(Eigen::VectorXd& solution)
+    {
+        if(!work_)
+            throw std::runtime_error("osqp pointer is null");
+
+        int nv = work_->data->n;
+        if(solution.size() != nv)
+        {
+            std::stringstream err;
+            err << "Provided vector size is " << solution.size() << ",but the number of variable is " << nv << std::endl;
+            throw std::runtime_error(err.str());
+        }
+        solution = Eigen::Map<Eigen::VectorXd>(work_->solution->x, work_->data->n, 1);
+    }
+};
+
+} // namespace optim
+} // namespace orca
