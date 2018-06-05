@@ -35,26 +35,28 @@ public:
             setDefaultOptions();
 
         }
-
         Eigen::MatrixXd P(nvar,nvar);
         P.setConstant(1);
         Ps_ = P.sparseView();
         Eigen::MatrixXd A(nconstr,nvar);
         A.setConstant(1);
         As_ = A.sparseView();
-        Eigen::VectorXd x(nvar);
-        x.setConstant(1);
+        Eigen::VectorXd q(nvar);
+        q.setConstant(1);
         Eigen::VectorXd l(nconstr);
-        l.setConstant(1);
+        l.setConstant(-OSQP_INFTY);
+        Eigen::VectorXd u(nconstr);
+        u.setConstant(OSQP_INFTY);
 
         osqp_data_.n = nvar;
         osqp_data_.m = nconstr;
         //osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+
         osqp_data_.P = csc_matrix(nvar, nvar, Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
-        osqp_data_.q =  x.data();
+        osqp_data_.q =  q.data();
         osqp_data_.A = csc_matrix(nconstr, nvar, As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
         osqp_data_.l = l.data();
-        osqp_data_.u = l.data();
+        osqp_data_.u = u.data();
 
         // SparseMatrix<double> sparse = dense.sparseView();
         // int m_ = sparse.innerSize(); // number of rows
@@ -65,6 +67,7 @@ public:
         // double *x_ = sparse.valuePtr();
         LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
         work_ = osqp_setup(&osqp_data_, &settings_);
+
         setPrintLevel(1);
         LOG_INFO << "[QPSolver] osqp setup done" ;
     }
@@ -80,6 +83,24 @@ public:
     void setDefaultOptions()
     {
         osqp_set_default_settings(&settings_);
+    }
+
+    void csc_matrix_set_zero(csc *M)
+    {
+      c_int j, i, row_start, row_stop;
+      c_int k = 0;
+
+      for (j = 0; j < M->n; j++) {
+        row_start = M->p[j];
+        row_stop  = M->p[j + 1];
+
+        if (row_start == row_stop) continue;
+        else {
+          for (i = row_start; i < row_stop; i++) {
+            M->x[k++] = 0;
+          }
+        }
+      }
     }
 
     common::ReturnCode solve(ProblemData& data )
@@ -99,6 +120,22 @@ public:
         // osqp_data_.l = l.data();
         // osqp_data_.u = l.data();
         // osqp_update_P
+
+        //osqp_data_.P = csc_matrix(data.n, data.n, P_nnz, P_x, P_i, P_p);
+        // osqp_data_.P = csc_matrix(osqp_data_.n, osqp_data_.n, Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
+        // osqp_data_.q =  x.data();
+        // osqp_data_.A = csc_matrix(osqp_data_.m, osqp_data_.n, As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
+        // osqp_data_.l = l.data();
+        // osqp_data_.u = l.data();
+
+        // SparseMatrix<double> sparse = dense.sparseView();
+        // int m_ = sparse.innerSize(); // number of rows
+        // int n_ = sparse.outerSize(); // number of columns
+        // int nzmax_ = sparse.nonZeros(); // maximum number of entries (non-zeros)
+        // int *p_ = sparse.outerIndexPtr(); // column pointers (size n+1) (col indices (size nzmax)
+        // int *i_ = sparse.innerIndexPtr(); // row indices, size nzmax starting from 0
+        // double *x_ = sparse.valuePtr();
+
         if(osqp_update_lin_cost(work_,data.g_.data()) != 0)
         {
             std::cerr << "Could not update g" << '\n';
@@ -117,28 +154,46 @@ public:
         // Eigen::MatrixXd A = data.A_;
         // Ps_ = P.sparseView();
         // As_ = A.sparseView();
+        // memset(work_->data->P,0,sizeof(double) * (work_->data->n*work_->data->n));
+
         Ps_ = data.H_.sparseView();
         As_ = data.A_.sparseView();
-        // Ps_.makeCompressed();
-        // As_.makeCompressed();
+        Ps_.makeCompressed();
+        As_.makeCompressed();
 
-        if(osqp_update_P_A(work_,Ps_.valuePtr(),
-                              Ps_.innerIndexPtr(),
-                              Ps_.nonZeros(),
-                              As_.valuePtr(),
-                              As_.innerIndexPtr(),
-                              As_.nonZeros()) != 0)
-        {
-          std::cerr << "Could not update P and A" << '\n';
-        }
+        //memset(work_->data->P->x,0,work_->data->P->n * work_->data->P->n * sizeof(c_float));
+        //memset(work_->data->A->x,0,work_->data->A->m * work_->data->P->n * sizeof(c_float));
+        // csc_matrix_set_zero(work_->data->P);
+        // csc_matrix_set_zero(work_->data->A);
 
+        // if(osqp_update_P_A(work_, Ps_.valuePtr()
+        //                     , Ps_.innerIndexPtr()
+        //                     , Ps_.nonZeros()
+        //                     , As_.valuePtr()
+        //                     , As_.innerIndexPtr()
+        //                     , As_.nonZeros()) != 0)
+        // {
+        //   std::cerr << "Could not update P and A" << '\n';
+        // }
+
+
+        // csc_matrix_set_zero(work_->data->P);
+        // csc_matrix_set_zero(work_->data->A);
+        // print_csc_matrix(work_->data->P,"P");
+        // print_csc_matrix(work_->data->A,"A");
+        osqp_data_.P = csc_matrix(data.H_.rows(), data.H_.cols(), Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
+        osqp_data_.q =  data.g_.data();
+        osqp_data_.A = csc_matrix(data.A_.rows(), data.A_.cols(), As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
+        osqp_data_.l = data.lbA_.data();
+        osqp_data_.u = data.ubA_.data();
+        work_ = osqp_setup(&osqp_data_, &settings_);
         osqp_solve(work_);
 
         if(work_->info->status_val == OSQP_SOLVED)
         {
             if(solutionContainsNan())
             {
-                data.print();
+                //data.print();
                 return common::ReturnCode::RET_QP_NOT_SOLVED;
             }
             return common::ReturnCode::SUCCESSFUL_RETURN;
