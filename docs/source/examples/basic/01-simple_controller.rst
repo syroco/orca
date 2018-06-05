@@ -266,69 +266,98 @@ The control loop is where the robot model is updated using the current state inf
 
     controller.activateTasksAndConstraints();
 
-    // Now you can run the control loop
     for (; current_time < 2.0; current_time +=dt)
     {
-        // Here you can get the data from you REAL robot (API is robot-specific)
+        // Here you can get the data from your robot (API is robot-specific)
         // Something like :
             // eigState.jointPos = myRealRobot.getJointPositions();
             // eigState.jointVel = myRealRobot.getJointVelocities();
 
-        // Now update the internal kinematic model with data from the REAL robot
         robot->setRobotState(eigState.jointPos,eigState.jointVel);
-
-        // Step the controller + solve the internal optimal problem
         controller.update(current_time, dt);
-
-        // Do what you want with the solution
         if(controller.solutionFound())
         {
-            // The whole optimal solution [AccFb, Acc, Tfb, T, eWrenches]
-            const Eigen::VectorXd& full_solution = controller.getSolution();
-            // The optimal joint torque command
             const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
-            // The optimal joint acceleration command
-            const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
 
             // Send torques to the REAL robot (API is robot-specific)
-            //real_tobot->set_joint_torques(trq_cmd);
+            // myRealRobot.set_joint_torques(trq_cmd);
         }
         else
         {
             // WARNING : Optimal solution is NOT found
-            // Switching to a fallback strategy
-            // Typical are :
-            // - Stop the robot (robot-specific method)
-            // - Compute KKT Solution and send to the robot (dangerous)
-            // - PID around the current position (dangerous)
-
-            // trq = controller.computeKKTTorques();
-            // Send torques to the REAL robot (API is robot-specific)
-            // real_tobot->set_joint_torques(trq_cmd);
+            // Perform some fallback strategy (see below)
         }
     }
 
+First, since we are manually stepping the time, we initialize the ``current_time`` to zero and the ``dt=0.001``.
+
+The next important step is to activate the tasks and constraints: ``controller.activateTasksAndConstraints();``. This **must** be done before the controller update is called, or else no solution will be found.
+
+Now that the tasks and constraints are activated, we step into the control loop, which increments ``current_time`` from ``0.0`` to ``2.0`` seconds by ``dt``:
+
+.. code-block:: c++
+
+    for (; current_time < 2.0; current_time +=dt)
+
+At the begining of each loop, we must first retrieve the robot's state information so that we can update our robot model being used in the controller. This step depends on the robot-specific API being used and is up to the user to implement.
+
+.. note:: In future examples we demonstrate how to do this with the Gazebo simulator.
+
+After we get the appropriate state information from our robot (in this case, the joint positions and velocities) we update the robot model: ``robot->setRobotState(eigState.jointPos,eigState.jointVel);``.
+With the model updated we now update the controller, ``controller.update(current_time, dt);``.
+The controller update first updates all of the tasks and constraints, then formulates the optimal control problem, then solves said problem.
+If the controller found a solution to the optimal control problem then ``controller.solutionFound()`` will return true and this tells you that you can get that result and use it to control your robot.
+Here we extract the optimal control torques, ``const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();`` and then send them to our robot, using robot specific functions.
+
+.. note:: In this example, we extract only the optimal torques, but you of course have access to the full solution:
+
+    .. code-block:: c++
+
+        // The whole optimal solution [AccFb, Acc, Tfb, T, eWrenches]
+        const Eigen::VectorXd& full_solution = controller.getSolution();
+        // The optimal joint torque command
+        const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
+        // The optimal joint acceleration command
+        const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
+
+If the controller fails to find a solution to the problem then ``controller.solutionFound()`` returns ``false``, and you must implement some **fallback** strategy. By fallback, we mean some strategy to be used when we have no idea what torques to send to the robot. A simple but effective strategy, is to simply brake the robot and stop its motion.
+
+.. important:: If the optimal control problem has no solution it is generally because the tasks and constraints are ill-defined and not because no solution exists. For this reason, one can implement fallback strategies which are slightly more intelligent than simply stopping the robot. For example:
+    - Compute KKT Solution and send to the robot (solutions without inequality constraints)
+    - PID around the current position (to slow to a halt)
+    - Switch controllers
+    - etc.
 
 
 Shutting Things Down
 -----------------------
 
+Once we are finished using the controller and want to bring everything to a stop, we need to gradually deactivate the tasks and constraints to avoid any erratic behaviors at the end of the motion.
+To do so, we start by deactivating the tasks and constraints:
+
 .. code-block:: c++
 
-    // At some point you want to close the controller nicely
     controller.deactivateTasksAndConstraints();
 
+We then need to update the controller so the tasks and constraints can slowly ramp down to total deactivation.
 
-    // Let all the tasks ramp down to zero
+.. code-block:: c++
     while(!controller.tasksAndConstraintsDeactivated())
     {
         current_time += dt;
         controller.update(current_time,dt);
     }
 
-    // All objets will be destroyed here
-    return 0;
 
+Our controller is now deactivated and can be ``deleted`` or destroyed without any issues.
+
+Typically at the end of the execution you would either stop the robot or put it into some robot-specific control mode (position control, gravity compensation, etc.).
+
+
+Conclusion
+--------------
+
+In this example you have seen all of the necessary steps to getting an ORCA controller up and running. In the next examples we will look at more realistic examples where the controller interacts with a robot/simulation. 
 
 
 .. _simple_controller_full_code_listing:
