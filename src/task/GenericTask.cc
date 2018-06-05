@@ -21,7 +21,7 @@ void GenericTask::print() const
 {
     TaskBase::print();
     getEuclidianNorm().print();
-    std::cout << " - Weight " << getWeight() << '\n';
+    std::cout << " - Weight " << weight_ << '\n';
     std::cout << " - Ramp   " << getCurrentRampValue() << '\n';
     std::cout << " - Ramp duration " << getRampDuration() << '\n';
 }
@@ -105,7 +105,7 @@ bool GenericTask::rampUp(double time_since_start)
     }
     else
     {
-        setRampValue( time_since_start *( getWeight() / getRampDuration() ) );;
+        setRampValue( time_since_start *( weight_ / getRampDuration() ) );;
         return false;
     }
 }
