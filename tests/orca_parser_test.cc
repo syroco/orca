@@ -22,13 +22,6 @@ namespace YAML {
         return node;
       }
 
-      // Save data given as a matrix
-      for (int row=0; row<matrix.rows(); row++) {
-    	Node node_row(NodeType::Sequence);
-        for (int col=0; col<matrix.cols(); col++)
-          node_row.push_back(matrix(row,col));
-        node.push_back(node_row);
-      }
       return node;
     }
 
@@ -42,13 +35,6 @@ namespace YAML {
 	    return true;
 	  }
 
-	  // Read data given as a matrix
-	  if (_Rows == Eigen::Dynamic || _Cols == Eigen::Dynamic)
-	    matrix.resize(node.size(), node[0].size());
-      for (int row=0; row<node.size(); row++) {
-        for (int col=0; col<node[0].size(); col++)
-    	  matrix(row,col) = node[(int)row][(int)col].as<_Scalar>();
-      }
       return true;
     }
   };
@@ -58,7 +44,7 @@ namespace YAML {
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    
+
     if(argc < 2)
     {
         cerr << "Usage " << argv[0] << " some_yaml_file.yml" << '\n';
@@ -66,13 +52,13 @@ int main(int argc, char *argv[]) {
     }
     ifstream fin;
     fin.open(argv[1]);
-    
+
     YAML::Node config = YAML::Load(fin);
     cout << "-----------------" << '\n';
     cout << config << '\n';
     cout << "-----------------" << '\n';
     auto controller = config["controller"];
-    
+
     if(controller)
     {
         auto tasks = controller["tasks"];
@@ -80,7 +66,7 @@ int main(int argc, char *argv[]) {
         if(tasks)
         {
             auto cart = tasks["CartTask_EE"];
-            
+
             if(cart)
             {
                 auto servo = cart["servo_controller"];
