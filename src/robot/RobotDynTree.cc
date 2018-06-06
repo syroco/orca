@@ -251,7 +251,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
                         ,gravity);
     if(!is_initialized_)
     {
-        LOG_DEBUG << "Robot " << getName() << "is now initialized";
+        LOG_DEBUG << "Robot \'" << getName() << "\' is now initialized";
         is_initialized_ = true;
         if(robot_initialized_cb_)
             robot_initialized_cb_();

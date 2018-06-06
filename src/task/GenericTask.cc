@@ -5,6 +5,7 @@ using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::common;
+using namespace orca::utils;
 
 GenericTask::GenericTask(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
@@ -112,7 +113,32 @@ bool GenericTask::rampUp(double time_since_start)
 
 void GenericTask::onCompute(double current_time, double dt)
 {
+    Size Esize_before  = Size(E());
+    Size fsize_before  = Size(f());
+
     this->onUpdateAffineFunction(current_time, dt);
+
+    Size Esize_after  = Size(E());
+    Size fsize_after  = Size(f());
+
+    if(Esize_before != Esize_after)
+    {
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Matrix E() changed size during onUpdateAffineFunction, it was ("
+                << Esize_before
+                << ") but now its ("
+                << Esize_after
+                << "). Make sure your math is correct"
+            );
+    }
+    if(fsize_before != fsize_after)
+    {
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Vector f() changed size during onUpdateAffineFunction, it was ("
+                << Esize_before
+                << ") but now its ("
+                << Esize_after
+                << "). Make sure your math is correct"
+            );
+    }
     this->computeQuadraticCost();
 }
 
