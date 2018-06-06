@@ -287,7 +287,7 @@ public:
         std::cout << "- Brakes "    << (brakes_ ? "Enabled" : "Disabled")   << '\n';
     }
 
-    void setCallback(std::function<void(uint32_t,double,double)> callback)
+    void executeAfterWorldUpdate(std::function<void(uint32_t,double,double)> callback)
     {
         callback_ = callback;
     }

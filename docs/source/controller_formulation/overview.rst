@@ -62,7 +62,7 @@ Constraints are written as **double bounded linear function** :
 
 .. .. code-block:: c++
 ..
-..   auto robot = std::make_shared<RobotDynTree>();
+..   auto robot_model = std::make_shared<RobotModel>();
 ..    if(!robot->loadModelFromFile(urdf_url))
 ..    {
 ..        return -1;

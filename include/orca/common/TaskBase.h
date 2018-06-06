@@ -41,7 +41,7 @@
 
 #pragma once
 
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
 #include "orca/common/Wrench.h"
@@ -79,7 +79,7 @@ namespace common
         virtual ~TaskBase();
         bool isActivated() const;
         bool isComputing() const;
-        void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
+        void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
 
         optim::ControlVariable getControlVariable() const;
 
@@ -109,7 +109,7 @@ namespace common
 
         std::shared_ptr<const optim::Problem> getProblem()const;
         std::shared_ptr<const common::Wrench> getWrench() const;
-        std::shared_ptr<const robot::RobotDynTree> getRobot() const;
+        std::shared_ptr<const robot::RobotModel> getRobot() const;
 
         void link(std::shared_ptr<common::TaskBase> e);
 
@@ -122,7 +122,7 @@ namespace common
         void onDeactivatedCallback(std::function<void(void)> cb);
     protected:
         virtual void resize();
-        std::shared_ptr<robot::RobotDynTree> robot();
+        std::shared_ptr<robot::RobotModel> robot();
         std::shared_ptr<common::Wrench> wrench();
 
         virtual void onResize() = 0;
@@ -147,7 +147,7 @@ namespace common
         bool deactivation_requested_ = false;
         const std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
-        std::shared_ptr<robot::RobotDynTree> robot_;
+        std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<common::Wrench> wrench_;
         optim::ControlVariable control_var_;
         std::list<std::shared_ptr<common::TaskBase> > linked_elements_;

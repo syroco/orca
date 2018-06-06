@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     // You can optionally register a callback that will be called
     // after every WorldUpdateEnd, so the internal gazebo model is updated
     // and you can get the full state (q,qdot,Tworld->base, etc)
-    m.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    m.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
         std::cout << "[" << m.getName() << "]" << '\n'
             << "- iteration    " << n_iter << '\n'

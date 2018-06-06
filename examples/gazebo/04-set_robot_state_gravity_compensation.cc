@@ -56,35 +56,35 @@ int main(int argc, char** argv)
     std::string urdf_url(argv[1]);
 
     // Instanciate the gazebo server with de dedfault empty world
-    GazeboServer gzserver(argc,argv);
+    GazeboServer gz_server(argc,argv);
     // This is equivalent to GazeboServer gz("worlds/empty.world")
     // Insert a model onto the server and create the GazeboModel from the return value
     // You can also set the initial pose, and override the name in the URDF
-    auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
+    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
 
     // Create an ORCA robot
-    auto robot_kinematics = std::make_shared<RobotDynTree>();
-    robot_kinematics->loadModelFromFile(urdf_url);
-    robot_kinematics->print();
+    auto robot_model = std::make_shared<RobotModel>();
+    robot_model->loadModelFromFile(urdf_url);
+    robot_model->print();
 
     // Set the gazebo model init pose
-    // auto joint_names = robot_kinematics->getJointNames();
-    // std::vector<double> init_joint_positions(robot_kinematics->getNrOfDegreesOfFreedom(),0);
+    // auto joint_names = robot_model->getJointNames();
+    // std::vector<double> init_joint_positions(robot_model->getNrOfDegreesOfFreedom(),0);
 
-    // gzrobot.setModelConfiguration(joint_names,init_joint_positions);
+    // gz_model.setModelConfiguration(joint_names,init_joint_positions);
     // or like this
-    // gzrobot.setModelConfiguration({"joint_2","joint_5"},{1.5,0.0});
+    // gz_model.setModelConfiguration({"joint_2","joint_5"},{1.5,0.0});
 
     // Update the robot on at every iteration
-    gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    gz_model.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
-        robot_kinematics->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
-                            ,gzrobot.getJointPositions()
-                            ,gzrobot.getBaseVelocity()
-                            ,gzrobot.getJointVelocities()
-                            ,gzrobot.getGravity()
+        robot_model->setRobotState(gz_model.getWorldToBaseTransform().matrix()
+                            ,gz_model.getJointPositions()
+                            ,gz_model.getBaseVelocity()
+                            ,gz_model.getJointVelocities()
+                            ,gz_model.getGravity()
                         );
-        gzrobot.setJointGravityTorques(robot_kinematics->getJointGravityTorques());
+        gz_model.setJointGravityTorques(robot_model->getJointGravityTorques());
     });
 
     // Run the main simulation loop.
@@ -92,6 +92,6 @@ int main(int argc, char** argv)
     // It can be stopped by CTRL+C
     // You can optionally add a callback that happends after WorldUpdateEnd
     std::cout << "Simulation running... (GUI with \'gzclient\')" << "\n";
-    gzserver.run();
+    gz_server.run();
     return 0;
 }

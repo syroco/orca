@@ -58,25 +58,20 @@ int main(int argc, char const *argv[])
 
     orca::utils::Logger::parseArgv(argc, argv);
 
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
-    robot->setBaseFrame("base_link");
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
-    RobotState eigState;
-    eigState.resize(robot->getNrOfDegreesOfFreedom());
-    eigState.jointPos.setZero();
-    eigState.jointVel.setZero();
-    robot->setRobotState(eigState.jointPos,eigState.jointVel);
+    auto robot_model = std::make_shared<RobotModel>();
+    robot_model->loadModelFromFile(urdf_url);
+    robot_model->setBaseFrame("base_link");
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
 
     orca::optim::Controller controller(
         "controller"
-        ,robot
+        ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
         ,QPSolver::qpOASES
     );
 
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    controller.addTask(cart_task);
+    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;
     cart_pos_ref.translation() = Eigen::Vector3d(0.5,-0.5,0.8); // x,y,z in meters
@@ -93,69 +88,53 @@ int main(int argc, char const *argv[])
     cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
 
-    const int ndof = robot->getNrOfDegreesOfFreedom();
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
-    auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
-    controller.addConstraint(jnt_trq_cstr);
+    auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
     Eigen::VectorXd jntTrqMax(ndof);
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
 
-    auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
-    controller.addConstraint(jnt_pos_cstr);
+    auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
-    auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
-    controller.addConstraint(jnt_vel_cstr);
+    auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
     Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
-    GazeboServer gzserver(argc,argv);
-    auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
+    GazeboServer gz_server(argc,argv);
+    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
 
-    ///////////////////////////////////////
-    ///////////////////////////////////////
-    ///////////////////////////////////////
-    ///////////////////////////////////////
-
-    bool cart_task_activated = false;
-
-    cart_task->onActivatedCallback([&cart_task_activated](){
-        std::cout << "CartesianTask activated. Removing gravity compensation and begining motion." << '\n';
-        cart_task_activated = true;
-    });
-
-    gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    // Lets decide that the robot is gravity compensated
+    // So we need to remove G(q) from the solution
+    controller.removeGravityTorquesFromSolution(true);
+    gz_model.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
-        robot->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
-                            ,gzrobot.getJointPositions()
-                            ,gzrobot.getBaseVelocity()
-                            ,gzrobot.getJointVelocities()
-                            ,gzrobot.getGravity()
+        robot_model->setRobotState(gz_model.getWorldToBaseTransform().matrix()
+                            ,gz_model.getJointPositions()
+                            ,gz_model.getBaseVelocity()
+                            ,gz_model.getJointVelocities()
+                            ,gz_model.getGravity()
                         );
+        // Compensate the gravity at least
+        gz_model.setJointGravityTorques(robot_model->getJointGravityTorques());
         // All tasks need the robot to be initialized during the activation phase
         if(n_iter == 1)
             controller.activateTasksAndConstraints();
 
         controller.update(current_time, dt);
-        if (cart_task_activated)
+
+        if(controller.solutionFound())
         {
-            if(controller.solutionFound())
-            {
-                gzrobot.setJointTorqueCommand( controller.getJointTorqueCommand() );
-            }
-            else
-            {
-                gzrobot.setBrakes(true);
-            }
+            gz_model.setJointTorqueCommand( controller.getJointTorqueCommand() );
         }
         else
         {
-            gzrobot.setJointGravityTorques(robot->getJointGravityTorques());
+            gz_model.setBrakes(true);
         }
     });
 
     std::cout << "Simulation running... (GUI with \'gzclient\')" << "\n";
-    gzserver.run();
+    gz_server.run();
     return 0;
 }

@@ -54,25 +54,24 @@ int main(int argc, char const *argv[])
 
     orca::utils::Logger::parseArgv(argc, argv);
 
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
-    robot->setBaseFrame("base_link");
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
+    auto robot_model = std::make_shared<RobotModel>();
+    robot_model->loadModelFromFile(urdf_url);
+    robot_model->setBaseFrame("base_link");
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
     RobotState eigState;
-    eigState.resize(robot->getNrOfDegreesOfFreedom());
+    eigState.resize(robot_model->getNrOfDegreesOfFreedom());
     eigState.jointPos.setZero();
     eigState.jointVel.setZero();
-    robot->setRobotState(eigState.jointPos,eigState.jointVel);
+    robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
     orca::optim::Controller controller(
         "controller"
-        ,robot
+        ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
         ,QPSolver::qpOASES
     );
 
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    controller.addTask(cart_task);
+    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;
     cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
@@ -89,19 +88,16 @@ int main(int argc, char const *argv[])
 
     cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
-    const int ndof = robot->getNrOfDegreesOfFreedom();
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
-    auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
-    controller.addConstraint(jnt_trq_cstr);
+    auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
     Eigen::VectorXd jntTrqMax(ndof);
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
 
-    auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
-    controller.addConstraint(jnt_pos_cstr);
+    auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
-    auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
-    controller.addConstraint(jnt_vel_cstr);
+    auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
     Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
@@ -160,12 +156,12 @@ int main(int argc, char const *argv[])
             break;
         }
 
-        acc_new = robot->getMassMatrix().ldlt().solve(trq_cmd - robot->getJointGravityAndCoriolisTorques());
+        acc_new = robot_model->getMassMatrix().ldlt().solve(trq_cmd - robot_model->getJointGravityAndCoriolisTorques());
 
         eigState.jointPos += eigState.jointVel * dt + ((acc_new*dt*dt)/2);
         eigState.jointVel += acc_new * dt;
 
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
+        robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
     }
     std::cout << "Simulation finished." << '\n';

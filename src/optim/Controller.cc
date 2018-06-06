@@ -10,7 +10,7 @@ using namespace orca::optim;
 using namespace orca::utils;
 
 Controller::Controller(const std::string& name
-    , std::shared_ptr<robot::RobotDynTree> robot
+    , std::shared_ptr<robot::RobotModel> robot
     ,ResolutionStrategy resolution_strategy
     ,QPSolver::SolverType solver_type)
 : name_(name)
@@ -50,14 +50,14 @@ const std::string& Controller::getName()
     return name_;
 }
 
-std::shared_ptr<robot::RobotDynTree> Controller::robot()
+std::shared_ptr<robot::RobotModel> Controller::robot()
 {
     if(!robot_)
         orca_throw(Formatter() << "Robot is not set");
     return robot_;
 }
 
-void Controller::setRobotModel(std::shared_ptr<robot::RobotDynTree> robot)
+void Controller::setRobotModel(std::shared_ptr<robot::RobotModel> robot)
 {
     robot_ = robot;
 }

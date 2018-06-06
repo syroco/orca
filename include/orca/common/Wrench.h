@@ -41,7 +41,7 @@
 
 #pragma once
 
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 
 namespace orca
 {
@@ -53,7 +53,7 @@ class Wrench
 public:
     Wrench(const std::string& name);
 
-    void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
+    void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
 
     virtual ~Wrench();
 
@@ -93,7 +93,7 @@ private:
     Eigen::MatrixXd jac_zero_;
     Eigen::Matrix<double,6,1> current_wrench_;
     Eigen::Matrix<double,6,1> wrench_zero_;
-    std::shared_ptr<robot::RobotDynTree> robot_;
+    std::shared_ptr<robot::RobotModel> robot_;
     bool is_activated_ = true;
     const std::string name_;
 };

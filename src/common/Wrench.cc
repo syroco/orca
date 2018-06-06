@@ -9,7 +9,7 @@ Wrench::Wrench(const std::string& name)
 : name_(name)
 {}
 
-void Wrench::setRobotModel(std::shared_ptr<RobotDynTree> robot)
+void Wrench::setRobotModel(std::shared_ptr<RobotModel> robot)
 {
     robot_ = robot;
     resize();

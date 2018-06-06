@@ -56,25 +56,25 @@ int main(int argc, char** argv)
     std::string urdf_url(argv[1]);
 
     // Instanciate the gazebo server with de dedfault empty world
-    GazeboServer gzserver(argc,argv);
+    GazeboServer gz_server(argc,argv);
     // This is equivalent to GazeboServer gz("worlds/empty.world")
     // Insert a model onto the server and create the GazeboModel from the return value
     // You can also set the initial pose, and override the name in the URDF
-    auto gzrobot = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
+    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
 
     // Create an ORCA robot
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
-    robot->print();
+    auto robot_model = std::make_shared<RobotModel>();
+    robot_model->loadModelFromFile(urdf_url);
+    robot_model->print();
 
     // Update the robot on at every iteration
-    gzrobot.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    gz_model.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
-        robot->setRobotState(gzrobot.getWorldToBaseTransform().matrix()
-                            ,gzrobot.getJointPositions()
-                            ,gzrobot.getBaseVelocity()
-                            ,gzrobot.getJointVelocities()
-                            ,gzrobot.getGravity()
+        robot_model->setRobotState(gz_model.getWorldToBaseTransform().matrix()
+                            ,gz_model.getJointPositions()
+                            ,gz_model.getBaseVelocity()
+                            ,gz_model.getJointVelocities()
+                            ,gz_model.getGravity()
                         );
     });
 
@@ -82,6 +82,6 @@ int main(int argc, char** argv)
     // This is a blocking call that runs the simulation steps
     // It can be stopped by CTRL+C
     // You can optionally add a callback that happends after WorldUpdateEnd
-    gzserver.run();
+    gz_server.run();
     return 0;
 }

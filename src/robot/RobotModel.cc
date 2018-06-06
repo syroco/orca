@@ -1,7 +1,7 @@
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
-#include "RobotDynTree_iDynTree.impl"
+#include "RobotModel_iDynTree.impl"
 #include <exception>
 #include <stdexcept>
 #include <string>
@@ -52,45 +52,45 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
     }
 }
 
-RobotDynTree::RobotDynTree(const std::string& robot_name)
+RobotModel::RobotModel(const std::string& robot_name)
 : name_(robot_name)
 {
     switch(robot_kinematics_type_)
     {
-        case RobotDynTreeType::iDynTree:
-            impl_ = make_unique<RobotDynTreeImpl<iDynTree> >();
+        case RobotModelType::iDynTree:
+            impl_ = make_unique<RobotModelImpl<iDynTree> >();
             break;
         default:
-            orca_throw(Formatter() << "RobotDynTree only support iDynTree for now");
+            orca_throw(Formatter() << "RobotModel only support iDynTree for now");
     }
 }
 
-RobotDynTree::~RobotDynTree()
+RobotModel::~RobotModel()
 {
 
 }
 
-const std::string& RobotDynTree::getName() const
+const std::string& RobotModel::getName() const
 {
     return name_;
 }
 
-const std::vector<std::string>& RobotDynTree::getLinkNames() const
+const std::vector<std::string>& RobotModel::getLinkNames() const
 {
     return impl_->getLinkNames();
 }
 
-const std::vector<std::string>& RobotDynTree::getFrameNames() const
+const std::vector<std::string>& RobotModel::getFrameNames() const
 {
     return impl_->getFrameNames();
 }
 
-const std::vector<std::string>& RobotDynTree::getJointNames() const
+const std::vector<std::string>& RobotModel::getJointNames() const
 {
     return impl_->getJointNames();
 }
 
-bool RobotDynTree::loadModelFromString(const std::string &modelString)
+bool RobotModel::loadModelFromString(const std::string &modelString)
 {
     if( modelString.empty() )
     {
@@ -110,7 +110,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
             std::cerr << "modelString : \n" << modelString << '\n';
             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
                 << '\n'
-                << "Please use auto robot = std::make_shared<RobotDynTree>(\"my_robot_name\")";
+                << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
         }
         else
         {
@@ -128,7 +128,7 @@ bool RobotDynTree::loadModelFromString(const std::string &modelString)
     return false;
 }
 
-bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
+bool RobotModel::loadModelFromFile(const std::string &modelFile)
 {
     std::ifstream t(modelFile);
     if( !t.good() )
@@ -147,7 +147,7 @@ bool RobotDynTree::loadModelFromFile(const std::string &modelFile)
     return false;
 }
 
-const std::string& RobotDynTree::getUrdfUrl() const
+const std::string& RobotModel::getUrdfUrl() const
 {
     if(urdf_url_.empty() && !urdf_str_.empty())
         LOG_WARNING << "Robot model has been loaded with a URDF string, so the url is empty";
@@ -155,23 +155,23 @@ const std::string& RobotDynTree::getUrdfUrl() const
     return urdf_url_;
 }
 
-const std::string& RobotDynTree::getUrdfString() const
+const std::string& RobotModel::getUrdfString() const
 {
     if(urdf_str_.empty())
         LOG_ERROR << "Robot is not loaded, URDF string is empty";
     return urdf_str_;
 }
 
-const Eigen::VectorXd& RobotDynTree::getMinJointPos()
+const Eigen::VectorXd& RobotModel::getMinJointPos()
 {
     return impl_->getMinJointPos();
 }
-const Eigen::VectorXd& RobotDynTree::getMaxJointPos()
+const Eigen::VectorXd& RobotModel::getMaxJointPos()
 {
     return impl_->getMaxJointPos();
 }
 
-void RobotDynTree::print() const
+void RobotModel::print() const
 {
     assertLoaded();
 
@@ -197,40 +197,40 @@ void RobotDynTree::print() const
     }
 }
 
-void RobotDynTree::onRobotInitializedCallback(std::function<void(void)> cb)
+void RobotModel::onRobotInitializedCallback(std::function<void(void)> cb)
 {
     robot_initialized_cb_ = cb;
 }
 
-bool RobotDynTree::isInitialized() const
+bool RobotModel::isInitialized() const
 {
     return is_initialized_ && getNrOfDegreesOfFreedom() > 0;
 }
 
-void RobotDynTree::setGravity(const Eigen::Vector3d& g)
+void RobotModel::setGravity(const Eigen::Vector3d& g)
 {
     impl_->setGravity(g);
 }
 
-void RobotDynTree::setBaseFrame(const std::string& base_frame)
+void RobotModel::setBaseFrame(const std::string& base_frame)
 {
     assertFrameExists(base_frame);
     return impl_->setBaseFrame( base_frame );
 }
 
-void RobotDynTree::setRobotState(const Eigen::VectorXd& jointPos
+void RobotModel::setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel)
 {
     setRobotState(jointPos,jointVel,impl_->getGravity());
 }
-void RobotDynTree::setRobotState(const Eigen::VectorXd& jointPos
+void RobotModel::setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity)
 {
     setRobotState(impl_->getWorldToBaseTransform(),jointPos,impl_->getBaseVelocity(),jointVel,gravity);
 }
 
-void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
+void RobotModel::setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
                 , const Eigen::VectorXd& jointVel
@@ -258,7 +258,7 @@ void RobotDynTree::setRobotState(const Eigen::Matrix4d& world_H_base
     }
 }
 
-const std::string& RobotDynTree::getBaseFrame() const
+const std::string& RobotModel::getBaseFrame() const
 {
     assertLoaded();
 
@@ -268,41 +268,41 @@ const std::string& RobotDynTree::getBaseFrame() const
     return impl_->getBaseFrame();
 }
 
-unsigned int RobotDynTree::getNrOfDegreesOfFreedom() const
+unsigned int RobotModel::getNrOfDegreesOfFreedom() const
 {
     assertLoaded();
     return impl_->getNrOfDegreesOfFreedom();
 }
 
-unsigned int RobotDynTree::getConfigurationSpaceDimension() const
+unsigned int RobotModel::getConfigurationSpaceDimension() const
 {
     return 6 + getNrOfDegreesOfFreedom();
 }
 
-bool RobotDynTree::frameExists(const std::string& frame_name) const
+bool RobotModel::frameExists(const std::string& frame_name) const
 {
     assertLoaded();
     return impl_->frameExists(frame_name);
 }
 
-std::string RobotDynTree::getJointName(unsigned int idx) const
+std::string RobotModel::getJointName(unsigned int idx) const
 {
     assertLoaded();
     return impl_->getJointName(idx);
 }
 
-unsigned int RobotDynTree::getNrOfJoints() const
+unsigned int RobotModel::getNrOfJoints() const
 {
     assertLoaded();
     return impl_->getNrOfJoints();
 }
 
-const Eigen::Matrix4d& RobotDynTree::getTransform(const std::string& frameName)
+const Eigen::Matrix4d& RobotModel::getTransform(const std::string& frameName)
 {
     return getRelativeTransform(impl_->getBaseFrame(),frameName);
 }
 
-const Eigen::Matrix4d& RobotDynTree::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
+const Eigen::Matrix4d& RobotModel::getRelativeTransform(const std::string& refFrameName, const std::string& frameName)
 {
     assertFrameExists(refFrameName);
     assertFrameExists(frameName);
@@ -310,7 +310,7 @@ const Eigen::Matrix4d& RobotDynTree::getRelativeTransform(const std::string& ref
     return impl_->getRelativeTransform(refFrameName,frameName);
 }
 
-const Eigen::Matrix<double,6,1>&  RobotDynTree::getFrameVel(const std::string& frameName)
+const Eigen::Matrix<double,6,1>&  RobotModel::getFrameVel(const std::string& frameName)
 {
     assertFrameExists(frameName);
     assertInitialized();
@@ -318,7 +318,7 @@ const Eigen::Matrix<double,6,1>&  RobotDynTree::getFrameVel(const std::string& f
     return impl_->getFrameVel(frameName);
 }
 
-const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string& frameName)
+const Eigen::Matrix<double,6,1>& RobotModel::getFrameBiasAcc(const std::string& frameName)
 {
     assertFrameExists(frameName);
     assertInitialized();
@@ -326,19 +326,19 @@ const Eigen::Matrix<double,6,1>& RobotDynTree::getFrameBiasAcc(const std::string
     return impl_->getFrameBiasAcc(frameName);
 }
 
-const Eigen::MatrixXd& RobotDynTree::getFreeFloatingMassMatrix()
+const Eigen::MatrixXd& RobotModel::getFreeFloatingMassMatrix()
 {
     assertInitialized();
 
     return impl_->getFreeFloatingMassMatrix();
 }
 
-const Eigen::MatrixXd& RobotDynTree::getMassMatrix()
+const Eigen::MatrixXd& RobotModel::getMassMatrix()
 {
     return impl_->getMassMatrix();
 }
 
-const Eigen::MatrixXd& RobotDynTree::getFrameFreeFloatingJacobian(const std::string& frameName)
+const Eigen::MatrixXd& RobotModel::getFrameFreeFloatingJacobian(const std::string& frameName)
 {
     assertFrameExists(frameName);
     assertInitialized();
@@ -346,12 +346,12 @@ const Eigen::MatrixXd& RobotDynTree::getFrameFreeFloatingJacobian(const std::str
     return impl_->getFrameFreeFloatingJacobian(frameName);
 }
 
-const Eigen::MatrixXd& RobotDynTree::getJacobian(const std::string& frameName)
+const Eigen::MatrixXd& RobotModel::getJacobian(const std::string& frameName)
 {
     return getRelativeJacobian(impl_->getBaseFrame(),frameName);
 }
 
-const Eigen::MatrixXd& RobotDynTree::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
+const Eigen::MatrixXd& RobotModel::getRelativeJacobian(const std::string& refFrameName, const std::string& frameName)
 {
     assertFrameExists(refFrameName);
     assertFrameExists(frameName);
@@ -360,44 +360,44 @@ const Eigen::MatrixXd& RobotDynTree::getRelativeJacobian(const std::string& refF
     return impl_->getRelativeJacobian(refFrameName,frameName);
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointPos() const
+const Eigen::VectorXd& RobotModel::getJointPos() const
 {
     assertInitialized();
     return impl_->getJointPos();
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointVel() const
+const Eigen::VectorXd& RobotModel::getJointVel() const
 {
     assertInitialized();
     return impl_->getJointVel();
 }
 
-bool RobotDynTree::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
+bool RobotModel::addAdditionalFrameToLink(const std::string& linkName, const std::string& frameName, const Eigen::Matrix4d& link_H_frame)
 {
     assertFrameExists(frameName);
     return impl_->addAdditionalFrameToLink(linkName, frameName, link_H_frame);
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointGravityTorques()
+const Eigen::VectorXd& RobotModel::getJointGravityTorques()
 {
     assertInitialized();
     return impl_->getJointGravityTorques();
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointCoriolisTorques()
+const Eigen::VectorXd& RobotModel::getJointCoriolisTorques()
 {
     generalizedBiasForces();
     getJointGravityTorques();
     return impl_->getJointCoriolisTorques();
 }
 
-const Eigen::VectorXd& RobotDynTree::getJointGravityAndCoriolisTorques()
+const Eigen::VectorXd& RobotModel::getJointGravityAndCoriolisTorques()
 {
     generalizedBiasForces();
     return impl_->getJointGravityAndCoriolisTorques();
 }
 
-const Eigen::VectorXd& RobotDynTree::generalizedBiasForces()
+const Eigen::VectorXd& RobotModel::generalizedBiasForces()
 {
     assertInitialized();
     return impl_->generalizedBiasForces();

@@ -185,10 +185,9 @@ public:
         ::gazebo::runWorld(world_, 1);
     }
 
-    void run(std::function<void(uint32_t,double,double)> callback=0)
+    void run()
     {
         assertWorldLoaded();
-        callback_ = callback;
         ::gazebo::runWorld(world_, 0);
     }
 
@@ -314,11 +313,16 @@ public:
         return world_;
     }
 
+    void executeAfterWorldUpdate(std::function<void(uint32_t,double,double)> callback)
+    {
+        callback_ = callback;
+    }
+
     virtual ~GazeboServer()
     {
 
     }
-
+    
 private:
     void assertWorldLoaded()
     {
