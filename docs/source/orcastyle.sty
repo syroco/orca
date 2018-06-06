@@ -1,0 +1,201 @@
+\ProvidesPackage{orcastyle}
+
+
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amsfonts}
+\usepackage{amssymb}  % assumes amsmath package installed
+
+% \usepackage{algorithm}
+% \usepackage{algorithmic}
+% \usepackage{algorithmicx}
+% \usepackage{algpseudocode}
+% \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+\newcommand{\lnorm}{$l^{2}$-norm}
+
+\newcommand{\var}{\sigma^{2}}
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\err}{\bs{\epsilon}}
+\newcommand{\errd}{\dot{\err}}
+\newcommand{\errdd}{\ddot{\err}}
+
+\newcommand{\way}{\bs{\lambda}}
+
+\newcommand{\argmin}{\text{arg\,min\ }}
+
+% GTC = General Traj Coordinate Variable
+\newcommand{\gtcs}{\xi}
+\newcommand{\gtc}{\bs{\gtcs}}
+\newcommand{\gtcd}{\dot{\gtc}}
+\newcommand{\gtcdd}{\ddot{\gtc}}
+
+% JSR = Joint Space Representation
+\newcommand{\jsrs}{\nu}
+\newcommand{\jsr}{\bs{\jsrs}}
+\newcommand{\jsrd}{\dot{\jsr}}
+\newcommand{\jsrdd}{\ddot{\jsr}}
+
+\newcommand{\J}{J(\q)}
+\newcommand{\Jd}{\dot{J}(\q, \jsr)}
+
+\newcommand{\q}{\bs{q}}
+\newcommand{\qd}{\dot{\bs{q}}}
+\newcommand{\qdd}{\ddot{\bs{q}}}
+
+\newcommand{\x}{\bs{x}}
+\newcommand{\xd}{\dot{\bs{x}}}
+\newcommand{\xdd}{\ddot{\bs{x}}}
+
+\newcommand{\tx}{\tilde{\x}}
+\newcommand{\tX}{\tilde{\X}}
+
+\newcommand{\pos}{\bs{\xi}}
+\newcommand{\vel}{\dot{\pos}}
+\newcommand{\acc}{\ddot{\pos}}
+
+
+
+\newcommand{\y}{\bs{y}}
+\newcommand{\yd}{\dot{\bs{y}}}
+\newcommand{\ydd}{\ddot{\bs{y}}}
+
+\newcommand{\os}{operational-space}
+\newcommand{\Os}{Operational-space}
+
+\newcommand{\js}{joint-space}
+\newcommand{\Js}{Joint-space}
+
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\R}{\mathbb{R}}
+%\newcommand{\sr}[1]{\subref{#1}}
+
+\newcommand{\blam}{\bs{\lambda}}
+\newcommand{\tlam}{\bs{t}^{\lambda}}
+
+\newcommand{\GP}{\mathcal{GP}}
+% \newcommand{\C}{\mathcal{C}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\optVar}{\bs{\omega}}
+\newcommand{\OptVar}{\Omega}
+
+\newcommand{\f}{\bs{\text{f}}}
+\newcommand{\w}{\bs{\omega}}
+\newcommand{\we}{{}^{e}\w}
+\newcommand{\Je}{{}^{e}J}
+\newcommand{\Jed}{{}^{e}\dot{J}}
+\newcommand{\Ce}{{}^{e}C}
+
+\newcommand{\wf}{{}^{F}\w}
+\newcommand{\Jf}{{}^{F}J}
+\newcommand{\Jfd}{{}^{F}\dot{J}}
+\newcommand{\Cf}{{}^{F}C}
+
+\newcommand{\torque}{\bs{\tau}}
+
+% \renewcommand{\algorithmiccomment}[1]{\hfill  ~#1\normalsize}
+
+\newcommand{\dof}{DoF}
+\newcommand{\wrt}{w.r.t.}
+
+\newcommand{\so}{stochastic optimization}
+\newcommand{\So}{Stochastic optimization}
+
+\newcommand{\tp}{\text{.}}
+\newcommand{\tc}{\text{,}}
+
+% State space representations
+% \newcommand{\fvec}{\bs{\text{f}}}
+\newcommand{\fvec}{\mathbf{f}}
+\newcommand{\Ehat}{\hat{E}}
+\newcommand{\fvechat}{\hat{\mathbf{f}}}
+\newcommand{\Etilde}{\tilde{E}}
+\newcommand{\fvectilde}{\tilde{\mathbf{f}}}
+\newcommand{\uss}{\bs{u}}
+\newcommand{\Uss}{\mathcal{U}}
+\newcommand{\Xss}{\mathcal{X}}
+\newcommand{\Css}{\mathcal{C}}
+\newcommand{\Fss}{\mathcal{F}}
+
+\newcommand{\cma}{CMA-ES}
+
+\newcommand{\inpVec}{\bs{\theta}^{\mu}}
+
+\newcommand{\rank}{\text{rank}}
+
+\newcommand{\taskFn}{\bs{\psi}}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\newcommand{\bmat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+
+\newcommand{\st}{\bs{s}}
+\newcommand{\act}{\bs{a}}
+\newcommand{\p}{\bs{\pi}}
+\newcommand{\brho}{\bs{\rho}}
+\newcommand{\btheta}{\bs{\theta}}
+
+
+\newcommand{\comp}{\oc}
+\newcommand{\feas}{\of}
+
+
+\newcommand{\ft}{f^{\text{task}}}
+\newcommand{\fa}{f^{\acc}}
+\newcommand{\fjsa}{f^{\jsrd}}
+\newcommand{\fw}{f^{\w}}
+\newcommand{\ftor}{f^{\torque}}
+
+\newcommand{\eetask}{\fa_{\text{EE}}}
+\newcommand{\eltask}{\fa_{\text{EL}}}
+\newcommand{\jptask}{\fjsa_{\text{JP}}}
+
+
+
+
+\newcommand{\Ea}{E^{\acc}}
+\newcommand{\Ejsa}{E^{\jsrd}}
+\newcommand{\Ew}{E^{\w}}
+\newcommand{\Etor}{E^{\torque}}
+
+\newcommand{\fveca}{\fvec^{\acc}}
+\newcommand{\fvecjsa}{\fvec^{\jsrd}}
+\newcommand{\fvecw}{\fvec^{\w}}
+\newcommand{\fvector}{\fvec^{\torque}}
+
+\newcommand{\fthat}{\hat{f}^{\text{task}}}
+\newcommand{\fahat}{\hat{f}^{\acc}}
+\newcommand{\fjsahat}{\hat{f}^{\jsrd}}
+\newcommand{\fwhat}{\hat{f}^{\w}}
+\newcommand{\ftorhat}{\hat{f}^{\torque}}
+
+\newcommand{\Eahat}{\hat{E}^{\acc}}
+\newcommand{\Ejsahat}{\hat{E}^{\jsrd}}
+\newcommand{\Ewhat}{\hat{E}^{\w}}
+\newcommand{\Etorhat}{\hat{E}^{\torque}}
+
+\newcommand{\fvecahat}{\hat{\fvec}^{\acc}}
+\newcommand{\fvecjsahat}{\hat{\fvec}^{\jsrd}}
+\newcommand{\fvecwhat}{\hat{\fvec}^{\w}}
+\newcommand{\fvectorhat}{\hat{\fvec}^{\torque}}
+
+
+
+\newcommand{\nt}{n_{\text{task}}}
+\newcommand{\optvar}{\bs{\chi}}
+\newcommand{\optvarhat}{\hat{\optvar}}
+\newcommand{\optvartilde}{\tilde{\optvar}}
+\newcommand{\optvarcheck}{\check{\optvar}}
+\newcommand{\0}{\bs{0}}
+
+
+\newenvironment{amatrix}[1]{%
+  \left[\begin{array}{@{}*{#1}{c}|c@{}}
+}{%
+  \end{array}\right]
+}
+
+
+\newcommand\undermat[2]{%
+  \makebox[0pt][l]{$\smash{\underbrace{\phantom{%
+    \begin{matrix}#2\end{matrix}}}_{\text{$#1$}}}$}#2}

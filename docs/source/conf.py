@@ -27,7 +27,7 @@ import subprocess
 #
 # if on_rtd:
 #     subprocess.call('cd ..; doxygen', shell=True)
-subprocess.call('cd ..; mkdir -p _build/html/api/; doxygen Doxyfile_RTD.in', shell=True)
+# subprocess.call('cd ..; mkdir -p _build/html/api/; doxygen Doxyfile_RTD.in', shell=True)
 
 # -- General configuration ------------------------------------------------
 
@@ -43,10 +43,9 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.graphviz']
 
@@ -149,30 +148,35 @@ htmlhelp_basename = 'ORCAdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
+imgmath_image_format = 'svg'
+#####################################################
+# add LaTeX macros
+f = open('orcastyle.sty', 'r')
+
+try:
+    imgmath_latex_preamble  # check whether this is already defined
+except NameError:
+    imgmath_latex_preamble = ""
+
+for macro in f:
+    # used when building html version
+    imgmath_latex_preamble += macro + '\n'
+
+#####################################################
+
+
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
+    'preamble': r'\usepackage{orcastyle}'
 }
+
+latex_additional_files = ["./orcastyle.sty"]
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'ORCA.tex', u'ORCA Documentation',
-     u'Antoine Hoarau', 'manual'),
+     author, 'manual'),
 ]
 
 
