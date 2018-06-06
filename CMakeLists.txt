@@ -15,18 +15,26 @@ endif()
 if(EIGEN3_INCLUDE_DIR)
     unset(EIGEN3_INCLUDE_DIR CACHE)
 endif()
+if(EIGEN3_VERSION)
+    unset(EIGEN3_VERSION CACHE)
+endif()
 
 find_package(Eigen3 QUIET)
 if(Eigen3_FOUND)
-    set(some_eigen3_include_dir ${EIGEN3_INCLUDE_DIR})
-    set(some_eigen3_version ${EIGEN3_VERSION})
+    set(system_eigen3_include_dir ${EIGEN3_INCLUDE_DIR})
+    set(system_eigen3_version ${EIGEN3_VERSION})
 endif()
 
-# iDynTree requires Eigen > 3.2.95
+# iDynTree requires Eigen > 3.2
 find_package(Eigen3 3.2.92 QUIET)
-if(NOT Eigen3_FOUND)
+if(Eigen3_FOUND)
+    message("Eigen3 ${system_eigen3_version} (> 3.2) found at ${system_eigen3_include_dir}")
+else()
     if(EIGEN3_INCLUDE_DIR)
         unset(EIGEN3_INCLUDE_DIR CACHE)
+    endif()
+    if(EIGEN3_VERSION)
+        unset(EIGEN3_VERSION CACHE)
     endif()
 
     # NOTE: Adding the eigen project allows all the checks for processor features
@@ -37,8 +45,9 @@ if(NOT Eigen3_FOUND)
     # Some linking issues might happend, which are fixed with the 'auto' config
     # of eigen subdir. This is considered necessary for the code to be portable
     set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
-    if(some_eigen3_found)
-        message(WARNING "Using internal Eigen3 (3.3.90) for the build. ORCA will not exporting it as the system has version ${some_eigen3_version} at ${some_eigen3_include_dir}")
+    if(system_eigen3_found)
+        message(WARNING "Found system Eigen3 ${system_eigen3_version} at ${system_eigen3_include_dir}, but internal iDynTree requires at least 3.2.
+        ORCA will build using internal Eigen3 (3.3.90) for the build but will not overwrite the system version.")
         # it means we have it on the system, just not the right version
         # so we dont mess with the system libs
         add_subdirectory(external/eigen-3.3.90/eigen3 EXCLUDE_FROM_ALL)
@@ -51,8 +60,6 @@ if(NOT Eigen3_FOUND)
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
     set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
     add_library(Eigen3::Eigen ALIAS eigen)
-else()
-    message("Eigen3 ${EIGEN3_VERSION} (> 3.1) found at ${EIGEN3_INCLUDE_DIR}")
 endif()
 
 #################### TinyXML ###########################
@@ -78,22 +85,34 @@ set(PROFILING OFF CACHE BOOL "")
 set(ENABLE_MKL_PARDISO OFF CACHE BOOL "")
 set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes to match eigen sparseviews")
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
+
 #################### iDynTree #########################
 if(NOT BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
 endif()
-set(sh_saved ${BUILD_SHARED_LIBS})
+set(build_shared_libs_saved ${BUILD_SHARED_LIBS})
 
 set(BUILD_SHARED_LIBS OFF)
 set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
-set(BUILD_SHARED_LIBS ${sh_saved})
+set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
 #################### Catkin ###########################
 find_package(catkin QUIET)
+
+#################### Matplotlib #########################
+find_package(PythonLibs QUIET)
+find_package(NumPy QUIET)
+if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
+    set(matplotlibcpp_include_dirs ${PROJECT_SOURCE_DIR}/external/matplotlibcpp/include)
+endif()
+
+#################### Catkin package ###########################
 if(catkin_FOUND)
     catkin_package(
-        LIBRARIES orca
+        INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${matplotlibcpp_include_dirs} external/plog-1.1.4/include
+        LIBRARIES orca ${PYTHON_LIBRARIES}
+        CFG_EXTRAS orca-extras.cmake
     )
 else()
     set(CATKIN_GLOBAL_BIN_DESTINATION bin)
@@ -106,6 +125,8 @@ else()
     set(CATKIN_PACKAGE_BIN_DESTINATION ${CATKIN_GLOBAL_LIBEXEC_DESTINATION}/${PROJECT_NAME})
     set(CATKIN_PACKAGE_INCLUDE_DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${PROJECT_NAME})
 endif()
+
+
 
 #################### ORCA #########################
 set(sub-dirs
@@ -145,17 +166,6 @@ target_include_directories(
       $<INSTALL_INTERFACE:include>
 )
 
-# if(NOT Eigen3_FOUND)
-#     target_include_directories(
-#           orca PUBLIC
-#           $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
-#           $<INSTALL_INTERFACE:include/eigen3>
-#       )
-# else()
-#     target_include_directories(orca PUBLIC ${EIGEN3_INCLUDE_DIR})
-# endif()
-
-
 target_include_directories(
       orca PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/plog-1.1.4/include>
@@ -163,25 +173,25 @@ target_include_directories(
   )
 
 #################### Matplotlib #########################
-find_package(PythonLibs QUIET)
-find_package(NumPy QUIET)
 if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     target_include_directories(
           orca PUBLIC
           $<BUILD_INTERFACE:${PYTHON_INCLUDE_DIRS}>
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/matplotlibcpp/include>
+          $<BUILD_INTERFACE:${matplotlibcpp_include_dirs}>
           $<INSTALL_INTERFACE:include>
       )
     target_link_libraries(orca PUBLIC ${PYTHON_LIBRARIES})
-    install(DIRECTORY external/matplotlibcpp/include/matplotlibcpp/ DESTINATION include/matplotlibcpp)
+    install(DIRECTORY ${matplotlibcpp_include_dirs}/matplotlibcpp/ DESTINATION include/matplotlibcpp)
 endif()
+
+#################### Public linking #########################
+target_link_libraries(orca PUBLIC Eigen3::Eigen)
 
 #################### Private linking #########################
 target_link_libraries(orca PRIVATE
-    Eigen3::Eigen
     idyntree-high-level
     ${PROJECT_NAME}_priv_qpOASES
-    osqp
+    osqpstatic
     ${PROJECT_NAME}_priv_tinyxml
 )
 
@@ -234,29 +244,29 @@ add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
 # and does not have a FindEigen3.cmake
 
 # catkin devel support
-if(catkin_FOUND)
-
-    add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
-                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
-                        COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
-                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaTargets.cmake
-                        COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-                     )
-    add_custom_target(  ${PROJECT_NAME}-eigen-copy ALL
-                        COMMAND ${CMAKE_COMMAND} -E copy
-                        ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
-                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/FindEigen3.cmake
-                        COMMENT "Copying 'FindEigen3.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-                     )
-    add_custom_target(  ${PROJECT_NAME}-config-copy ALL
-                        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-                        COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-                        ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaConfig.cmake
-                        COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
-                     )
-endif()
+# if(catkin_FOUND)
+#
+#     add_custom_target(  ${PROJECT_NAME}-targets-copy ALL
+#                         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
+#                         COMMAND ${CMAKE_COMMAND} -E copy
+#                         ${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake
+#                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaTargets.cmake
+#                         COMMENT "Copying 'orcaTargets.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+#                      )
+#     add_custom_target(  ${PROJECT_NAME}-eigen-copy ALL
+#                         COMMAND ${CMAKE_COMMAND} -E copy
+#                         ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
+#                         ${CATKIN_DEVEL_PREFIX}/share/cmake/FindEigen3.cmake
+#                         COMMENT "Copying 'FindEigen3.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+#                      )
+#     add_custom_target(  ${PROJECT_NAME}-config-copy ALL
+#                         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+#                         COMMAND ${CMAKE_COMMAND} -E copy
+#                         ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+#                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/orcaConfig.cmake
+#                         COMMENT "Copying 'orcaConfig.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
+#                      )
+# endif()
 
 
 #################### ORCA Install #########################
@@ -285,42 +295,47 @@ install(DIRECTORY external/plog-1.1.4/include/
 
 install(FILES
     ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
+    DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/cmake
 )
 
-set(INCLUDE_INSTALL_DIR ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-configure_package_config_file(cmake/orcaConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-    INSTALL_DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
-    PATH_VARS INCLUDE_INSTALL_DIR
-)
-# Cmake Package
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
+# Plain cmake support
+if(NOT catkin_FOUND)
 
-export(EXPORT orcaTargets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
-    NAMESPACE orca::
-)
+    set(INCLUDE_INSTALL_DIR ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+    configure_package_config_file(cmake/orcaConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+        INSTALL_DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
+        PATH_VARS INCLUDE_INSTALL_DIR
+    )
+    # Cmake Package
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+    )
 
-# This creates a package in ~/.cmake so we don't have to 'make install'
-# and extend the CMAKE_PREFIX_PATH. This is equivalent to installing in /usr or
-# /usr/local (standard path) but without sudo rights.
-# With this, any cmake project calling find_package(orca) will find orca::orca
-export(PACKAGE orca)
+    export(EXPORT orcaTargets
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/orcaTargets.cmake"
+        NAMESPACE orca::
+    )
 
-# Plain cmake / catkin install space support
-install(EXPORT orcaTargets
-    FILE orcaTargets.cmake
-    NAMESPACE orca::
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
-)
+    # This creates a package in ~/.cmake so we don't have to 'make install'
+    # and extend the CMAKE_PREFIX_PATH. This is equivalent to installing in /usr or
+    # /usr/local (standard path) but without sudo rights.
+    # With this, any cmake project calling find_package(orca) will find orca::orca
 
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
-)
+    export(PACKAGE orca)
+
+
+    install(EXPORT orcaTargets
+        FILE orcaTargets.cmake
+        NAMESPACE orca::
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
+    )
+
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/orcaConfigVersion.cmake
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
+    )
+endif()

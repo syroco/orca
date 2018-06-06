@@ -1,5 +1,5 @@
 if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     add_executable(01-plotting_torques 01-plotting_torques.cc)
-    target_link_libraries(01-plotting_torques orca Eigen3::Eigen)
+    target_link_libraries(01-plotting_torques orca)
     install(TARGETS 01-plotting_torques DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
 endif()
