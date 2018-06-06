@@ -1,6 +1,6 @@
 FROM alpine
 RUN apk add --no-cache cmake g++ make curl
-RUN curl -sL http://bitbucket.org/eigen/eigen/get/3.2.9.tar.gz > /tmp/eigen.tar.gz && \
+RUN curl -sL http://bitbucket.org/eigen/eigen/get/3.2.0.tar.gz > /tmp/eigen.tar.gz && \
     cd \tmp && \
     mkdir eigen && tar -xzvf eigen.tar.gz -C eigen --strip-components=1 && \
     cd eigen && \
@@ -8,7 +8,7 @@ RUN curl -sL http://bitbucket.org/eigen/eigen/get/3.2.9.tar.gz > /tmp/eigen.tar.
 RUN mkdir -p orca/build
 COPY ./ orca/
 WORKDIR orca/build
-RUN cmake .. || true
+RUN cmake ..
 RUN cmake --build . -- -j`nproc`
 RUN cmake --build . --target install
 WORKDIR /
@@ -33,5 +33,5 @@ int main() \n \
 " > orca-test.cc
 
 WORKDIR build
-RUN cmake .. || true
+RUN cmake ..
 RUN cmake --build . -- -j`nproc`
