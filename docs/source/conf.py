@@ -27,7 +27,7 @@ import subprocess
 #
 # if on_rtd:
 #     subprocess.call('cd ..; doxygen', shell=True)
-subprocess.call('cd ..; doxygen Doxyfile_RTD.in', shell=True)
+subprocess.call('cd ..; mkdir -p _build/html/api/; doxygen Doxyfile_RTD.in', shell=True)
 
 # -- General configuration ------------------------------------------------
 
