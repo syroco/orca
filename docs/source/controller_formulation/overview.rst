@@ -5,7 +5,7 @@ Overview
 **************************************
 
 
-The most generic form of the whole-body controller studied here can be summarized by the following optimization problem,
+The most generic form of the whole-body controller can be summarized by the following optimization problem,
 
 
 .. math::
@@ -21,7 +21,7 @@ The most generic form of the whole-body controller studied here can be summarize
 
 The objective, :math:`\ft(\optvar)`, is a function of the optimization variable, :math:`\optvar`, and is determined by control objectives, or tasks.
 The resolution of the objective is subject to (s.t.) the inequality and equality constraints, which ensure that the control constraints are respected.
-We begin this chapter with a brief description of the free-floating rigid body dynamics of the system. The parameterization of the dynamics forms the optimization variable. The control objectives, or tasks, and constraints are then detailed and written in terms of the optimization variable. Finally, task prioritization schemes are discussed.
+To understand how whole-body controllers are formulated in ORCA, we begin with a brief description of the free-floating rigid body dynamics. The parameterization of the dynamics forms the optimization variable. The control objectives, or tasks, and constraints are then detailed and written in terms of the optimization variable. Finally, task prioritization schemes are discussed.
 
 
 
