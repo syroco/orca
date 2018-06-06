@@ -131,6 +131,7 @@ A ``shared_ptr`` to a ``CartesianTask`` is created with a unique name, ``CartTas
 For this task, we want to control ``link_7``,
 
 .. code-block:: c++
+
     cart_task->setControlFrame("link_7");
 
 
@@ -193,6 +194,7 @@ The desired values are set on the servo controller because ``CartesianTask`` exp
 Now set the servoing PID
 
 .. code-block:: c++
+
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
     cart_task->servoController()->pid()->setProportionalGain(P);
@@ -342,6 +344,7 @@ To do so, we start by deactivating the tasks and constraints:
 We then need to update the controller so the tasks and constraints can slowly ramp down to total deactivation.
 
 .. code-block:: c++
+
     while(!controller.tasksAndConstraintsDeactivated())
     {
         current_time += dt;
