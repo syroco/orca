@@ -68,10 +68,10 @@ namespace optim
             case ControlVariable::X :                           os << "X"; break;
             case ControlVariable::GeneralisedAcceleration :     os << "GeneralisedAcceleration"; break;
             case ControlVariable::FloatingBaseAcceleration :    os << "FloatingBaseAcceleration"; break;
-            case ControlVariable::JointAcceleration :      os << "JointAcceleration"; break;
+            case ControlVariable::JointAcceleration :           os << "JointAcceleration"; break;
             case ControlVariable::GeneralisedTorque :           os << "GeneralisedTorque"; break;
             case ControlVariable::FloatingBaseWrench :          os << "FloatingBaseWrench"; break;
-            case ControlVariable::JointTorque :            os << "JointTorque"; break;
+            case ControlVariable::JointTorque :                 os << "JointTorque"; break;
             case ControlVariable::ExternalWrench :              os << "ExternalWrench"; break;
             case ControlVariable::ExternalWrenches :            os << "ExternalWrenches"; break;
             case ControlVariable::Composite :                   os << "Composite"; break;
