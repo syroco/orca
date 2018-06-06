@@ -682,7 +682,7 @@ c_int check_termination(OSQPWorkspace *work, c_int approximate) {
   c_int   exitflag;
   c_int   prim_res_check, dual_res_check, prim_inf_check, dual_inf_check;
   c_float eps_abs, eps_rel;
-
+  c_int i;
   // Initialize variables to 0
   exitflag       = 0;
   prim_res_check = 0; dual_res_check = 0;
@@ -718,6 +718,12 @@ c_int check_termination(OSQPWorkspace *work, c_int approximate) {
       prim_inf_check = is_primal_infeasible(work, eps_prim_inf);
     }
   } // End check if m == 0
+
+  if(work->info->obj_val != work->info->obj_val)
+  {
+      update_status(work->info, OSQP_PRIMAL_INFEASIBLE);
+      return 1;
+  }
 
   // Compute dual tolerance
   eps_dual = compute_dua_tol(work, eps_abs, eps_rel);
