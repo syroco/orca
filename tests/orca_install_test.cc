@@ -543,7 +543,7 @@ std::string urdf_string = "<?xml version='1.0' ?>"
 
 int main(int argc, char const *argv[])
 {
-    auto robot = std::make_shared<RobotDynTree>();
+    auto robot_model = std::make_shared<RobotModel>();
     robot->loadModelFromString(urdf_string);
     robot->setBaseFrame("base_link");
     robot->setGravity(Eigen::Vector3d(0,0,-9.81));

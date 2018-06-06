@@ -105,11 +105,11 @@ struct RobotAcceleration
 };
 
 
-class RobotDynTree
+class RobotModel
 {
 public:
-    RobotDynTree(const std::string& name="");
-    virtual ~RobotDynTree();
+    RobotModel(const std::string& name="");
+    virtual ~RobotModel();
     const std::string& getName() const;
     bool loadModelFromFile(const std::string& modelFile);
     bool loadModelFromString(const std::string &modelString);
@@ -162,8 +162,8 @@ public:
     bool isInitialized() const;
     void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
-    enum RobotDynTreeType { iDynTree, KDL };
-    RobotDynTreeType robot_kinematics_type_ = iDynTree;
+    enum RobotModelType { iDynTree, KDL };
+    RobotModelType robot_kinematics_type_ = iDynTree;
 
     std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
@@ -173,8 +173,8 @@ protected:
     std::string urdf_str_;
 
 private:
-    template<RobotDynTreeType type = iDynTree> struct RobotDynTreeImpl;
-    std::unique_ptr<RobotDynTreeImpl<> > impl_;
+    template<RobotModelType type = iDynTree> struct RobotModelImpl;
+    std::unique_ptr<RobotModelImpl<> > impl_;
 };
 
 }

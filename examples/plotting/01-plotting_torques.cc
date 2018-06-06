@@ -58,27 +58,27 @@ int main(int argc, char const *argv[])
     orca::utils::Logger::parseArgv(argc, argv);
 
     // Create the kinematic model that is shared by everybody
-    auto robot = std::make_shared<RobotDynTree>(); // Here you can pass a robot name
-    robot->loadModelFromFile(urdf_url); // If you don't pass a robot name, it is extracted from the urdf
-    robot->setBaseFrame("base_link"); // All the transformations (end effector pose for example) will be expressed wrt this base frame
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81)); // Sets the world gravity (Optional)
+    auto robot_model = std::make_shared<RobotModel>(); // Here you can pass a robot name
+    robot_model->loadModelFromFile(urdf_url); // If you don't pass a robot name, it is extracted from the urdf
+    robot_model->setBaseFrame("base_link"); // All the transformations (end effector pose for example) will be expressed wrt this base frame
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81)); // Sets the world gravity (Optional)
 
     // This is an helper function to store the whole state of the robot as eigen vectors/matrices
     // This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices
     // You can use it to fill data from either real robot and simulated robot
     RobotState eigState;
-    eigState.resize(robot->getNrOfDegreesOfFreedom()); // resize all the vectors/matrices to match the robot configuration
+    eigState.resize(robot_model->getNrOfDegreesOfFreedom()); // resize all the vectors/matrices to match the robot configuration
     // Set the initial state to zero (arbitrary)
     // NOTE : here we only set q,qot because this example asserts we have a fixed base robot
     eigState.jointPos.setZero();
     eigState.jointVel.setZero();
     // Set the first state to the robot
-    robot->setRobotState(eigState.jointPos,eigState.jointVel); // Now is the robot is considered 'initialized'
+    robot_model->setRobotState(eigState.jointPos,eigState.jointVel); // Now is the robot is considered 'initialized'
 
     // Instanciate an ORCA Controller
     orca::optim::Controller controller(
         "controller"
-        ,robot
+        ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
         ,QPSolver::qpOASES
     );
@@ -125,7 +125,7 @@ int main(int argc, char const *argv[])
     cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
     // Get the number of actuated joints
-    const int ndof = robot->getNrOfDegreesOfFreedom();
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     // Joint torque limit is usually given by the robot manufacturer
     auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
@@ -170,7 +170,7 @@ int main(int argc, char const *argv[])
         //      eigState.jointVel = myRealRobot.getJointVelocities();
 
         // Now update the internal kinematic model with data from REAL robot
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
+        robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
         // Step the controller
         if(controller.update(current_time,dt))

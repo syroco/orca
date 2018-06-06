@@ -44,7 +44,7 @@
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
 #include "orca/math/WeightedEuclidianNormFunction.h"
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 #include "orca/common/TaskBase.h"
 
 namespace orca

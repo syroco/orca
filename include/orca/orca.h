@@ -43,7 +43,7 @@
 
 #include "orca/utils/Utils.h"
 
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 
 #include "orca/math/Utils.h"
 

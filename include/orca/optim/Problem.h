@@ -71,7 +71,7 @@ namespace orca
     }
     namespace robot
     {
-        class RobotDynTree;
+        class RobotModel;
     }
 }
 
@@ -83,7 +83,7 @@ namespace optim
 class Problem
 {
 public:
-    Problem(std::shared_ptr<robot::RobotDynTree> robot,QPSolver::SolverType solver_type);
+    Problem(std::shared_ptr<robot::RobotModel> robot,QPSolver::SolverType solver_type);
 
     virtual ~Problem();
 
@@ -125,7 +125,7 @@ private:
     unsigned int computeNumberOfConstraintRows() const;
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
-    std::shared_ptr<robot::RobotDynTree> robot_;
+    std::shared_ptr<robot::RobotModel> robot_;
 };
 
 } // namespace optim

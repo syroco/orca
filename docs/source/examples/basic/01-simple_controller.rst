@@ -55,12 +55,12 @@ Now we get to the good stuff. We start by creating a robot model which gives us 
 
 .. code-block:: c++
 
-    auto robot = std::make_shared<RobotDynTree>();
+    auto robot_model = std::make_shared<RobotModel>();
     robot->loadModelFromFile(urdf_url);
     robot->setBaseFrame("base_link");
     robot->setGravity(Eigen::Vector3d(0,0,-9.81));
 
-We first instantiate a ``shared_ptr`` to the class ``RobotDynTree``. We can pass a robot name, but if we don't, it is extracted from the urdf, which is loaded from a file in ``robot->loadModelFromFile(urdf_url);``. If the URDF is parsed then we need to set the base frame in which all transformations (e.g. end effector pose) are expressed in ``robot->setBaseFrame("base_link");``. Finally we manually set the gravity vector ``robot->setGravity(Eigen::Vector3d(0,0,-9.81));`` (this is optional).
+We first instantiate a ``shared_ptr`` to the class ``RobotModel``. We can pass a robot name, but if we don't, it is extracted from the urdf, which is loaded from a file in ``robot->loadModelFromFile(urdf_url);``. If the URDF is parsed then we need to set the base frame in which all transformations (e.g. end effector pose) are expressed in ``robot->setBaseFrame("base_link");``. Finally we manually set the gravity vector ``robot->setGravity(Eigen::Vector3d(0,0,-9.81));`` (this is optional).
 
 The next step is to set the initial state of the robot. For your convenience, ORCA provides a helper class called ``EigenRobotState`` which stores the whole state of the robot as eigen vectors/matrices.
 This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices.

@@ -7,7 +7,7 @@
 #include "orca/task/WrenchTask.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/constraint/DynamicsEquationConstraint.h"
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 
 using namespace orca::common;
 using namespace orca::task;
@@ -17,7 +17,7 @@ using namespace orca::math;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Problem::Problem(std::shared_ptr<RobotDynTree> robot, QPSolver::SolverType solver_type)
+Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolver::SolverType solver_type)
 : qpsolver_(std::make_shared<QPSolver>(solver_type))
 , robot_(robot)
 {

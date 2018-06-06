@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     // You can optionally register a callback for each GazeboModel so you can do individual updates on it
     // The function is called after every WorldUpdateEnd, so the internal gazebo model is updated
     // and you can get the full state (q,qdot,Tworld->base, etc)
-    gz_model_two.setCallback([&](uint32_t n_iter,double current_time,double dt)
+    gz_model_two.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
         std::cout << "gz_model_two \'" << gz_model_two.getName() << "\' callback " << '\n'
             << "- iteration    " << n_iter << '\n'
@@ -88,12 +88,13 @@ int main(int argc, char** argv)
     // This is a blocking call that runs the simulation steps
     // It can be stopped by CTRL+C
     // You can optionally add a callback that happends after WorldUpdateEnd
-    gz_server.run([&](uint32_t n_iter,double current_time,double dt)
+    gz_server.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
         std::cout << "GazeboServer callback " << '\n'
             << "- iteration    " << n_iter << '\n'
             << "- current time " << current_time << '\n'
             << "- dt           " << dt << '\n';
     });
+    gz_server.run();
     return 0;
 }

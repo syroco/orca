@@ -104,7 +104,7 @@ TaskBase::State TaskBase::getState() const
     return state_;
 }
 
-void TaskBase::setRobotModel(std::shared_ptr<RobotDynTree> robot)
+void TaskBase::setRobotModel(std::shared_ptr<RobotModel> robot)
 {
     assertRobotLoaded(robot);
 
@@ -205,13 +205,13 @@ const std::string& TaskBase::getName() const
     return name_;
 }
 
-std::shared_ptr<RobotDynTree> TaskBase::robot()
+std::shared_ptr<RobotModel> TaskBase::robot()
 {
     assertRobotLoaded(robot_);
     return robot_;
 }
 
-std::shared_ptr<const RobotDynTree> TaskBase::getRobot() const
+std::shared_ptr<const RobotModel> TaskBase::getRobot() const
 {
     assertRobotLoaded(robot_);
     return robot_;

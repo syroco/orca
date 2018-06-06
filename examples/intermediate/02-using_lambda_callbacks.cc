@@ -105,19 +105,19 @@ int main(int argc, char const *argv[])
 
     orca::utils::Logger::parseArgv(argc, argv);
 
-    auto robot = std::make_shared<RobotDynTree>();
-    robot->loadModelFromFile(urdf_url);
-    robot->setBaseFrame("base_link");
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
+    auto robot_model = std::make_shared<RobotModel>();
+    robot_model->loadModelFromFile(urdf_url);
+    robot_model->setBaseFrame("base_link");
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
     RobotState eigState;
-    eigState.resize(robot->getNrOfDegreesOfFreedom());
+    eigState.resize(robot_model->getNrOfDegreesOfFreedom());
     eigState.jointPos.setZero();
     eigState.jointVel.setZero();
-    robot->setRobotState(eigState.jointPos,eigState.jointVel);
+    robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
     orca::optim::Controller controller(
         "controller"
-        ,robot
+        ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
         ,QPSolver::qpOASES
     );
@@ -139,7 +139,7 @@ int main(int argc, char const *argv[])
     cart_task->servoController()->pid()->setDerivativeGain(D);
 
 
-    const int ndof = robot->getNrOfDegreesOfFreedom();
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
     controller.addConstraint(jnt_trq_cstr);

@@ -56,45 +56,43 @@ int main(int argc, char const *argv[])
     orca::utils::Logger::parseArgv(argc, argv);
 
     // Create the kinematic model that is shared by everybody. Here you can pass a robot name
-    auto robot = std::make_shared<RobotDynTree>();
+    auto robot_model = std::make_shared<RobotModel>();
 
      //  If you don't pass a robot name, it is extracted from the urdf
-    robot->loadModelFromFile(urdf_url);
+    robot_model->loadModelFromFile(urdf_url);
 
     // All the transformations (end effector pose for example) will be expressed wrt this base frame
-    robot->setBaseFrame("base_link");
+    robot_model->setBaseFrame("base_link");
 
     // Sets the world gravity (Optional)
-    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
 
     // This is an helper function to store the whole state of the robot as eigen vectors/matrices. This class is totally optional, it is just meant to keep consistency for the sizes of all the vectors/matrices. You can use it to fill data from either real robot and simulated robot.
     RobotState eigState;
 
     // resize all the vectors/matrices to match the robot configuration
-    eigState.resize(robot->getNrOfDegreesOfFreedom());
+    eigState.resize(robot_model->getNrOfDegreesOfFreedom());
 
     // Set the initial state to zero (arbitrary). @note: here we only set q,qot because this example asserts we have a fixed base robot
     eigState.jointPos.setZero();
     eigState.jointVel.setZero();
 
     // Set the first state to the robot
-    robot->setRobotState(eigState.jointPos,eigState.jointVel);
+    robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
     // Now is the robot is considered 'initialized'
 
 
     // Instanciate an ORCA Controller
     orca::optim::Controller controller(
         "controller"
-        ,robot
+        ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
         ,QPSolver::qpOASES
     );
     // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
 
     // Cartesian Task
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    // Add the task to the controller to initialize it.
-    controller.addTask(cart_task);
+    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
     // Set the frame you want to control. Here we want to control the link_7.
     cart_task->setControlFrame("link_7"); //
 
@@ -142,28 +140,19 @@ int main(int argc, char const *argv[])
     cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
     // Get the number of actuated joints
-    const int ndof = robot->getNrOfDegreesOfFreedom();
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     // Joint torque limit is usually given by the robot manufacturer
-    auto jnt_trq_cstr = std::make_shared<JointTorqueLimitConstraint>("JointTorqueLimit");
-
-    // Add the constraint to the controller to initialize - it is not read from the URDF for now.
-    controller.addConstraint(jnt_trq_cstr);
+    auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
     Eigen::VectorXd jntTrqMax(ndof);
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
 
     // Joint position limits are automatically extracted from the URDF model. Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
-    auto jnt_pos_cstr = std::make_shared<JointPositionLimitConstraint>("JointPositionLimit");
-
-    // Add the constraint to the controller to initialize
-    controller.addConstraint(jnt_pos_cstr);
+    auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     // Joint velocity limits are usually given by the robot manufacturer
-    auto jnt_vel_cstr = std::make_shared<JointVelocityLimitConstraint>("JointVelocityLimit");
-
-    // Add the constraint to the controller to initialize - it is not read from the URDF for now.
-    controller.addConstraint(jnt_vel_cstr);
+    auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
     Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
@@ -188,7 +177,7 @@ int main(int argc, char const *argv[])
             // eigState.jointVel = myRealRobot.getJointVelocities();
 
         // Now update the internal kinematic model with data from the REAL robot
-        robot->setRobotState(eigState.jointPos,eigState.jointVel);
+        robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
         // Step the controller + solve the internal optimal problem
         controller.update(current_time, dt);

@@ -46,7 +46,7 @@
 #include "orca/optim/Problem.h"
 #include "orca/optim/ResolutionStrategy.h"
 #include "orca/optim/QPSolver.h"
-#include "orca/robot/RobotDynTree.h"
+#include "orca/robot/RobotModel.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/task/RegularisationTask.h"
 
@@ -58,7 +58,7 @@ namespace optim
     {
     public:
         Controller(const std::string& name
-            , std::shared_ptr<robot::RobotDynTree> robot
+            , std::shared_ptr<robot::RobotModel> robot
             ,ResolutionStrategy resolution_strategy
             ,QPSolver::SolverType solver_type);
 
@@ -68,9 +68,9 @@ namespace optim
 
         const std::string& getName();
 
-        std::shared_ptr<robot::RobotDynTree> robot();
+        std::shared_ptr<robot::RobotModel> robot();
 
-        void setRobotModel(std::shared_ptr<robot::RobotDynTree> robot);
+        void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
 
         bool update(double current_time, double dt);
 
@@ -141,7 +141,7 @@ namespace optim
 
         std::list< std::shared_ptr<Problem> > problems_;
 
-        std::shared_ptr<robot::RobotDynTree> robot_;
+        std::shared_ptr<robot::RobotModel> robot_;
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;
