@@ -50,12 +50,13 @@ namespace task
     template<optim::ControlVariable C> class RegularisationTask : public GenericTask
     {
     public:
-        const double DefaultWeight = 1.E-4;
+        const double DefaultWeight = 1.e-4;
 
         RegularisationTask(const std::string& name)
         : GenericTask(name,C)
         {
             this->setRampDuration(0);
+            this->setWeight(DefaultWeight);
         }
     protected:
         void onActivation()
@@ -73,13 +74,16 @@ namespace task
             {
                 euclidianNorm().resize(sizeofvar,sizeofvar);
                 euclidianNorm().A().setIdentity();
+                euclidianNorm().b().setZero();
                 euclidianNorm().computeQuadraticCost();
             }
         }
     };
 
-    typedef RegularisationTask<optim::ControlVariable::GeneralisedAcceleration>   AccelerationRegularisationTask;
-    typedef RegularisationTask<optim::ControlVariable::GeneralisedTorque>         TorqueRegularisationTask;
+    typedef RegularisationTask<optim::ControlVariable::GeneralisedAcceleration>   GeneralisedAccelerationRegularisationTask;
+    typedef RegularisationTask<optim::ControlVariable::JointAcceleration>         JointAccelerationRegularisationTask;
+    typedef RegularisationTask<optim::ControlVariable::GeneralisedTorque>         GeneralisedTorqueRegularisationTask;
+    typedef RegularisationTask<optim::ControlVariable::JointTorque>               JointTorqueRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::ExternalWrench>            WrenchRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::X>                         GlobalRegularisationTask;
 }

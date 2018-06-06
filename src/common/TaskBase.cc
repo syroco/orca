@@ -74,6 +74,8 @@ double TaskBase::getCurrentRampValue() const
 
 void TaskBase::setRampDuration(double ramp_duration)
 {
+    if(ramp_duration == 0)
+        ramp_value_ = 1;
     if(ramp_duration < 0)
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Ramp duration must be > 0";
@@ -134,6 +136,22 @@ bool TaskBase::dependsOnProblem() const
 {
     return control_var_ == ControlVariable::ExternalWrench
         || control_var_ == ControlVariable::ExternalWrenches
+        || control_var_ == ControlVariable::X;
+}
+
+bool TaskBase::dependsOnRobotJoints() const
+{
+    return control_var_ == ControlVariable::JointAcceleration
+        || control_var_ == ControlVariable::JointTorque
+        || control_var_ == ControlVariable::X;
+}
+
+bool TaskBase::dependsOnFloatingBase() const
+{
+    return control_var_ == ControlVariable::GeneralisedAcceleration
+        || control_var_ == ControlVariable::GeneralisedTorque
+        || control_var_ == ControlVariable::FloatingBaseAcceleration
+        || control_var_ == ControlVariable::FloatingBaseWrench
         || control_var_ == ControlVariable::X;
 }
 

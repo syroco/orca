@@ -364,8 +364,6 @@ void Controller::insertNewLevel()
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
     auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
 
-    global_regularisation->euclidianNorm().setWeight(1E-8);
-
     addConstraint(dynamics_equation);
     addTask(global_regularisation);
 
