@@ -16,8 +16,9 @@ private:
     OSQPSettings settings_;
     OSQPWorkspace* work_ = 0;
     OSQPData osqp_data_;
-    Eigen::SparseMatrix<double> Ps_;
-    Eigen::SparseMatrix<double> As_;
+    Eigen::SparseMatrix<double, Eigen::ColMajor> Ps_;
+    Eigen::SparseMatrix<double, Eigen::ColMajor> As_;
+    Eigen::MatrixXd Put_;
     bool osqp_initialized_ = false;
 public:
     virtual ~QPSolverImpl_osqp()
@@ -37,16 +38,20 @@ public:
         }
         Eigen::MatrixXd P(nvar,nvar);
         P.setConstant(1);
-        Ps_ = P.sparseView();
         Eigen::MatrixXd A(nconstr,nvar);
         A.setConstant(1);
-        As_ = A.sparseView();
         Eigen::VectorXd q(nvar);
         q.setConstant(1);
         Eigen::VectorXd l(nconstr);
         l.setConstant(-OSQP_INFTY);
         Eigen::VectorXd u(nconstr);
         u.setConstant(OSQP_INFTY);
+
+        Put_ = P.triangularView<Eigen::Upper>();
+        Ps_ = Put_.sparseView();
+        As_ = A.sparseView();
+        Ps_.makeCompressed();
+        As_.makeCompressed();
 
         osqp_data_.n = nvar;
         osqp_data_.m = nconstr;
@@ -68,7 +73,7 @@ public:
         LOG_INFO << "[QPSolver] New osqp (nvar=" << nvar << ",nconstr=" <<nconstr<< ")" ;
         work_ = osqp_setup(&osqp_data_, &settings_);
 
-        setPrintLevel(1);
+        setPrintLevel(0);
         LOG_INFO << "[QPSolver] osqp setup done" ;
     }
 
@@ -141,10 +146,6 @@ public:
             std::cerr << "Could not update g" << '\n';
         }
 
-        // TODO : check in lib if necessary
-        data.lbA_ = data.lbA_.cwiseMax(-OSQP_INFTY);
-        data.ubA_ = data.ubA_.cwiseMin(OSQP_INFTY);
-
         if(osqp_update_bounds(work_,data.lbA_.data(),data.ubA_.data()) != 0)
         {
             std::cerr << "Could not update bounds" << '\n';
@@ -155,18 +156,19 @@ public:
         // Ps_ = P.sparseView();
         // As_ = A.sparseView();
         // memset(work_->data->P,0,sizeof(double) * (work_->data->n*work_->data->n));
-
-        Ps_ = data.H_.sparseView();
+        Put_ = data.H_.triangularView<Eigen::Upper>();
+        Ps_ = Put_.sparseView();
         As_ = data.A_.sparseView();
-        Ps_.makeCompressed();
-        As_.makeCompressed();
+        // Ps_.makeCompressed();
+        // As_.makeCompressed();
 
         //memset(work_->data->P->x,0,work_->data->P->n * work_->data->P->n * sizeof(c_float));
         //memset(work_->data->A->x,0,work_->data->A->m * work_->data->P->n * sizeof(c_float));
         // csc_matrix_set_zero(work_->data->P);
         // csc_matrix_set_zero(work_->data->A);
 
-        // if(osqp_update_P_A(work_, Ps_.valuePtr()
+        // if(osqp_update_P_A(work_
+        //                     , Ps_.valuePtr()
         //                     , Ps_.innerIndexPtr()
         //                     , Ps_.nonZeros()
         //                     , As_.valuePtr()
@@ -181,12 +183,50 @@ public:
         // csc_matrix_set_zero(work_->data->A);
         // print_csc_matrix(work_->data->P,"P");
         // print_csc_matrix(work_->data->A,"A");
-        osqp_data_.P = csc_matrix(data.H_.rows(), data.H_.cols(), Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
-        osqp_data_.q =  data.g_.data();
-        osqp_data_.A = csc_matrix(data.A_.rows(), data.A_.cols(), As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
-        osqp_data_.l = data.lbA_.data();
-        osqp_data_.u = data.ubA_.data();
-        work_ = osqp_setup(&osqp_data_, &settings_);
+
+        // int nvar = data.H_.rows();
+        // int ncst = data.A_.rows();
+        //
+        // c_free(osqp_data_.A);
+        // c_free(osqp_data_.P);
+        // osqp_data_.P = csc_matrix(nvar, nvar, Ps_.nonZeros(), Ps_.valuePtr(), Ps_.innerIndexPtr(), Ps_.outerIndexPtr());
+        // osqp_data_.q =  data.g_.data();
+        // osqp_data_.A = csc_matrix(ncst, nvar, As_.nonZeros(), As_.valuePtr(), As_.innerIndexPtr(), As_.outerIndexPtr());
+        // osqp_data_.l = data.lbA_.data();
+        // osqp_data_.u = data.ubA_.data();
+        // work_ = osqp_setup(&osqp_data_, &settings_);
+        //
+        // osqp_solve(work_);
+
+        // if(osqp_update_P_A(work_
+        //                     , Ps_.valuePtr()
+        //                     , OSQP_NULL
+        //                     , 0
+        //                     , As_.valuePtr()
+        //                     , OSQP_NULL
+        //                     , 0
+        //                 ) != 0)
+        // {
+        //   std::cerr << "Could not update P and A" << '\n';
+        // }
+        if(osqp_update_P(work_
+                            , Ps_.valuePtr()
+                            , OSQP_NULL
+                            , 0
+                        ) != 0)
+        {
+          std::cerr << "Could not update P\n" << '\n';
+          std::cerr << Ps_ << '\n';
+        }
+        if(osqp_update_A(work_
+                            , As_.valuePtr()
+                            , OSQP_NULL
+                            , 0
+                        ) != 0)
+        {
+          std::cerr << "Could not update A\n" << '\n';
+          std::cerr << As_ << '\n';
+        }
         osqp_solve(work_);
 
         if(work_->info->status_val == OSQP_SOLVED)
