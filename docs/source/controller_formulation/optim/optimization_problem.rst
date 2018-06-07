@@ -124,6 +124,14 @@ Constraint Implementation
 ============================
 
 
+Constraints are written as **double bounded linear function** :
+
+.. math::
+
+    lb \leq C\optvar \leq ub
+
+* :math:`C` the constraint matrix (:math:`n \times n`)
+* :math:`lb` and :math:`ub` the lower and upper bounds of :math`C\optvar` (:math:`n \times 1`)
 
 .. math::
 
