@@ -62,4 +62,4 @@ Constraints
     :maxdepth: 2
 
     constraints/constraints
-    constraints/dynamics_equation
+    constraints/dynamics
