@@ -2,43 +2,36 @@
 Optimization Vector
 ***********************
 
-The optimization vector in the quadratic problem is written as follows :
+In :ref:`dynamics` we expressed the equations of motion as an affine function of our optimization variable, :math:`\optvar`. Here, we look at each component in :math:`\optvar` and detail its meaning, position in the overall vector, and dimensions.
 
 .. math::
 
-    X =
-    \begin{pmatrix}
-    \dot{\nu}^{fb}\\
-    \dot{\nu}^{j}\\
-    \tau^{fb}\\
-    \tau^{j}\\
-    ^{e}w_{0}\\
+    \optvar =
+    \bmat{
+    \jsrd_{fb}\\
+    \jsrd_{j}\\
+    \torque_{fb}\\
+    \torque_{j}\\
+    \we_{0}\\
     \vdots\\
-    ^{e}w_{n}\\
-    \end{pmatrix}
+    \we_{n}\\
+    }
 
 
-* :math:`\dot{\nu}^{fb}` : Floating base joint acceleration (:math:`6 \times 1`)
-* :math:`\dot{\nu}^{j}`  : Joint space acceleration (:math:`n_{dof} \times 1`)
-* :math:`\tau^{fb}`      : Floating base joint torque (:math:`6 \times 1`)
-* :math:`\tau^{j}`       : Joint space joint torque (:math:`n_{dof} \times 1`)
-* :math:`^{e}w_n`        : External wrench (:math:`6 \times 1`)
-=======
-* :math:`\dot{\nu}^{fb}`: Floating base joint acceleration (:math:`6 \times 1`)
-* :math:`\dot{\nu}^{j}` : Joint space acceleration (:math:`n_{dof} \times 1`)
-* :math:`\tau^{fb}`     : Floating base joint torque (:math:`6 \times 1`)
-* :math:`\tau^{j}`      : Joint space joint torque (:math:`n_{dof} \times 1`)
-* :math:`^{e}w_n`       : External wrench (:math:`6 \times 1`)
+* :math:`\jsrd_{fb}` : Floating base joint acceleration (:math:`6 \times 1`)
+* :math:`\jsrd_{j}`  : Joint space acceleration (:math:`n_{\dof} \times 1`)
+* :math:`\torque_{fb}`      : Floating base joint torque (:math:`6 \times 1`)
+* :math:`\torque_{j}`       : Joint space joint torque (:math:`n_{\dof} \times 1`)
+* :math:`\we_{n}`        : External wrench (:math:`6 \times 1`)
 
-In ORCA those are called `Control variables` and should be used to define every task and constraint.
-In addition to those necessary variables, you can specify also a combination :
+Each of these variables are termed **Control Variables** in ORCA and are used to define every task and constraint.
 
-* :math:`\dot{\nu}` : Generalised joint acceleration, concatenation of :math:`\dot{\nu}^{fb}` and :math:`\dot{\nu}^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`\tau`      : Generalised joint torque, concatenation of :math:`\tau^{fb}` and :math:`\tau^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`X`         : The whole optimization vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
-* :math:`^{e}w`     : External wrenches (:math:`n_{wrenche} 6 \times 1`)
-=======
-* :math:`\dot{\nu}`: Generalised joint acceleration, concatenation of :math:`\dot{\nu}^{fb}` and :math:`\dot{\nu}^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`\tau`     : Generalised joint torque, concatenation of :math:`\dot{\tau}^{fb}` and :math:`\dot{\tau}^{j}` (:math:`6+n_{dof} \times 1`)
-* :math:`X`      : The whole optimization vector (:math:`6 + n_{dof} + 6 + n_{dof} + n_{wrenches}6 \times 1`)
-* :math:`^{e}w`          : External wrenches (:math:`n_{wrenche} 6 \times 1`)
+These variables can of course be combined for convenience:
+
+* :math:`\jsrd` : Generalised joint acceleration, concatenation of :math:`\jsrd_{fb}` and :math:`\jsrd_{j}` (:math:`6+n_{\dof} \times 1`)
+* :math:`\torque`      : Generalised joint torque, concatenation of :math:`\torque_{fb}` and :math:`\torque_{j}` (:math:`6+n_{\dof} \times 1`)
+* :math:`\we`     : External wrenches (:math:`n_{\text{wrenches}} 6 \times 1`)
+* :math:`\optvar`         : The whole optimization vector (:math:`6 + n_{\dof} + 6 + n_{\dof} + n_{wrenches}6 \times 1`)
+
+
+With our optimization varible well defined, we can now formulate the optimization problem.

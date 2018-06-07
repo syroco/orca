@@ -27,14 +27,14 @@ The generalized configuration parameterization for floating base robots,
     :label: qDef
 
     \q = \begin{Bmatrix}
-    \gtc_{b} \\ \q_{j}
+    \gtc_{fb} \\ \q_{j}
     \end{Bmatrix} \tc
 
 
 
 
-therefore contains the pose of the base link \wrt\ the inertial reference frame, :math:`\gtc_b`, and the joint space coordinates, :math:`\q_j`. Set brackets are used in :eq:`qDef` because :math:`\gtc_b` is a homogeneous transformation matrix in :math:`\R^{4\times4}` and :math:`\q_j` is a vector in :math:`\R^{n}`, with :math:`n` the number of \dof\ of the robot, thus :math:`\gtc_{b}` and :math:`\q_{j}` cannot be concatenated into a vector.
-However, the twist of the base, :math:`\bs{v}_{b}`, with the joint velocities, :math:`\qd_{j}`, can be concatenated in vector notation, along with the base and joint accelerations to obtain,
+therefore contains the pose of the base link \wrt\ the inertial reference frame, :math:`\gtc_{fb}`, and the joint space coordinates, :math:`\q_j`. Set brackets are used in :eq:`qDef` because :math:`\gtc_{fb}` is a homogeneous transformation matrix in :math:`\R^{4\times4}` and :math:`\q_j` is a vector in :math:`\R^{n}`, with :math:`n` the number of \dof\ of the robot, thus :math:`\gtc_{fb}` and :math:`\q_{j}` cannot be concatenated into a vector.
+However, the twist of the base, :math:`\bs{v}_{fb}`, with the joint velocities, :math:`\qd_{j}`, can be concatenated in vector notation, along with the base and joint accelerations to obtain,
 
 
 
@@ -42,14 +42,14 @@ However, the twist of the base, :math:`\bs{v}_{b}`, with the joint velocities, :
     :label: jsrDef
 
     \jsr = \begin{bmatrix}
-    \bs{v}_{b} \\ \qd_{j}
+    \bs{v}_{fb} \\ \qd_{j}
     \end{bmatrix}
     \tc
     \quad
     \text{and}
     \quad
     \jsrd = \begin{bmatrix}
-    \dot{\bs{v}}_{b} \\ \qdd_{j}
+    \dot{\bs{v}}_{fb} \\ \qdd_{j}
     \end{bmatrix} \tp
 
 
