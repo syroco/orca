@@ -51,6 +51,7 @@
 #include "orca/common/PIDController.h"
 #include "orca/common/Wrench.h"
 #include "orca/common/ReturnCode.h"
+#include "orca/common/Mutex.h"
 
 #include "orca/constraint/DynamicsEquationConstraint.h"
 #include "orca/constraint/Contact.h"
