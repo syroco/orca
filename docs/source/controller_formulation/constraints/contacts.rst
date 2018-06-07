@@ -1,7 +1,7 @@
 .. _contacts:
 
 ***********************
-Contacts
+Contact Constraints
 ***********************
 
 

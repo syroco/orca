@@ -1,8 +1,8 @@
 .. _joint_limits:
 
-***********************
-Joint Limits
-***********************
+*************************
+Joint Limit Constraints
+*************************
 
 
 Probably the most common limitation of any robot is the range of motion which each joint can achieve. Whether linear or angular, most joints have a finite range through which they can move thus limiting :math:`\q`. These joint limits can easily be expressed as a inequality on :math:`\q`,

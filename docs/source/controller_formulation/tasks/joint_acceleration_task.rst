@@ -2,7 +2,7 @@
 .. _joint_acc_task:
 
 ************************
-Joint Acceleration
+Joint Acceleration Task
 ************************
 
 Acceleration tasks can be expressed in either joint-space or in operational-space. Here, the operational-space form is presented but the joint-space form can easily be produced as,

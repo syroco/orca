@@ -1,7 +1,7 @@
 .. _dynamics:
 
 ***********************
-Dynamics
+Dynamics Constraints
 ***********************
 
 

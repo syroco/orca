@@ -1,9 +1,9 @@
 
 .. _cart_acc_task:
 
-************************
-Cartesian Acceleration
-************************
+******************************
+Cartesian Acceleration Task
+******************************
 
 
 Probably the most important, if not most prevalent, task is to move a link on the robot from one pose to another. Typically it is the end-effector(s) which are of interest.
