@@ -1,8 +1,9 @@
 
 .. _tasks:
 
+******************************
 Control Objectives (Tasks)
-================================
+******************************
 
 The basic problem of control is to drive a system from some initial state to some desired state. The control of robots is no different, but the term state takes on greater ambiguity.
 For simple systems, such as the double integrator, linearized inverted pendulum, etc., state-space control is sufficient for virtually any high-level objective one could envision for the system.

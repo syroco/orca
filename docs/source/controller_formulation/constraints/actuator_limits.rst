@@ -1,8 +1,8 @@
 .. _actuator_limits:
 
-***********************
-Actuator Limits
-***********************
+***************************
+Actuator Limit Constraints
+***************************
 
 Here, we assume that all articulations are revolute and therefore all actuation limits are torque limits, however, expression of force limits for prismatic joints would be another possibility.
 Writing these limits as an inequality provides an upper and lower bound on the amount of torque which can be exerted to accomplish the tasks.

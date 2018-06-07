@@ -1,7 +1,8 @@
 .. _constraints:
 
+************************
 Control Constraints
-=====================
+************************
 
 As with all real world control problems, there are limits to what the system being controlled can do.
 In this particular case, the main constraint is that of the system dynamics, i.e. the equations of motion.
