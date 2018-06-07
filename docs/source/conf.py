@@ -27,7 +27,8 @@ import subprocess
 #
 # if on_rtd:
 #     subprocess.call('cd ..; doxygen', shell=True)
-# subprocess.call('cd ..; mkdir -p _build/html/api/; doxygen Doxyfile_RTD.in', shell=True)
+subprocess.call('cd ..; mkdir -p _build/html/api/; doxygen Doxyfile_RTD.in; mv _build/html/api/html/index.html _build/html/api/html/api_index.html', shell=True)
+# subprocess.call('cd ..; doxygen Doxyfile_RTD.in', shell=True)
 
 # -- General configuration ------------------------------------------------
 
@@ -145,6 +146,8 @@ html_theme_options = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ORCAdoc'
 
+
+html_extra_path = ['../_build/html/api/html/']
 
 # -- Options for LaTeX output ---------------------------------------------
 
