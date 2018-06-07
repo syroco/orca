@@ -40,6 +40,7 @@
 
 #pragma once
 #include "orca/utils/Utils.h"
+#include "orca/common/Mutex.h"
 #include "orca/utils/Logger.h"
 #include "orca/task/GenericTask.h"
 #include "orca/optim/ControlVariable.h"
@@ -127,7 +128,11 @@ namespace optim
 
         void removeGravityTorquesFromSolution(bool do_remove);
         void removeCoriolisTorquesFromSolution(bool do_remove);
-
+        /**
+        * @brief The recursive mutex to protect the #update function
+        *
+        */
+        mutable common::MutexRecursive mutex;
     private:
         bool isProblemDry(std::shared_ptr<const optim::Problem> problem);
         std::shared_ptr<Problem> getProblemAtLevel(int level);

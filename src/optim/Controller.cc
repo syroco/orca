@@ -8,6 +8,7 @@
 using namespace orca;
 using namespace orca::optim;
 using namespace orca::utils;
+using namespace orca::common;
 
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotModel> robot
@@ -94,6 +95,7 @@ bool Controller::isProblemDry(std::shared_ptr<const optim::Problem> problem)
 
 bool Controller::update(double current_time, double dt)
 {
+    MutexLock lock(mutex);
     solution_found_ = false;
 
     switch (resolution_strategy_)
