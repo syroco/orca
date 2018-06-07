@@ -50,6 +50,10 @@ Tasks
 
     tasks/tasks
     tasks/cartesian_acceleration_task
+    tasks/joint_acceleration_task
+    tasks/wrench_task
+    tasks/torque_task
+    tasks/task_servoing
 
 Constraints
 ===============
