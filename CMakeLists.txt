@@ -11,6 +11,13 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+#################### Xenomai ###########################
+find_package(Xenomai QUIET)
+
+if(XENOMAI_FOUND)
+    message(STATUS "[ORCA] Building with Xenomai mutexes")
+endif()
+
 #################### Eigen3 ###########################
 if(EIGEN3_INCLUDE_DIR)
     unset(EIGEN3_INCLUDE_DIR CACHE)
@@ -186,6 +193,11 @@ endif()
 
 #################### Public linking #########################
 target_link_libraries(orca PUBLIC Eigen3::Eigen)
+if(XENOMAI_FOUND)
+    target_compile_definitions(orca PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
+    target_include_directories(orca PRIVATE ${XENOMAI_INCLUDE_DIRS})
+    target_link_libraries(orca PRIVATE ${XENOMAI_LIBRARIES})
+endif()
 
 #################### Private linking #########################
 target_link_libraries(orca PRIVATE

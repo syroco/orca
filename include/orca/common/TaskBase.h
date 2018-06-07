@@ -45,6 +45,7 @@
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
 #include "orca/common/Wrench.h"
+#include "orca/common/Mutex.h"
 
 namespace orca
 {
@@ -120,6 +121,11 @@ namespace common
         void onComputeEndCallback(std::function<void(double,double)> cb);
         void onDeactivationCallback(std::function<void(void)> cb);
         void onDeactivatedCallback(std::function<void(void)> cb);
+        /**
+        * @brief The recursive mutex to protect the #update function
+        *
+        */
+        mutable common::MutexRecursive mutex;
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotModel> robot();

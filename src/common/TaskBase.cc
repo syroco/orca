@@ -256,6 +256,12 @@ bool TaskBase::activate()
 
 void TaskBase::update(double current_time, double dt)
 {
+    // Lock the mutex to protect the update()
+    // Its up the the user to lock the mutex in external thread
+    // WARNING : the Controller will be blocked also as everything is serialized
+    // So make sure that it blocks only to copy data 
+    MutexLock lock(mutex);
+
     for(auto t : linked_elements_)
         t->update(current_time,dt);
 

@@ -49,8 +49,8 @@ namespace orca
         struct MutexInterface
         {
             virtual ~MutexInterface() {}
-            virtual void lock() =0;
-            virtual void unlock() =0;
+            virtual void lock() = 0;
+            virtual void unlock() = 0;
             virtual bool trylock() = 0;
         };
 
@@ -71,7 +71,7 @@ namespace orca
         {
             public:
                 MutexRecursive();
-		virtual ~MutexRecursive();
+                virtual ~MutexRecursive();
                 void lock();
                 void unlock();
                 bool trylock();
