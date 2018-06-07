@@ -169,6 +169,7 @@ for macro in f:
 
 
 latex_elements = {
+    'pointsize': '10pt',
     'preamble': r'\usepackage{orcastyle}'
 }
 
