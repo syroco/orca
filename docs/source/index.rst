@@ -58,9 +58,7 @@ Table of Contents
     :maxdepth: 2
 
     controller_formulation/overview
-    controller_formulation/optim/optimization_vector
-    controller_formulation/tasks/cartesian_acceleration_task
-    controller_formulation/constraints/dynamics_equation
+    
 
 .. toctree::
     :caption: License Information
