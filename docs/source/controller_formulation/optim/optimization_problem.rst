@@ -1,7 +1,8 @@
 .. _optimization_problem:
 
+**************************************
 Formulating the optimization problem
-========================================
+**************************************
 
 The problem is written as a **quadratic problem** :
 
