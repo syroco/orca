@@ -198,7 +198,7 @@ if(XENOMAI_FOUND)
     target_include_directories(orca PRIVATE ${XENOMAI_INCLUDE_DIRS})
     target_link_libraries(orca PRIVATE ${XENOMAI_LIBRARIES})
 endif()
-
+target_include_directories(orca PRIVATE ${PROJECT_SOURCE_DIR}/external/eigquadprog)
 #################### Private linking #########################
 target_link_libraries(orca PRIVATE
     idyntree-high-level
@@ -268,7 +268,7 @@ add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
 #     add_custom_target(  ${PROJECT_NAME}-eigen-copy ALL
 #                         COMMAND ${CMAKE_COMMAND} -E copy
 #                         ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
-#                         ${CATKIN_DEVEL_PREFIX}/share/cmake/FindEigen3.cmake
+#                         ${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake/FindEigen3.cmake
 #                         COMMENT "Copying 'FindEigen3.cmake' to '${CATKIN_DEVEL_PREFIX}/share/${PROJECT_NAME}/cmake'"
 #                      )
 #     add_custom_target(  ${PROJECT_NAME}-config-copy ALL
@@ -307,7 +307,7 @@ install(DIRECTORY external/plog-1.1.4/include/
 
 install(FILES
     ${PROJECT_SOURCE_DIR}/cmake/FindEigen3.cmake
-    DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/cmake
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake
 )
 
 # Plain cmake support

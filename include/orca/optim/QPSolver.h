@@ -55,7 +55,7 @@ namespace optim
 class QPSolver
 {
 public:
-    enum SolverType { qpOASES, osqp };
+    enum SolverType { qpOASES, osqp, eigQuadProg };
     QPSolver(SolverType type);
     virtual ~QPSolver();
     void setPrintLevel(int level);
