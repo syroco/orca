@@ -150,7 +150,7 @@ htmlhelp_basename = 'ORCAdoc'
 html_extra_path = ['../_build/html/api/html/']
 
 # -- Options for LaTeX output ---------------------------------------------
-
+html_add_permalinks = ""
 imgmath_image_format = 'svg'
 #####################################################
 # add LaTeX macros
