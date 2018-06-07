@@ -400,11 +400,11 @@ bool jointFromURDFXML(const Model & model,
             return false;
         }
 
-        if( p_joint->getNrOfDOFs() == 0 )
-        {
-            std::string warnStr = "Limits are presented in joint " + jointName + ", that has zero DOFs.";
-            reportWarning("", "jointFromURDFXML", warnStr.c_str());
-        }
+        // if( p_joint->getNrOfDOFs() == 0 )
+        // {
+        //     std::string warnStr = "Limits are presented in joint " + jointName + ", that has zero DOFs.";
+        //     reportWarning("", "jointFromURDFXML", warnStr.c_str());
+        // }
 
         p_joint->enablePosLimits(true);
         p_joint->setPosLimits(0,posLimMin,posLimMax);
