@@ -10,6 +10,7 @@ Multi-Level Weighted
     Not yet implemented...
 
 .. code-block:: c++
+
     case ResolutionStrategy::MultiLevelWeighted:
     {
         updateTasks(current_time,dt);

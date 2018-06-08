@@ -6,6 +6,7 @@ One Level Weighted
 *******************************
 
 .. code-block:: c++
+
     case ResolutionStrategy::OneLevelWeighted:
     {
         updateTasks(current_time,dt);
