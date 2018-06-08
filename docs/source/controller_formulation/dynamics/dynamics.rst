@@ -3,7 +3,12 @@
 Free-Floating Rigid Body Dynamics
 ========================================
 
-For robots whose root link can float freely in Cartesian space, e.g. humanoids, it is necessary to consider the pose of the root link with respect to (\wrt) the inertial reference frame. The primary method for doing so is to account for the root link pose directly in the generalized coordinates, :math:`\q`, of the robot as shown by.
+For robots whose root link can float freely in Cartesian space, e.g. humanoids, it is necessary to consider the pose of the root link with respect to (\wrt) the inertial reference frame. The primary method for doing so is to account for the root link pose directly in the generalized coordinates, :math:`\q`, of the robot as shown by:
+
+.. image:: ../../_static/floating_base_robot.png
+    :height: 300px
+    :align: center
+
 
 .. todo::
 
