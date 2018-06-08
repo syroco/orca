@@ -196,7 +196,7 @@ In ORCA the full QP is expressed as,
     \text{s.t.} &\quad \bs{lb} \leq C\optvar \leq \bs{ub} \tc
 
 In the next sections we show how to formulate the different task and constraint types one might need to control a robot.
-In section :ref:`resolution_strategies`, we show how to combine multiple objective functions (tasks) in one controller allowing us to exploit the redundancy of the system.
+In section :ref:`multi_obj_optim`, we show how to combine multiple objective functions (tasks) in one controller allowing us to exploit the redundancy of the system.
 
 .. note::
 
