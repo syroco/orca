@@ -193,7 +193,12 @@ In ORCA the full QP is expressed as,
 .. math::
 
     \underset{\optvar}{\argmin} &\quad \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
-    \text{s.t.} &\quad \bs{lb} \leq C\optvar \leq \bs{ub} \tc
+    \text{s.t.} &\quad \bs{lb} \leq \optvar \leq \bs{ub} \\
+                 &\quad \bs{lb} \leq C\optvar \leq \bs{ub}\tc
+
+.. note::
+
+    For convenience an explicit constraint on the optimization variable :math:`\optvar` is included in the problem because it is so common. This constraint is identical to the second line: :math:`\bs{lb} \leq C\optvar \leq \bs{ub}` when :math:`C` is the identity matrix.
 
 In the next sections we show how to formulate the different task and constraint types one might need to control a robot.
 In section :ref:`multi_obj_optim`, we show how to combine multiple objective functions (tasks) in one controller allowing us to exploit the redundancy of the system.
