@@ -49,41 +49,56 @@ public:
         }
         Eigen::MatrixXd G(data.H_);
         Eigen::MatrixXd CE(neq_rows,data.H_.cols());
-        Eigen::MatrixXd CI(nineq_rows,data.H_.cols());
+        Eigen::MatrixXd CI(2*nineq_rows,data.H_.cols());
         Eigen::VectorXd ce0(neq_rows);
-        Eigen::VectorXd ci0(nineq_rows);
+        Eigen::VectorXd ci0(2*nineq_rows);
+
 
         int eqidx = 0;
         int ineqidx = 0;
         for (size_t i = 0; i < data.A_.rows(); i++) {
             if(data.lbA_[i] == data.ubA_[i])
             {
-                int c_eqidx = eqidx++;
-                CE.row(c_eqidx) = data.A_.row(i);
-                ce0[c_eqidx] = - data.lbA_[i];
+                // equality constraint
+                CE.row(eqidx) = data.A_.row(i);
+                ce0[eqidx] = data.ubA_[i];
+                eqidx++;
+
             }
             else
             {
-                int c_ineqidx = ineqidx++;
-                CI.row(c_ineqidx) = data.A_.row(i);
-                ci0[c_ineqidx] = - data.lbA_[i];
+                // inequality constraint
+                CI.row(ineqidx) = - data.A_.row(i);
+                ci0[ineqidx] = - data.lbA_[i];
+                ineqidx++;
+
+                CI.row(ineqidx) = data.A_.row(i);
+                ci0[ineqidx] = data.ubA_[i];
+                ineqidx++;
             }
         }
         for (size_t i = 0; i < data.lb_.size(); i++) {
 
             if(data.lb_[i] == data.ub_[i])
             {
-                int c_eqidx = eqidx++;
-                CE.row(c_eqidx).setZero();
-                CE.row(c_eqidx)[i] = 1;
-                ce0[c_eqidx] = - data.lb_[i];
+                // equality constraint
+                CE.row(eqidx).setZero();
+                CE.row(eqidx)[i] = 1;
+                ce0[eqidx] = - data.ub_[i];
+                eqidx++;
             }
             else
             {
-                int c_ineqidx = ineqidx++;
-                CI.row(c_ineqidx).setZero();
-                CI.row(c_ineqidx)[i] = 1;
-                ci0[c_ineqidx] = - data.lb_[i];
+                // inequality constraint
+                CI.row(ineqidx).setZero();
+                CI.row(ineqidx)[i] = - 1;
+                ci0[ineqidx] = - data.lb_[i];
+                ineqidx++;
+
+                CI.row(ineqidx).setZero();
+                CI.row(ineqidx)[i] = 1;
+                ci0[ineqidx] = data.ub_[i];
+                ineqidx++;
             }
         }
         double ret = solve_quadprog(G, data.g_,
