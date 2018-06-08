@@ -98,6 +98,12 @@ const Eigen::VectorXd& WeightedEuclidianNormFunction::getSelectionVector() const
     return SelectionVector_;
 }
 
+void WeightedEuclidianNormFunction::setSelectionVector(const Eigen::VectorXd& s)
+{
+    SelectionVector_ = s;
+}
+
+
 const Eigen::MatrixXd& WeightedEuclidianNormFunction::getWeight() const
 {
     return Weight_;

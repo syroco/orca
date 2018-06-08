@@ -97,6 +97,8 @@ public:
 
     const Eigen::VectorXd& getSelectionVector() const;
 
+    void setSelectionVector(const Eigen::VectorXd& s);
+
     const Eigen::MatrixXd& getWeight() const;
 
     const QuadraticCost& getQuadraticCost() const;
