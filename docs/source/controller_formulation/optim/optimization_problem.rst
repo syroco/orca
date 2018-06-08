@@ -89,7 +89,7 @@ Equation :eq:`qp_with_constraints` can no longer be solved analytically and one 
 
 .. note::
 
-    For more details on convex optimization, check out Stephen Boyd's book: http://web.stanford.edu/~boyd/cvxbook/
+    For more details on convex optimization, check out Boyd and Vandenberghe's book: http://web.stanford.edu/~boyd/cvxbook/
 
 Resolution of :eq:`qp_with_constraints` with a numerical solver, such as ``qpOASES``, will provide a globally optimal solution for :math:`\optvar^{*}` provided that the constraint equations are consistent, i.e. the set of possible solutions is not empty.
 
@@ -97,7 +97,24 @@ Resolution of :eq:`qp_with_constraints` with a numerical solver, such as ``qpOAS
 Objective Function Implementation
 ====================================
 
-Within ORCA the QP objective function is formulated as,
+Within ORCA the QP objective function is formulated as a weighted Euclidean norm of an affine function,
+
+.. math::
+    :label: weighted_norm
+
+    \left\| E\optvar - \fvec \right\|^{2}_{W} \Leftrightarrow \left\| \sqrt{W} \left( E\optvar - \fvec \right) \right\|^{2}
+
+In :eq:`weighted_norm`, :math:`W` is the weight of the euclidean norm (:math:`n \times n`) and must be a positive symmetric definite matrix.
+
+In ORCA, :math:`W` is actually composed of two components, the norm weighting :math:`W'` and the selection matrix :math:`S`,
+
+.. math::
+
+    W = SW'
+
+The selection matrix is a diagonal matrix with either 1's or 0's on the diagonal which allows us to ignore all or parts of the affine function we are computing. Concretely this means we can ignore components of the task error (more on this later). For a Cartesian position task for example, this allows us to ignore orientation errors for instance.
+
+With this weighting hessian and gradient are calculated as,
 
 .. Hessian_.noalias() = SelectionVector.asDiagonal() * Weight * A.transpose() * A ;
 
@@ -107,11 +124,8 @@ Within ORCA the QP objective function is formulated as,
 .. math::
 
     \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
-    \Leftrightarrow \optvar^{\top}(E^{\top}E)\optvar - 2(E^{\top}\fvec)^{\top}\optvar  \nonumber \\
-    \Leftrightarrow \optvar^{\top}(S W E^{\top}E)\optvar - 2 S W (E^{\top}\fvec)^{\top}\optvar  \nonumber \\
-    \left\| E\optvar - \fvec \right\|^{2}_{W}
+    \Leftrightarrow \optvar^{\top}(E^{\top}WE)\optvar - 2 (WE^{\top}\fvec)^{\top}\optvar  
 
-* :math:`W` the weight of the euclidean norm (:math:`n \times n`)
 
 
 .. note::
@@ -124,20 +138,36 @@ Constraint Implementation
 ============================
 
 
-Constraints are written as **double bounded linear function** :
+Constraints are written as double bounded linear functions,
 
 .. math::
 
-    lb \leq C\optvar \leq ub
+    \bs{lb} \leq C\optvar \leq \bs{ub} \tp
 
 * :math:`C` the constraint matrix (:math:`n \times n`)
-* :math:`lb` and :math:`ub` the lower and upper bounds of :math`C\optvar` (:math:`n \times 1`)
+* :math:`\bs{lb}` and :math:`\bs{ub}` the lower and upper bounds of :math`C\optvar` (:math:`n \times 1`)
+
+Thus to convert our standard affine constraint forms we have the following relationships:
+
+.. math::
+
+    A\optvar = \bs{b} \Leftrightarrow \bs{b} \leq A\optvar \leq \bs{b}
+
+
+.. math::
+
+    G\optvar \leq \bs{h} \Leftrightarrow \bmat{G\optvar \\ -G\optvar} \leq \bmat{\bs{ub_[h]} \\ -\bs{lb_{h}}} \Leftrightarrow \bs{lb_{h}} \leq G\optvar \leq \bs{ub_{h}}
+
+
+
+ORCA QP
+==============
+
+The full QP is expressed as,
 
 .. math::
 
     \underset{\optvar}{\argmin} &\quad \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
-    \text{s.t.} & lb \leq C\optvar \leq ub
+    \text{s.t.} & \bs{lb} \leq C\optvar \leq \bs{ub} \tc
 
-* :math:`A` the constraint matrix (:math:`n \times n`)
-* :math:`lb` and ``ub`` the lower and upper bounds of ``x`` (:math:`n \times 1`)
-* :math:`lbA` and ``ubA`` the lower and upper bounds of ``A`` (:math:`n \times 1`)
+in ORCA.
