@@ -30,6 +30,7 @@ Table of Contents
     :maxdepth: 2
 
     getting_started/install
+    getting_started/quick_start
     getting_started/where_to_go
     getting_started/building_docs
     getting_started/using_the_lib
@@ -58,7 +59,7 @@ Table of Contents
     :maxdepth: 2
 
     controller_formulation/overview
-    
+
 
 .. toctree::
     :caption: License Information

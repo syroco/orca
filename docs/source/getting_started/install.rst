@@ -107,17 +107,4 @@ Whether or not you have installed the dependencies separately, you are now ready
 Testing your installation
 ================================
 
-Assuming you followed the directions to the letter and encountered no compiler errors along the way, then you are ready to get started with ORCA. Before moving on to the :ref:`examples`, let's first test the installation.
-
-To do so simply run the following command:
-
-.. code-block:: bash
-
-    orca_install_test
-
-
-
-What's next?
-==================
-
-Check out :ref:`where_to_go` for more info.
+Assuming you followed the directions to the letter and encountered no compiler errors along the way, then you are ready to get started with ORCA. Before moving on to the :ref:`examples`, check out the :ref:`quick_start` to test your install and awe in the epicness of ORCA!
