@@ -171,7 +171,6 @@ int main(int argc, char const *argv[])
     auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
-    controller.addConstraint(jnt_vel_cstr);
     Eigen::VectorXd jntVelMax(ndof);
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
@@ -190,7 +189,7 @@ int main(int argc, char const *argv[])
 
     MinJerkPositionTrajectory traj(5.0);
     int traj_loops = 0;
-    bool exit_control_loop = true;
+    bool exit_control_loop = false;
     Eigen::Vector3d start_position, end_position;
     Eigen::VectorXd controller_torques(ndof);
 
@@ -221,14 +220,14 @@ int main(int argc, char const *argv[])
         {
             if (traj.isTrajectoryFinished()  )
             {
-                if (traj_loops < 5)
+                if (traj_loops < 10)
                 {
                     // flip start and end positions.
                     auto ep = end_position;
                     end_position = start_position;
                     start_position = ep;
                     traj.resetTrajectory(start_position, end_position);
-                    std::cout << "Changing trajectory direction." << '\n';
+                    std::cout << "Changing trajectory direction. [" << traj_loops << " of 10]" << '\n';
                     ++traj_loops;
                 }
                 else
@@ -241,6 +240,7 @@ int main(int argc, char const *argv[])
     });
 
     cart_task->onDeactivationCallback([&](){
+        exit_control_loop = true;
         std::cout << "Deactivating task." << '\n';
         std::cout << "\n\n\n" << '\n';
         std::cout << "Last controller_torques:\n" << controller_torques << '\n';
@@ -269,7 +269,7 @@ int main(int argc, char const *argv[])
 
         controller.update(current_time, dt);
 
-        if(controller.solutionFound())
+        if(controller.solutionFound() && !exit_control_loop)
         {
             controller_torques = controller.getJointTorqueCommand();
             gz_model.setJointTorqueCommand( controller_torques );
