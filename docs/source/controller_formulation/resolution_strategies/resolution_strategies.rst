@@ -168,4 +168,33 @@ ORCA provides three strategies for resolving a multi-objective QP which containt
 
     these strategies are in the namespace ``orca::optim::ResolutionStrategy``
 
+The strategies are implemented in ``Controller.cc`` on the controller update:
+
+.. code-block:: c++
+
+    bool Controller::update(double current_time, double dt)
+    {
+        MutexLock lock(mutex);
+        solution_found_ = false;
+
+        switch (resolution_strategy_)
+        {
+            case ResolutionStrategy::OneLevelWeighted:
+            {
+                ...
+            }
+            case ResolutionStrategy::MultiLevelWeighted:
+            {
+                ...
+            }
+            case ResolutionStrategy::Generalized:
+            {
+                not implemented yet
+            }
+            default:
+                orca_throw(Formatter() << "unsupported resolution strategy");
+        }
+    }
+
+
 Each of these strategies is detailed in the following sections.
