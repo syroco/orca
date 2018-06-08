@@ -1471,7 +1471,7 @@ FORMULA_TRANSPARENT    = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-USE_MATHJAX            = YES
+USE_MATHJAX            = NO
 
 # When MathJax is enabled you can set the default output format to be used for
 # the MathJax output. See the MathJax site (see:
@@ -1604,7 +1604,7 @@ EXTRA_SEARCH_MAPPINGS  =
 # If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.
 # The default value is: YES.
 
-GENERATE_LATEX         = NO
+GENERATE_LATEX         = YES
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1659,7 +1659,7 @@ PAPER_TYPE             = a4
 # If left blank no extra packages will be included.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-EXTRA_PACKAGES         =
+EXTRA_PACKAGES         = amsmath amsfonts#./source/orcastyle.sty
 
 # The LATEX_HEADER tag can be used to specify a personal LaTeX header for the
 # generated LaTeX document. The header should contain everything until the first
