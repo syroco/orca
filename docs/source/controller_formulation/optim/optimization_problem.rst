@@ -14,7 +14,7 @@ Returning to our generic representation of a whole-body controller presented in 
     \text{s.t.}            &\quad G\optvar \leq \bs{h}  \\
                            &\quad A\optvar = \bs{b}  \tc
 
-we make some important assumptions about the structure of the problem. Firstly, we make the assumtion that our control problem is continous and has **size=:math:`n`**, i.e. :math:`\optvar \in \R^{n}`. Next we impose that :math:`\ft(\optvar)` be quadratic in :math:`\optvar`, leaving us with an unconstrained **Quadratic Program**, or QP:
+we make some important assumptions about the structure of the problem. Firstly, we make the assumtion that our control problem is continous and has size = :math:`n`, i.e. :math:`\optvar \in \R^{n}`. Next we impose that :math:`\ft(\optvar)` be quadratic in :math:`\optvar`, leaving us with an unconstrained **Quadratic Program**, or QP:
 
 .. math::
     :label: qp
@@ -106,31 +106,56 @@ Within ORCA the QP objective function is formulated as a weighted Euclidean norm
 
 In :eq:`weighted_norm`, :math:`W` is the weight of the euclidean norm (:math:`n \times n`) and must be a positive symmetric definite matrix.
 
-In ORCA, :math:`W` is actually composed of two components, the norm weighting :math:`W'` and the selection matrix :math:`S`,
+In ORCA, :math:`W` is actually composed of two components, the norm weighting :math:`W'` and the selection matrix, :math:`S`,
 
 .. math::
+    :label: weighting_matrix
 
     W = SW'
 
-The selection matrix is a diagonal matrix with either 1's or 0's on the diagonal which allows us to ignore all or parts of the affine function we are computing. Concretely this means we can ignore components of the task error (more on this later). For a Cartesian position task for example, this allows us to ignore orientation errors for instance.
+:math:`S` is a matrix with either 1's or 0's on the diagonal which allows us to ignore all or parts of the affine function we are computing. Concretely this means we can ignore components of the task error. More information on tasks is provided in the :ref:`tasks` section.
 
-With this weighting hessian and gradient are calculated as,
+.. admonition:: For example...
 
-.. Hessian_.noalias() = SelectionVector.asDiagonal() * Weight * A.transpose() * A ;
+    For a Cartesian position task, setting the low 3 entries on the diagonal of :math:`S` to 0 allows us to ignore orientation errors.
 
-.. Gradient_.noalias() =  2.0 * SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
+For practicality's sake we set :math:`S` from a vector with the function ``setSelectionVector(const Eigen::VectorXd& s)``, which creates a diagonal matrix from ``s``.
+
+Given :math:`W` from :eq:`weighting_matrix`, the hessian and gradient are calculated as,
 
 
 .. math::
 
     \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
-    \Leftrightarrow \optvar^{\top}(E^{\top}WE)\optvar - 2 (WE^{\top}\fvec)^{\top}\optvar  
-
+    \Leftrightarrow \optvar^{\top}(E^{\top}WE)\optvar - 2 (WE^{\top}\fvec)^{\top}\optvar
 
 
 .. note::
 
     :math:`r = \fvec^{\top}\fvec` is dropped from the objective function because it does not change the optimal solution of the QP.
+
+
+
+In the code, these calculations can be found in ``WeightedEuclidianNormFunction``:
+
+.. code-block:: c++
+
+    void WeightedEuclidianNormFunction::QuadraticCost::computeHessian(const Eigen::VectorXd& SelectionVector
+                                                    , const Eigen::MatrixXd& Weight
+                                                    , const Eigen::MatrixXd& A)
+    {
+        Hessian_.noalias() = SelectionVector.asDiagonal() * Weight * A.transpose() * A ;
+    }
+
+    void WeightedEuclidianNormFunction::QuadraticCost::computeGradient(const Eigen::VectorXd& SelectionVector
+                                                    , const Eigen::MatrixXd& Weight
+                                                    , const Eigen::MatrixXd& A
+                                                    , const Eigen::VectorXd& b)
+    {
+        Gradient_.noalias() =  2.0 * SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
+    }
+
+
 
 
 
@@ -145,7 +170,7 @@ Constraints are written as double bounded linear functions,
     \bs{lb} \leq C\optvar \leq \bs{ub} \tp
 
 * :math:`C` the constraint matrix (:math:`n \times n`)
-* :math:`\bs{lb}` and :math:`\bs{ub}` the lower and upper bounds of :math`C\optvar` (:math:`n \times 1`)
+* :math:`\bs{lb}` and :math:`\bs{ub}` the lower and upper bounds of :math:`C\optvar` (:math:`n \times 1`)
 
 Thus to convert our standard affine constraint forms we have the following relationships:
 
@@ -156,7 +181,7 @@ Thus to convert our standard affine constraint forms we have the following relat
 
 .. math::
 
-    G\optvar \leq \bs{h} \Leftrightarrow \bmat{G\optvar \\ -G\optvar} \leq \bmat{\bs{ub_[h]} \\ -\bs{lb_{h}}} \Leftrightarrow \bs{lb_{h}} \leq G\optvar \leq \bs{ub_{h}}
+    G\optvar \leq \bs{h} \Leftrightarrow \bmat{G\optvar \\ -G\optvar} \leq \bmat{\bs{ub_{h}} \\ -\bs{lb_{h}}} \Leftrightarrow \bs{lb_{h}} \leq G\optvar \leq \bs{ub_{h}}
 
 
 
@@ -168,6 +193,6 @@ The full QP is expressed as,
 .. math::
 
     \underset{\optvar}{\argmin} &\quad \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
-    \text{s.t.} & \bs{lb} \leq C\optvar \leq \bs{ub} \tc
+    \text{s.t.} &\quad \bs{lb} \leq C\optvar \leq \bs{ub} \tc
 
 in ORCA.
