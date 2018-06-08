@@ -6,7 +6,7 @@ Multi-Level Weighted
 *******************************
 
 .. todo::
-    
+
     Not yet implemented...
 
 .. code-block:: c++
