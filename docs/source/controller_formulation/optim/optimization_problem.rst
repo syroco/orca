@@ -188,11 +188,24 @@ Thus to convert our standard affine constraint forms we have the following relat
 ORCA QP
 ==============
 
-The full QP is expressed as,
+In ORCA the full QP is expressed as,
 
 .. math::
 
     \underset{\optvar}{\argmin} &\quad \frac{1}{2} \optvar^{\top}H\optvar + \bs{g}^{\top}\optvar \\
     \text{s.t.} &\quad \bs{lb} \leq C\optvar \leq \bs{ub} \tc
 
-in ORCA.
+In the next sections we show how to formulate the different task and constraint types one might need to control a robot.
+In section :ref:`resolution_strategies`, we show how to combine multiple objective functions (tasks) in one controller allowing us to exploit the redundancy of the system.
+
+.. note::
+
+    Multiple constraints can be combined through vertical concatenation of their matrices and vectors. I.e.
+
+    .. math::
+
+        \bmat{\bs{lb}_{1} \\ \bs{lb}_{2} \\ \vdots \\ \bs{lb}_{n_{C}} }
+        \leq
+        \bmat{C_{1} \\ C_{2} \\ \vdots \\ C_{n_{C}} } \optvar
+        \leq
+        \bmat{\bs{ub}_{1} \\ \bs{ub}_{2} \\ \vdots \\ \bs{ub}_{n_{C}} }

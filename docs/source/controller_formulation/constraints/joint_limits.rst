@@ -142,3 +142,32 @@ From :eq:`joint_pos_limits_in_optvar_G_and_h`, one can of course naturally deriv
 The choice of the prediction period, :math:`h`, in the joint-space limits is crucial to the proper functioning of these constraints.
 Smaller values of :math:`h` lead to more aggressive approaches to the joint limits, while larger values produce a more conservative treatment.
 This variability is due to the fact that the prediction does not take into account the deceleration capabilities of the joints.
+
+
+
+.. important::
+
+    To put these constraints into ORCA standard form we have,
+
+    .. math::
+
+        \frac{2}{h^2}\left[ \q_{\text{min}} - (\q + h\jsr) \right]
+        &\leq
+        \bmat{I & \0} \optvar
+        \leq
+        \frac{2}{h^2}\left[ \q_{\text{max}} - (\q + h\jsr) \right]
+        \\
+
+        \frac{1}{h}\left[ \jsr_{\text{max}} - \jsr \right]
+        &\leq
+        \bmat{I & \0} \optvar
+        \leq
+        \frac{1}{h}\left[ \jsr_{\text{max}} - \jsr \right]
+        \\
+
+        \jsrd_{\text{max}}
+        &\leq
+        \bmat{I & \0} \optvar
+        \leq
+        \jsrd_{\text{max}}
+        \\

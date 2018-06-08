@@ -24,3 +24,14 @@ Expressing :ref:`torque_limits` in terms of :math:`\optvar` creates the followin
     :label: torque_limits_in_optvar_G_and_h
 
     \underbrace{\bmat{ \0 & S^{\top} & \0 \\ \bs{0} & -S^{\top} & \0 }}_{G^{\torque}}\optvar \leq \underbrace{\bmat{ \torque_{\text{max}} \\ -\torque_{\text{min}} }}_{\bs{h}^{\torque}} \tp
+
+
+
+
+.. important::
+
+    To put this into ORCA standard form we have,
+
+    .. math::
+
+        \torque_{\text{min}} \leq \bmat{ \0 & S^{\top} & \0}\optvar \leq \torque_{\text{max}}

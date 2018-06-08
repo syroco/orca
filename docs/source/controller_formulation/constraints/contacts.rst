@@ -83,7 +83,27 @@ where :math:`S^{F}_{i}` selects the :math:`i^{\text{th}}` contact force vector.
 Equations :eq:`friction_equality_constraint` and :eq:`friction_inequality_constraint` are valid for a single contact point. For surface contacts, e.g. a foot sole, multiple points on the surface can be used for friction contact constraints --- usually the four corners of the foot.
 Equation :eq:`friction_equality_constraint` introduces 3 equality constraints for the linear velocity of the contact point.
 The number of inequality constraints introduced by :eq:`friction_inequality_constraint` depends on the number of polygon edges used to approximate the friction cone.
-Here, 6 edges are used, and because of symmetry, this introduces 3 inequality constraints per contact to the \ctrller{}.
+Here, 6 edges are used, and because of symmetry, this introduces 3 inequality constraints per contact to the controller.
+
+
+.. important::
+
+    To put these constraints into ORCA standard form we have,
+
+    .. math::
+
+        \bs{b}^{\w}
+        &\leq
+        A^{\w}
+        \leq
+        \bs{b}^{\w}
+        \\
+
+        -\inf
+        &\leq
+        G^{\w} \optvar
+        \leq
+        \bs{h}^{\w}
 
 For bilateral contacts, it is sufficient to ensure no relative motion between the two links, :math:`i` and :math:`j` in contact. It should be noted that here a link can be some part of the environment for which a kinematic model exists. To ensure no motion between the links, the following relationship must be true,
 
@@ -115,3 +135,18 @@ Putting :eq:`bilateral_no_motion` in terms of :math:`\optvar` produces,
         -\left( \dot{J}_{i}(\q,\jsr) - \dot{J}_{j}(\q,\jsr) \right)\jsr
     }_{\bs{b}^{bc}}
     \tp
+
+
+
+
+.. important::
+
+    To put this constraint into ORCA standard form we have,
+
+    .. math::
+
+        \bs{b}^{bc}
+        &\leq
+        A^{bc}
+        \leq
+        \bs{b}^{bc}
