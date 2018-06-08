@@ -152,6 +152,16 @@ bool Problem::addTask(std::shared_ptr<GenericTask> task)
     }
 }
 
+bool Problem::constraintExists(std::shared_ptr< constraint::GenericConstraint> cstr)
+{
+    return exists(cstr,constraints_);
+}
+
+bool Problem::taskExists(std::shared_ptr< task::GenericTask> task)
+{
+    return exists(task,tasks_);
+}
+
 bool Problem::addWrench(std::shared_ptr< const Wrench > wrench)
 {
     if(!exists(wrench,wrenches_))

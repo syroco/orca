@@ -92,8 +92,9 @@ public:
     common::ReturnCode getReturnCode() const;
 
     bool addConstraint(std::shared_ptr< constraint::GenericConstraint> cstr);
+    bool constraintExists(std::shared_ptr< constraint::GenericConstraint> cstr);
     bool addTask(std::shared_ptr< task::GenericTask> task);
-
+    bool taskExists(std::shared_ptr< task::GenericTask> task);
     const std::list< std::shared_ptr< const common::Wrench> >& getWrenches() const;
     const std::list< std::shared_ptr< task::GenericTask> >& getTasks() const;
     const std::list< std::shared_ptr< constraint::GenericConstraint> >& getConstraints() const;

@@ -150,9 +150,17 @@ bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
 {
     if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
     {
-        task->setRobotModel(robot_);
-        task->setProblem(problems_.front());
-        return problems_.front()->addTask(task);
+        if(!problems_.front()->taskExists(task))
+        {
+            task->setRobotModel(robot_);
+            task->setProblem(problems_.front());
+            return problems_.front()->addTask(task);
+        }
+        else
+        {
+            LOG_WARNING << "Task " << task->getName() << " already exists.";
+            return true;
+        }
     }
     return false;
 }
@@ -181,9 +189,18 @@ bool Controller::addConstraint(std::shared_ptr<constraint::GenericConstraint> cs
 {
     if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
     {
-        cstr->setRobotModel(robot_);
-        cstr->setProblem(problems_.front());
-        return problems_.front()->addConstraint(cstr);
+        if(!problems_.front()->constraintExists(cstr))
+        {
+            cstr->setRobotModel(robot_);
+            cstr->setProblem(problems_.front());
+            return problems_.front()->addConstraint(cstr);
+        }
+        else
+        {
+            LOG_WARNING << "Constraint " << cstr->getName() << " already exists.";
+            return true;
+        }
+
     }
     return false;
 }
