@@ -74,13 +74,14 @@ int main(int argc, char const *argv[])
 
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref.translation() = Eigen::Vector3d(0.5,-0.5,0.8); // x,y,z in meters
-    cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
+    cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
+    Eigen::Quaterniond quat = orca::math::quatFromRPY(M_PI,0,0);
+    cart_pos_ref.linear() = quat.toRotationMatrix();
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
 
     Vector6d P;
-    P << 1000, 1000, 1000, 10, 10, 10;
+    P << 100, 100, 100, 10, 10, 10;
     cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
@@ -104,6 +105,8 @@ int main(int argc, char const *argv[])
 
     GazeboServer gz_server(argc,argv);
     auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
+    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
+
 
     // Lets decide that the robot is gravity compensated
     // So we need to remove G(q) from the solution
@@ -135,6 +138,14 @@ int main(int argc, char const *argv[])
     });
 
     std::cout << "Simulation running... (GUI with \'gzclient\')" << "\n";
+
+    // If you want to pause the simulation before starting it uncomment these lines
+    // Note that to unlock it either open 'gzclient' and click on the play button
+    // Or open a terminal and type 'gz world -p false'
+    //
+    std::cout << "Gazebo is paused, open gzclient to unpause it or type 'gz world -p false' in a new terminal" << '\n';
+    gazebo::event::Events::pause.Signal(true);
+
     gz_server.run();
     return 0;
 }
