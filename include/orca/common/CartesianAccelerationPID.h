@@ -88,6 +88,18 @@ namespace orca
             */
             const Eigen::Matrix4d& getCurrentCartesianPose() const;
             /**
+            * @brief Returns the current position of the control frame (w.r.t the base frame)
+            *
+            * @return const Eigen::Vector3d&
+            */
+            const Eigen::Vector3d& getCurrentCartesianPosition() const;
+            /**
+            * @brief Returns the current rotation of the control frame (w.r.t the base frame)
+            *
+            * @return const Eigen::Matrix3d&
+            */
+            const Eigen::Matrix3d& getCurrentCartesianRotation() const;
+            /**
             * @brief Returns the current cartesian velocity in mixed representation
             *
             * @return const orca::math::Vector6d&
@@ -141,6 +153,8 @@ namespace orca
             void onDeactivation(){}
         private:
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
+            Eigen::Matrix3d cart_rot_curr_;
+            Eigen::Vector3d cart_position_curr_;
             Vector6d cart_acc_cmd_
                     ,cart_acc_bias_
                     ,cart_acc_des_

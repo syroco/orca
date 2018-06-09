@@ -8,10 +8,21 @@ CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 , pid_(std::make_shared<PIDController>(6))
 {}
 
+const Eigen::Vector3d& CartesianAccelerationPID::getCurrentCartesianPosition() const
+{
+    return cart_position_curr_;
+}
+
+const Eigen::Matrix3d& CartesianAccelerationPID::getCurrentCartesianRotation() const
+{
+    return cart_rot_curr_;
+}
+
 const Eigen::Matrix4d& CartesianAccelerationPID::getCurrentCartesianPose() const
 {
     return cart_pos_curr_;
 }
+
 const Vector6d& CartesianAccelerationPID::getCurrentCartesianVelocity() const
 {
     return cart_vel_curr_;
@@ -97,6 +108,8 @@ const Vector6d& CartesianAccelerationPID::getCartesianVelocityError() const
 
 void CartesianAccelerationPID::onCompute(double current_time, double dt)
 {
+    cart_position_curr_ = cart_pos_curr_.block<3,1>(0,2);
+    cart_rot_curr_ = cart_pos_curr_.topLeftCorner<3,3>();
     // Compute Cartesian Position Error
     cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
     cart_pos_err_ = math::diffTransform(cart_pos_curr_ , cart_pos_des_);
