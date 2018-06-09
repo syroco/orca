@@ -35,7 +35,7 @@ endif()
 # iDynTree requires Eigen > 3.2
 find_package(Eigen3 3.2.92 QUIET)
 if(Eigen3_FOUND)
-    message("Eigen3 ${system_eigen3_version} (> 3.2) found at ${system_eigen3_include_dir}")
+    message(STATUS "Eigen3 ${system_eigen3_version} (> 3.2) found at ${system_eigen3_include_dir}")
 else()
     if(EIGEN3_INCLUDE_DIR)
         unset(EIGEN3_INCLUDE_DIR CACHE)
