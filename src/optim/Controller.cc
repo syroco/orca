@@ -111,18 +111,6 @@ bool Controller::update(double current_time, double dt)
             if(this->update_cb_)
                 this->update_cb_(current_time,dt);
 
-            static bool print_warning = true;
-            if(solution_found_ && isProblemDry(problem) && print_warning)
-            {
-                print_warning = false;
-                LOG_WARNING << "\n\n"
-                    <<" Solution found but the problem is dry !\n"
-                    << "It means that an optimal solution is found but the problem \n"
-                    << "only has one task computing anything, ans it's the"
-                    << "GlobalRegularisation task (This will only be printed once)\n\n"
-                    << "/!\\ Resulting torques will cause the robot to fall /!\\";
-            }
-
             return solution_found_;
         }
         default:
@@ -222,10 +210,26 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
     switch (resolution_strategy_)
     {
         case ResolutionStrategy::OneLevelWeighted:
-            if(!solutionFound())
-                orca_throw(Formatter() << "Cannot return JointTorqueCommand as the problem is not solved");
+        {
+            auto problem = problems_.front();
 
-            joint_torque_command_ = problems_.front()->getSolution(ControlVariable::JointTorque);
+            static bool print_warning = true;
+            if(solution_found_ && isProblemDry(problem) && print_warning)
+            {
+                print_warning = false;
+                LOG_WARNING << "\n\n"
+                    <<" Solution found but the problem is dry !\n"
+                    << "It means that an optimal solution is found but the problem \n"
+                    << "only has one task computing anything, ans it's the"
+                    << "GlobalRegularisation task (This will only be printed once)\n\n"
+                    << "/!\\ Resulting torques will cause the robot to fall /!\\";
+            }
+
+            if(!solutionFound())
+                orca_throw(Formatter() << "Cannot return JointTorqueCommand as the problem is not solved."
+                    <<"Use controller.solutionFound() to check if the controller computed a valid solution");
+
+            joint_torque_command_ = problem->getSolution(ControlVariable::JointTorque);
 
             if(remove_gravity_torques || remove_gravity_torques_)
                 joint_torque_command_ -= robot_->getJointGravityTorques();
@@ -234,7 +238,7 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
                 joint_torque_command_ -= robot_->getJointCoriolisTorques();
 
             return joint_torque_command_;
-
+        }
         default:
             orca_throw(Formatter() << "Unsupported resolution strategy");
     }
