@@ -33,13 +33,7 @@ Now, open a second terminal and run:
 
 If everything goes well then you should see the robot moving back and forth like this:
 
-
-.. image:: ../../_static/orca_test.gif
-    :width: 600px
-    :align: center
-
-
-
+.. image:: https://media.giphy.com/media/xFoRsUZ4fDuMhO8BCu/giphy.gif
 
 
 What's next?
