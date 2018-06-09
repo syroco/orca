@@ -109,11 +109,6 @@ int main(int argc, char const *argv[])
     robot_model->loadModelFromFile(urdf_url);
     robot_model->setBaseFrame("base_link");
     robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
-    RobotState eigState;
-    eigState.resize(robot_model->getNrOfDegreesOfFreedom());
-    eigState.jointPos.setZero();
-    eigState.jointVel.setZero();
-    robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
     orca::optim::Controller controller(
         "controller"
@@ -147,12 +142,7 @@ int main(int argc, char const *argv[])
 
 
     auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-    cart_task->setControlFrame("link_7"); //
-    Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
-    cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
-    Vector6d cart_vel_ref = Vector6d::Zero();
-    Vector6d cart_acc_ref = Vector6d::Zero();
+    cart_task->setControlFrame("link_7");
 
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
@@ -175,12 +165,9 @@ int main(int argc, char const *argv[])
     jntVelMax.setConstant(2.0);
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
-    double dt = 0.001;
-    double current_time = 0.0;
-
     GazeboServer gzserver(argc,argv);
     auto gz_model = GazeboModel(gzserver.insertModelFromURDFFile(urdf_url));
-
+    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
 
     ///////////////////////////////////////
     ///////////////////////////////////////
@@ -189,17 +176,23 @@ int main(int argc, char const *argv[])
 
     MinJerkPositionTrajectory traj(5.0);
     int traj_loops = 0;
-    bool exit_control_loop = false;
     Eigen::Vector3d start_position, end_position;
     Eigen::VectorXd controller_torques(ndof);
+    Eigen::Affine3d desired_cartesian_pose;
+    Vector6d desired_cartesian_vel = Vector6d::Zero();
+    Vector6d desired_cartesian_acc = Vector6d::Zero();
 
     cart_task->onActivationCallback([](){
         std::cout << "Activating CartesianTask..." << '\n';
     });
 
     cart_task->onActivatedCallback([&](){
-        start_position = cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1);
-        end_position = cart_pos_ref.translation();
+        desired_cartesian_pose = cart_task->servoController()->getCurrentCartesianPose();
+        Eigen::Quaterniond quat = orca::math::quatFromRPY(M_PI,0,0); // make it point to the table
+        desired_cartesian_pose.linear() = quat.toRotationMatrix();
+
+        start_position = desired_cartesian_pose.translation();
+        end_position = start_position + Eigen::Vector3d(0,-0.35,-.3);
         traj.resetTrajectory(start_position, end_position);
     });
 
@@ -208,10 +201,12 @@ int main(int argc, char const *argv[])
         {
             Eigen::Vector3d p, v, a;
             traj.getDesired(current_time, p, v, a);
-            cart_pos_ref.translation() = p;
-            cart_vel_ref.head(3) = v;
-            cart_acc_ref.head(3) = a;
-            cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+
+            desired_cartesian_pose.translation() = p;
+            desired_cartesian_vel.head(3) = v;
+            desired_cartesian_acc.head(3) = a;
+
+            cart_task->servoController()->setDesired(desired_cartesian_pose.matrix(),desired_cartesian_vel,desired_cartesian_acc);
         }
     });
 
@@ -240,7 +235,6 @@ int main(int argc, char const *argv[])
     });
 
     cart_task->onDeactivationCallback([&](){
-        exit_control_loop = true;
         std::cout << "Deactivating task." << '\n';
         std::cout << "\n\n\n" << '\n';
         std::cout << "Last controller_torques:\n" << controller_torques << '\n';
@@ -269,7 +263,7 @@ int main(int argc, char const *argv[])
 
         controller.update(current_time, dt);
 
-        if(controller.solutionFound() && !exit_control_loop)
+        if(controller.solutionFound())
         {
             controller_torques = controller.getJointTorqueCommand();
             gz_model.setJointTorqueCommand( controller_torques );
@@ -280,9 +274,14 @@ int main(int argc, char const *argv[])
         }
     });
 
-    std::cout << "Simulation running... (GUI with \'gzclient\')" << "\n";
+    std::cout << "Simulation running... (GUI with \'gzclient\')" << '\n';
+    // If you want to pause the simulation before starting it uncomment these lines
+    // Note that to unlock it either open 'gzclient' and click on the play button
+    // Or open a terminal and type 'gz world -p false'
+    //
+    std::cout << "Gazebo is paused, open gzclient to unpause it or type 'gz world -p false' in a new terminal" << '\n';
+    gazebo::event::Events::pause.Signal(true);
+
     gzserver.run();
-
-
     return 0;
 }
