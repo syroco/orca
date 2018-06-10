@@ -49,6 +49,11 @@ namespace math
         v.setConstant(   math::Infinity );
     }
 
+    template<typename T> bool equal(const T& a, const T& b)
+    {
+        return std::abs<T>(a - b) < std::numeric_limits<T>::epsilon();
+    }
+
     inline void setToLowest(Eigen::VectorXd& v)
     {
         v.setConstant( - math::Infinity );
