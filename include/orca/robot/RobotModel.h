@@ -100,37 +100,154 @@ struct RobotAcceleration
 };
 
 
+/**
+* @brief The robot model class allow to make kinematics and dynamics computations
+* 
+*/
 class RobotModel
 {
 public:
+    /**
+    * @brief The default constructor
+    * 
+    * @param name You can explicitely give it a name, otherwise it will be extracted from the urdf
+    */
     RobotModel(const std::string& name="");
     virtual ~RobotModel();
+    /**
+    * @brief Returns the name of the model, either set in the constructor, or automatically extracted from the urdf
+    * 
+    * @return const std::string&
+    */
     const std::string& getName() const;
+    /**
+    * @brief Load the model from an absolute urdf file path
+    * 
+    * @param modelFile The absolute file path
+    * @return bool
+    */
     bool loadModelFromFile(const std::string& modelFile);
+    /**
+    * @brief Load the model from a full urdf string (xacro not supported) 
+    * 
+    * @param modelString The expanded urdf string
+    * @return bool
+    */
     bool loadModelFromString(const std::string &modelString);
+    /**
+    * @brief Get the file url if it was loaded from a file. Empty string otherwise.
+    * 
+    * @return const std::string&
+    */
     const std::string& getUrdfUrl() const;
+    /**
+    * @brief Get the urdf expanded string used to build the model
+    * 
+    * @return const std::string&
+    */
     const std::string& getUrdfString() const;
+    /**
+    * @brief Set the complete robot state
+    * 
+    * @param world_H_base The pose of the robot w.r.t the world frame (identity for fixed-based robots)
+    * @param jointPos The current joint positions
+    * @param baseVel The base twist (zero for fixed-base robots)
+    * @param jointVel The current joint velocities
+    * @param gravity The world gravity
+    */
     void setRobotState(const Eigen::Matrix4d& world_H_base
                 , const Eigen::VectorXd& jointPos
                 , const Eigen::Matrix<double,6,1>& baseVel
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& gravity);
+    /**
+    * @brief Set the partial robot state
+    * 
+    * @param jointPos The current joint positions
+    * @param jointVel THe current joint velocities
+    * @param global_gravity_vector the world gravity
+    */
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel
                 , const Eigen::Vector3d& global_gravity_vector);
+    /**
+    * @brief Set the partial robot state. Useful for fixed based robots.
+    * 
+    * @param jointPos The current joint positions
+    * @param jointVel The current joint velocities
+    */
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel);
+    /**
+    * @brief Print information about the model to cout
+    * 
+    */
     void print() const;
+    /**
+    * @brief Set the base frame / the free-floating frame that attaches the robot to the world frame
+    * For a humanoid it would be generally somewhere in the hips. For a fixed based robot it would be 
+    * the frame between the robot and the table. This frame is also the frame of reference for the
+    * jacobians, transforms etc when refFrameName is not specified.
+    * 
+    * @param fixed_base_or_free_floating_frame p_fixed_base_or_free_floating_frame:...
+    */
     void setBaseFrame(const std::string& fixed_base_or_free_floating_frame);
+    /**
+    * @brief Returns the base/free-floating frame
+    * 
+    * @return const std::string&
+    */
     const std::string& getBaseFrame() const;
+    /**
+    * @brief Return the global gravity vector
+    * 
+    * @param global_gravity_vector The global gravity vector (usually 0,0,-9.81)
+    */
     void setGravity(const Eigen::Vector3d& global_gravity_vector);
+    /**
+    * @brief Return the number of actuated joints
+    * 
+    * @return unsigned int
+    */
     unsigned int getNrOfDegreesOfFreedom() const;
+    /**
+    * @brief Returns the number of DOF + Free floating DOF (6)
+    * 
+    * @return unsigned int
+    */
     unsigned int getConfigurationSpaceDimension() const;
+    /**
+    * @brief Returns true is the frame exists on the model.
+    * 
+    * @param frame_name The test frame
+    * @return bool
+    */
     bool frameExists(const std::string& frame_name) const;
 
+    /**
+    * @brief Get the transform (or pose) between a frame to another
+    * 
+    * @param refFrameName The reference frame
+    * @param frameName The frame you want to compute w.r.t the reference frame
+    * @return const Eigen::Matrix4d&
+    */
     const Eigen::Matrix4d& getRelativeTransform(const std::string& refFrameName, const std::string& frameName);
+    /**
+    * @brief Get the transform of a frame w.r.t the base frame
+    * 
+    * @param frameName The frame you want to compute w.r.t the base frame
+    * @return const Eigen::Matrix4d&
+    */
     const Eigen::Matrix4d& getTransform(const std::string& frameName);
 
+    /**
+    * @brief Add an extra frame to a link. This re-creates the whole model, so it should not be used on the control loop.
+    * 
+    * @param linkName The link from which you want to attach a new frame
+    * @param frameName The new frame
+    * @param link_H_frame The transform between the link to the frame
+    * @return bool
+    */
     bool addAdditionalFrameToLink (const std::string &linkName, const std::string &frameName, const Eigen::Matrix4d& link_H_frame);
 
     const Eigen::Matrix<double,6,1>& getFrameVel(const std::string& frameName);
