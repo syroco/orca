@@ -49,7 +49,7 @@ void WeightedEuclidianNormFunction::QuadraticCost::computeGradient(const Eigen::
                                                 , const Eigen::MatrixXd& A
                                                 , const Eigen::VectorXd& b)
 {
-    Gradient_.noalias() =  2.0 * SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
+    Gradient_.noalias() = SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
 }
 
 const Eigen::MatrixXd& WeightedEuclidianNormFunction::QuadraticCost::getHessian() const
