@@ -1,9 +1,9 @@
-#include <orca/constraint/EqualityConstraint.h>
+#include "orca/constraint/EqualityConstraint.h"
 using namespace orca::constraint;
 using namespace orca::optim;
 
-EqualityConstraint::EqualityConstraint(ControlVariable control_var)
-: GenericConstraint(control_var)
+EqualityConstraint::EqualityConstraint(const std::string& name,ControlVariable control_var)
+: GenericConstraint(name,control_var)
 {
 
 }

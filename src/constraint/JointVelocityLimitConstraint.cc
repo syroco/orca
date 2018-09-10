@@ -1,38 +1,22 @@
-#include <orca/constraint/JointVelocityLimitConstraint.h>
-#include <orca/optim/OptimisationVector.h>
-
+#include "orca/constraint/JointVelocityLimitConstraint.h"
 using namespace orca::constraint;
 using namespace orca::optim;
-using namespace orca::robot;
-using namespace orca::common;
 
-JointVelocityLimitConstraint::JointVelocityLimitConstraint()
-: JointLimitConstraint(ControlVariable::JointSpaceAcceleration)
+JointVelocityLimitConstraint::JointVelocityLimitConstraint(const std::string& name)
+: JointLimitConstraint(name,ControlVariable::JointAcceleration)
 {}
 
 void JointVelocityLimitConstraint::setHorizon(double horizon)
 {
-    MutexLock lock(mutex);
-
     horizon_ = horizon;
 }
 
-void JointVelocityLimitConstraint::updateConstraintFunction()
+void JointVelocityLimitConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
-    MutexLock lock(mutex);
+    const Eigen::VectorXd& current_jnt_vel = this->robot()->getJointVel();
 
-    const Eigen::VectorXd& min_jnt_vel_(min_);
-    const Eigen::VectorXd& max_jnt_vel_(max_);
+    double horizon_dt = horizon_ * dt;
 
-    const Eigen::VectorXd& current_jnt_vel = robot().getJointVel();
-
-    constraintFunction().lowerBound().noalias() = ( min_jnt_vel_ - current_jnt_vel ) / horizon_ ;
-    constraintFunction().upperBound().noalias() = ( max_jnt_vel_ - current_jnt_vel ) / horizon_ ;
-}
-
-void JointVelocityLimitConstraint::resize()
-{
-    MutexLock lock(mutex);
-
-    JointLimitConstraint::resize();
+    constraintFunction().lowerBound().noalias() = ( minLimit() - current_jnt_vel ) / ( horizon_dt );
+    constraintFunction().upperBound().noalias() = ( maxLimit() - current_jnt_vel ) / ( horizon_dt );
 }

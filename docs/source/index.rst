@@ -1,124 +1,112 @@
-.. image:: _static/orca-l.png
-    :width: 40px
-    :align: left
+.. image:: _static/orca-b.png
+    :height: 200px
+    :align: center
 
-ORCA Control
-============
+
+
 
 ORCA is a c++ whole-body reactive controller meant to compute the desired actuation torque
 of a robot given some tasks to perform and some constraints.
 
-The problem is written as a **quadratic problem** :
 
-.. math::
-
-    \min_{x} \frac{1}{2}x^tHx + x^tg
-
-    \text{subject to}
-
-    lb \leq  x \leq ub
-
-    lb_A \leq Ax \leq ub_A
-
-* ``x`` the optimisation vector
-* ``H`` the hessian matrix (:math:`size(x) \times size(x)`)
-* ``g`` the gradient vector (:math:`size(x) \times 1`)
-* ``A`` the constraint matrix (:math:`size(x) \times size(x)`)
-* ``lb`` and ``ub`` the lower and upper bounds of ``x`` (:math:`size(x) \times 1`)
-* ``lbA`` and ``ubA`` the lower and upper bounds of ``A`` (:math:`size(x) \times 1`)
-
-Tasks are written as **weighted euclidian distance function** :
-
-.. math::
-
-    w_{task}  \lVert \mathbf{E}x + \mathbf{f} \rVert_{W_{norm}}^2
-
-* ``x`` the optimisation vector, or **part** of the optimisation vector
-* ``E`` the linear matrix of the affine function (:math:`size(x) \times size(x)`)
-* ``f`` the origin vector (:math:`size(x) \times 1`)
-* ``w task`` the weight of the tasks in the overall quadratic cost (scalar :math:`[0:1]`)
-* ``W norm`` the weight of the euclidean norm (:math:`size(x) \times size(x)`)
-
-Given n_t tasks, the **overall cost function** is such that:
-
-.. math::
-
-    \frac{1}{2}x^tHx + x^tg = \frac{1}{2} \sum_{i=1}^{n_t}  w_{task,i}  \lVert \mathbf{E}_ix + \mathbf{f}_i \rVert_{W_{norm,i}}^2
-
-Constraints are written as **double bounded linear function** :
-
-.. math::
-
-    lb_C \leq Cx \leq ub_C
-
-* ``C`` the constraint matrix (:math:`size(x) \times size(x)`)
-* ``lbC`` and ``ubC`` the lower and upper bounds of ``A`` (:math:`size(x) \times 1`)
+Introduction
+==============
 
 
-.. .. math::
+Motivation
+-----------------
 
-..    \underset{n\times 1}{\mathrm{Y}} =  \underset{n\times p}{X} \times
-..    \underset{p\times 1}{\theta} + \underset{n\times 1}{\varepsilon}
 
-.. .. code-block:: c++
-..
-..   auto robot = std::make_shared<RobotDynTree>();
-..    if(!robot->loadModelFromFile(urdf_url))
-..    {
-..        return -1;
-..    }
-..    robot->setBaseFrame("link_0");
-..    robot->setGravity(Eigen::Vector3d(0,0,-9.81));
 
-The remainder of the documentation describes "classical" tasks and cosntraints which
-one may want to define
+
+************************
+Table of Contents
+************************
 
 .. toctree::
-    :name: install
-    :caption: Installation and Configuration
+    :name: getting_started
+    :caption: Getting Started
     :glob:
     :maxdepth: 2
 
-    install/*
+    getting_started/install
+    getting_started/quick_start
+    getting_started/where_to_go
+    getting_started/building_docs
+    getting_started/using_the_lib
 
 .. toctree::
-    :name: optim
-    :caption: Optim
+    :name: reference
+    :caption: Reference
     :glob:
     :maxdepth: 2
 
-    optim/*
+    api/api_docs
+
 
 .. toctree::
-    :name: tasks
-    :caption: Tasks
+    :name: examples
+    :caption: Examples
     :glob:
     :maxdepth: 2
 
-    tasks/*
+    examples/examples
 
 .. toctree::
-    :name: constraints
-    :caption: Constraints
+    :name: controller_formulation
+    :caption: Controller Formulation
     :glob:
     :maxdepth: 2
 
-    cstrs/*
+    controller_formulation/overview
+
 
 .. toctree::
-    :name: tools
-    :caption: Tools
-    :glob:
+    :caption: License Information
     :maxdepth: 2
 
-    tools/*
+    license
+
+
+Authorship
+=============
+Work on ORCA initially began in 2017 at the Institut des Systèmes Intelligents et de Robotique (ISIR). Since January 2018, active maintenance and development has been taken over by Fuzzy Logic Robotics S.A.S.
+
+Maintainers
+---------------
+* Antoine Hoarau
+* Ryan Lober
+* Fuzzy Logic Robotics (info@fuzzylogicrobotics.com)
+
+
+
+Contributors
+---------------
+* Vincent Padois
+
+
+
+Related Publications
+-------------------------
+
+
+
+Partner Institutions
+--------------------------
+
 
 .. image:: _static/isir.png
-    :width: 100px
+    :height: 50px
     :align: left
 
 .. image:: _static/cnrs.png
-    :width: 100px
+    :height: 50px
+    :align: left
 
 .. image:: _static/upmc.png
-    :width: 250px
+    :height: 50px
+    :align: left
+
+.. image:: _static/flr_logo.png
+    :height: 50px
+    :align: left

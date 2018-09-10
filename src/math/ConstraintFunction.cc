@@ -1,13 +1,16 @@
-#include <orca/math/ConstraintFunction.h>
+#include "orca/math/ConstraintFunction.h"
+#include "orca/utils/Utils.h"
+
 using namespace orca::math;
+using namespace orca::utils;
 
 void ConstraintFunction::print() const
 {
     std::cout << "Constraint Matrix C size " << getSize() << std::endl;
     std::cout << getConstraintMatrix() << std::endl;
-    std::cout << "Lower Bound lb" << std::endl;
+    std::cout << "  Lower Bound lb" << std::endl;
     std::cout << getLowerBound() << std::endl;
-    std::cout << "Upper Bound ub" << std::endl;
+    std::cout << "  Upper Bound ub" << std::endl;
     std::cout << getUpperBound() << std::endl;
 }
 
@@ -29,8 +32,8 @@ void ConstraintFunction::setLowerBound(const Eigen::VectorXd& newlb)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of lower bound do not match, provided "
-            << newlb.size() << ", but expected " << lower_bound_.size());
+        LOG_ERROR << "Size of lower bound do not match, provided "
+            << newlb.size() << ", but expected " << lower_bound_.size();
     }
 }
 
@@ -42,8 +45,8 @@ void ConstraintFunction::setUpperBound(const Eigen::VectorXd& newub)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of upper bound do not match, provided "
-            << newub.size() << ", but expected " << upper_bound_.size());
+        LOG_ERROR << "Size of upper bound do not match, provided "
+            << newub.size() << ", but expected " << upper_bound_.size();
     }
 }
 
@@ -55,8 +58,8 @@ void ConstraintFunction::setConstraintMatrix(const Eigen::MatrixXd& newC)
     }
     else
     {
-        throw std::runtime_error(util::Formatter() << "Size of constraint matrix do not match, provided "
-            << Size(newC) << ", but expected " << getSize());
+        LOG_ERROR << "Size of constraint matrix do not match, provided "
+            << Size(newC) << ", but expected " << getSize();
     }
 }
 

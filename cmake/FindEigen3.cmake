@@ -10,8 +10,12 @@
 #  EIGEN3_INCLUDE_DIR - the eigen include directory
 #  EIGEN3_VERSION - eigen version
 #
-# This module reads hints about search locations from 
-# the following enviroment variables:
+# and the following imported target:
+#
+#  Eigen3::Eigen - The header-only Eigen library
+#
+# This module reads hints about search locations from
+# the following environment variables:
 #
 # EIGEN3_ROOT
 # EIGEN3_ROOT_DIR
@@ -67,23 +71,36 @@ if (EIGEN3_INCLUDE_DIR)
 
 else (EIGEN3_INCLUDE_DIR)
 
-  find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
-      HINTS
-      ENV EIGEN3_ROOT 
-      ENV EIGEN3_ROOT_DIR
-      PATHS
-      ${CMAKE_INSTALL_PREFIX}/include
-      ${KDE4_INCLUDE_DIR}
-      PATH_SUFFIXES eigen3 eigen
-    )
+  # search first if an Eigen3Config.cmake is available in the system,
+  # if successful this would set EIGEN3_INCLUDE_DIR and the rest of
+  # the script will work as usual
+  find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
+
+  if(NOT EIGEN3_INCLUDE_DIR)
+    find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
+        HINTS
+        ENV EIGEN3_ROOT
+        ENV EIGEN3_ROOT_DIR
+        PATHS
+        ${CMAKE_INSTALL_PREFIX}/include
+        ${KDE4_INCLUDE_DIR}
+        PATH_SUFFIXES eigen3 eigen
+      )
+  endif(NOT EIGEN3_INCLUDE_DIR)
 
   if(EIGEN3_INCLUDE_DIR)
     _eigen3_check_version()
   endif(EIGEN3_INCLUDE_DIR)
 
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIR EIGEN3_VERSION_OK)
+
   mark_as_advanced(EIGEN3_INCLUDE_DIR)
 
 endif(EIGEN3_INCLUDE_DIR)
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIR EIGEN3_VERSION_OK)
+if(EIGEN3_FOUND AND NOT TARGET Eigen3::Eigen)
+  add_library(Eigen3::Eigen INTERFACE IMPORTED)
+  set_target_properties(Eigen3::Eigen PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}")
+endif()

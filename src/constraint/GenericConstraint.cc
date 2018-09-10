@@ -1,76 +1,53 @@
-#include <orca/constraint/GenericConstraint.h>
-#include <orca/optim/OptimisationVector.h>
-
+#include "orca/constraint/GenericConstraint.h"
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::math;
-using namespace orca::common;
+using namespace orca::utils;
 
-GenericConstraint::GenericConstraint(ControlVariable control_var)
-: TaskCommon(control_var)
+GenericConstraint::GenericConstraint(const std::string& name,ControlVariable control_var)
+: TaskBase(name,control_var)
+{
+    this->setRampDuration(0);
+}
+
+GenericConstraint::~GenericConstraint()
 {
 
 }
 
 void GenericConstraint::print() const
 {
-    MutexLock lock(mutex);
-
-    std::cout << "[" << TaskCommon::getName() << "]" << '\n';
-    std::cout << " - Size " << getSize() << '\n';
-    std::cout << " - Variable  " << getControlVariable() << '\n';
-
+    TaskBase::print();
     getConstraintFunction().print();
-
-    std::cout << " - isInitialized        " << isInitialized() << '\n';
-    std::cout << " - isActivated          " << isActivated() << '\n';
-    std::cout << " - isInsertedInProblem  " << isInsertedInProblem() << '\n';
-}
-
-GenericConstraint::~GenericConstraint()
-{
-    removeFromProblem();
 }
 
 Size GenericConstraint::getSize() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.getSize();
 }
 
 int GenericConstraint::rows() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.rows();
 }
 
 int GenericConstraint::cols() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.cols();
 }
 
 const Eigen::VectorXd& GenericConstraint::getLowerBound() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.getLowerBound();
 }
 
 const Eigen::VectorXd& GenericConstraint::getUpperBound() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.getUpperBound();
 }
 
 const Eigen::MatrixXd& GenericConstraint::getConstraintMatrix() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_.getConstraintMatrix();
 }
 
@@ -111,43 +88,46 @@ ConstraintFunction& GenericConstraint::constraintFunction()
 
 const ConstraintFunction& GenericConstraint::getConstraintFunction() const
 {
-    MutexLock lock(mutex);
-
     return constraint_function_;
 }
 
-void GenericConstraint::addInRegister()
+void GenericConstraint::onCompute(double current_time, double dt)
 {
-    OptimisationVector().addInRegister(this);
-}
+    Size Lsize_before  = Size(lowerBound());
+    Size Usize_before  = Size(upperBound());
+    Size Csize_before  = Size(constraintMatrix());
 
-void GenericConstraint::removeFromRegister()
-{
-    OptimisationVector().removeFromRegister(this);
-}
+    onUpdateConstraintFunction(current_time,dt);
 
-void GenericConstraint::update()
-{
-    MutexTryLock lock(mutex);
+    Size Lsize_after  = Size(lowerBound());
+    Size Usize_after  = Size(upperBound());
+    Size Csize_after  = Size(constraintMatrix());
 
-    if(!lock.isSuccessful())
+    if(Lsize_before != Lsize_after)
     {
-        //LOG_VERBOSE << "[" << TaskCommon::getName() << "] " << "Mutex is locked, skipping updating";
-        return;
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Lower bound changed size during onUpdateAffineFunction, it was ("
+                << Lsize_before
+                << ") but now its ("
+                << Lsize_after
+                << "). Make sure your math is correct"
+            );
     }
-    
-    // A task is considered initialised when 
-    // Robot has been loaded --> calls this->resize()
-    // At least one update has been done on the task
-    
-    setInitialized(robot().isInitialized());
-
-    if(isInitialized())
+    if(Usize_before != Usize_after)
     {
-        updateConstraintFunction();
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Upper bound changed size during onUpdateAffineFunction, it was ("
+                << Usize_before
+                << ") but now its ("
+                << Usize_after
+                << "). Make sure your math is correct"
+            );
     }
-    else
+    if(Csize_before != Csize_after)
     {
-        LOG_ERROR << "Calling update(), but robot is not initialized";
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Constraint matrix changed size during onUpdateAffineFunction, it was ("
+                << Csize_before
+                << ") but now its ("
+                << Csize_after
+                << "). Make sure your math is correct"
+            );
     }
 }

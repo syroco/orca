@@ -1,6 +1,6 @@
 <img src="docs/source/_static/orca-b.png?raw=true" alt="ORCA Logo" width="200">
 
-# Optimisation-based framework for Robotic Control Applications
+# Optimization-based framework for Robotic Control Applications
 
 | Linux/OSX        | Windows  |
 | ------------- |:-------------:|
@@ -9,11 +9,11 @@
 ## Dependencies
 
 * A modern **c++11** compiler (gcc > 4.8 or clang > 3.8)
-* **cmake** > 3.1 
+* **cmake** > 3.1
 * **iDynTree** (optional, shipped)
 * **qpOASES** 3 (optional, shipped)
 * **Eigen** 3 (optional, shipped)
-* **Gazebo** 8 (optional) 
+* **Gazebo** 8 (optional)
 
 ORCA is self contained ! It means that is ships **iDynTree** and **qpOASES** inside the project, allowing fast installations and easy integration on other platforms.
 
@@ -32,8 +32,9 @@ This is the easiest installation if you have a clean system and want to test qui
 git clone https://github.com/syroco/orca
 cd orca
 mkdir build ; cd build
-cmake ..
-cmake --build . # or just 'make'
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+sudo cmake --build . --target install
 ```
 
 ### Installation without embedded dependencies (recommended)
@@ -58,7 +59,7 @@ wget https://www.coin-or.org/download/source/qpOASES/qpOASES-3.2.1.zip
 unzip qpOASES-3.2.1.zip
 cd qpOASES-3.2.1
 mkdir build ; cd build
-cmake .. -DCMAKE_CXX_FLAGS="-fPIC" 
+cmake .. -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 sudo cmake --build . --target install
 ```
@@ -69,7 +70,7 @@ sudo cmake --build . --target install
 git clone https://github.com/robotology/idyntree
 cd idyntree
 mkdir build ; cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 sudo cmake --build . --target install
 ```
@@ -83,4 +84,3 @@ curl -ssL http://get.gazebosim.org | sh
 ```
 
 > NOTE: You can almost always avoid calling sudo, by calling `cmake .. -DCMAKE_INSTALL_PREFIX=/some/dir` and exporting the `CMAKE_PREFIX_PATH` variable : ` export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:/some/dir`
-

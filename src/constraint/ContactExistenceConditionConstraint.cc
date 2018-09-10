@@ -1,64 +1,54 @@
-#include <orca/constraint/ContactExistenceConditionConstraint.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/ContactExistenceConditionConstraint.h"
+
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
 
-ContactExistenceConditionConstraint::ContactExistenceConditionConstraint()
-: EqualityConstraint(ControlVariable::JointSpaceAcceleration)
+ContactExistenceConditionConstraint::ContactExistenceConditionConstraint(const std::string& name)
+: EqualityConstraint(name,ControlVariable::JointAcceleration)
 {
 
 }
 void ContactExistenceConditionConstraint::setBaseFrame(const std::string& base_ref_frame)
 {
-    MutexLock lock(mutex);
-
-    if(robot().frameExists(base_ref_frame))
-        base_ref_frame_ = base_ref_frame;
-    else
-        LOG_ERROR << "Could not set base frame to " << base_ref_frame;
+    base_ref_frame_ = base_ref_frame;
 }
 
 void ContactExistenceConditionConstraint::setControlFrame(const std::string& control_frame)
 {
-    MutexLock lock(mutex);
-
-    if(robot().frameExists(control_frame))
-        control_frame_ = control_frame;
-    else
-        LOG_ERROR << "Could not set control frame to " << control_frame;
+    control_frame_ = control_frame;
 }
 
-
-void ContactExistenceConditionConstraint::updateConstraintFunction()
+void ContactExistenceConditionConstraint::onActivation()
 {
     if(base_ref_frame_.empty())
     {
-        base_ref_frame_ = robot().getBaseFrame();
+        base_ref_frame_ = robot()->getBaseFrame();
     }
+}
 
-    frame_bias_acc_ = - robot().getFrameBiasAcc(control_frame_);
+void ContactExistenceConditionConstraint::onUpdateConstraintFunction(double current_time, double dt)
+{
+    frame_bias_acc_ = - robot()->getFrameBiasAcc(control_frame_);
 
-    if(base_ref_frame_ == robot().getBaseFrame())
+    if(base_ref_frame_ == robot()->getBaseFrame())
     {
-        jacobian_ = robot().getFrameFreeFloatingJacobian(control_frame_);
+        jacobian_ = robot()->getFrameFreeFloatingJacobian(control_frame_);
     }
     else
     {
-        const unsigned int dof = robot().getNrOfDegreesOfFreedom();
-        jacobian_.block(0,6,6,dof) = robot().getRelativeJacobian(base_ref_frame_,control_frame_);
+        const unsigned int dof = robot()->getNrOfDegreesOfFreedom();
+        jacobian_.block(0,6,6,dof) = robot()->getRelativeJacobian(base_ref_frame_,control_frame_);
     }
 
     this->setConstraintMatrix( jacobian_.topLeftCorner(3, jacobian_.cols()) );
     this->setBound( frame_bias_acc_.head(3) );
 }
 
-void ContactExistenceConditionConstraint::resize()
+void ContactExistenceConditionConstraint::onResize()
 {
-    MutexLock lock(mutex);
-
-    const int fulldim = OptimisationVector().configurationSpaceDimension();
+    const int fulldim = this->robot()->getConfigurationSpaceDimension();
 
     if(constraintFunction().cols() != fulldim)
     {

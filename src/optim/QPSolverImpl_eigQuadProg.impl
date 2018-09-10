@@ -1,0 +1,132 @@
+#include "orca/optim/QPSolverImpl.h"
+#include "orca/utils/Logger.h"
+#include "orca/math/Utils.h"
+#include <eigquadprog.hh>
+#include <iostream>
+
+namespace orca
+{
+namespace optim
+{
+
+class QPSolverImpl_eigQuadProg : public QPSolverImpl
+{
+
+public:
+
+    void resize(int nvar,int nconstr)
+    {
+
+    }
+
+    void setPrintLevel(int level)
+    {
+
+    }
+
+    void setDefaultOptions()
+    {
+    }
+
+    common::ReturnCode solve(ProblemData& data )
+    {
+        // min 0.5 * x G x + g0 x
+        // s.t.
+        //     CE^T x + ce0 = 0
+        //     CI^T x + ci0 >= 0
+        int neq_rows = 0;
+        int nineq_rows = 0;
+        for (size_t i = 0; i < data.A_.rows(); i++) {
+            if(math::equal(data.lbA_[i] , data.ubA_[i]))
+                neq_rows++;
+            else
+                nineq_rows++;
+        }
+        for (size_t i = 0; i < data.lb_.size(); i++) {
+            if(math::equal(data.lb_[i] , data.ub_[i]))
+                neq_rows++;
+            else
+                nineq_rows++;
+        }
+
+        Eigen::MatrixXd G(data.H_);
+        Eigen::VectorXd g0(data.g_);
+        Eigen::MatrixXd CE(neq_rows,data.H_.cols());
+        Eigen::MatrixXd CI(2*nineq_rows,data.H_.cols());
+        Eigen::VectorXd ce0(neq_rows);
+        Eigen::VectorXd ci0(2*nineq_rows);
+
+
+        int eqidx = 0;
+        int ineqidx = 0;
+        for (size_t i = 0; i < data.A_.rows(); i++)
+        {
+            if(math::equal(data.lbA_[i] , data.ubA_[i]))
+            {
+                // equality constraint
+                CE.row(eqidx) = data.A_.row(i);
+                ce0[eqidx] = - data.lbA_[i];
+                eqidx++;
+            }
+            else
+            {
+                // inequality constraint
+                CI.row(ineqidx) = data.A_.row(i);
+                ci0[ineqidx] = - data.lbA_[i];
+                ineqidx++;
+
+                CI.row(ineqidx) = - data.A_.row(i);
+                ci0[ineqidx] = data.ubA_[i];
+                ineqidx++;
+            }
+        }
+        for (size_t i = 0; i < data.lb_.size(); i++)
+        {
+            if(math::equal(data.lb_[i] , data.ub_[i]))
+            {
+                // equality constraint
+                CE.row(eqidx).setZero();
+                CE(eqidx,i) = 1;
+                ce0[eqidx] = - data.lb_[i];
+                eqidx++;
+            }
+            else
+            {
+                // inequality constraint
+                CI.row(ineqidx).setZero();
+                CI(ineqidx,i) = 1;
+                ci0[ineqidx] = - data.lb_[i];
+                ineqidx++;
+
+                CI.row(ineqidx).setZero();
+                CI(ineqidx,i) = - 1;
+                ci0[ineqidx] = data.ub_[i];
+                ineqidx++;
+            }
+        }
+
+        // std::cout << "G\n" << G << '\n';
+        // std::cout << "g0\n" << g0 << '\n';
+        // std::cout << "CE\n" << CE << '\n';
+        // std::cout << "CI\n" << CI << '\n';
+        // std::cout << "ce0\n" << ce0 << '\n';
+        // std::cout << "ci0\n" << ci0 << '\n';
+
+        double ret = solve_quadprog(G, g0,
+                              CE, ce0,
+                              CI, ci0,
+                              data.primal_solution_);
+
+        if(ret == std::numeric_limits<double>::infinity())
+            return common::ReturnCode::RET_QP_NOT_SOLVED;
+        return common::ReturnCode::SUCCESSFUL_RETURN;
+    }
+
+    void getPrimalSolution(Eigen::VectorXd& solution)
+    {
+
+    }
+};
+
+} // namespace optim
+} // namespace orca

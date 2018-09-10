@@ -1,3 +1,6 @@
+docs/html/
+docs/latex/
+docs/xml/
 
 # Visual Studio Code
 .vscode
@@ -383,5 +386,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
+.vs
 # End of https://www.gitignore.io/api/c,qt,lua,ros,osx,c++,linux,python,windows,kdevelop4,qtcreator

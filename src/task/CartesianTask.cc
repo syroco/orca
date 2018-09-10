@@ -1,93 +1,105 @@
-#include <orca/task/CartesianTask.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/task/CartesianTask.h"
+#include "orca/common/CartesianAccelerationPID.h"
+
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::common;
 
-CartesianTask::CartesianTask()
-: GenericTask(ControlVariable::GeneralisedAcceleration)
+CartesianTask::CartesianTask(const std::string& name)
+: GenericTask(name,ControlVariable::GeneralisedAcceleration)
 {
-
+    setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
-void CartesianTask::resize()
+std::shared_ptr<CartesianAccelerationPID> CartesianTask::servoController()
 {
-    MutexLock lock(mutex);
+    return servo_;
+}
 
-    const int fulldim = OptimisationVector().configurationSpaceDimension();
+void CartesianTask::print() const
+{
+    std::cout << "[" << getName() << "]" << '\n';
+    std::cout << " Base frame " << base_ref_frame_ << '\n';
+    std::cout << " Control Frame " << control_frame_ << '\n';
+    servo_->print();
+    getEuclidianNorm().print();
+}
 
-    LOG_DEBUG << "[" << getName() << "] " << "Resizing to 6x" << fulldim;
-
-    EuclidianNorm().resize(6,fulldim);
+void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
+{
+    servo_ = servo;
+    this->link(servo_);
 }
 
 const std::string& CartesianTask::getBaseFrame() const
 {
-    MutexLock lock(mutex);
-
     return base_ref_frame_;
 }
 
 const std::string& CartesianTask::getControlFrame() const
 {
-    MutexLock lock(mutex);
-
     return control_frame_;
 }
 
 void CartesianTask::setBaseFrame(const std::string& base_ref_frame)
 {
-    MutexLock lock(mutex);
-
-    if(robot().frameExists(base_ref_frame))
-        base_ref_frame_ = base_ref_frame;
-    else
-        throw std::runtime_error("Invalid frame");
-
+    base_ref_frame_ = base_ref_frame;
+    servo_->setBaseFrame(base_ref_frame);
 }
 
 void CartesianTask::setControlFrame(const std::string& control_frame)
 {
-    MutexLock lock(mutex);
-
-    if(robot().frameExists(control_frame))
-        control_frame_ = control_frame;
-    else
-        throw std::runtime_error("Invalid frame");
+    control_frame_ = control_frame;
+    servo_->setControlFrame(control_frame);
 }
 
 void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
 {
-    MutexLock lock(mutex);
-
     cart_acc_des_ = cartesian_acceleration_des;
+    desired_set_ = true;
 }
 
-
-void CartesianTask::updateAffineFunction()
+void CartesianTask::onActivation()
 {
-    // If no frame has been set before, use the default Floating Base.
-    if(base_ref_frame_.empty())
+    if(!desired_set_)
     {
-        base_ref_frame_ = robot().getBaseFrame();
+        // Do not move if no desired target is set
+        cart_acc_des_.setZero();
     }
+}
 
+void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
+{
+    setDesired(servo_->getCommand());
 
-    if(base_ref_frame_ == robot().getBaseFrame())
+    if(base_ref_frame_ == robot()->getBaseFrame())
     {
-        E() = robot().getFrameFreeFloatingJacobian(this->control_frame_);
+        E() = robot()->getFrameFreeFloatingJacobian(this->control_frame_);
     }
     else
     {
-        const int ndof = robot().getNrOfDegreesOfFreedom();
+        const int ndof = robot()->getNrOfDegreesOfFreedom();
         // Compute Jacobian
-        E().block(0,6,6,ndof) = robot().getRelativeJacobian(this->base_ref_frame_
+        E().block(0,6,6,ndof) = robot()->getRelativeJacobian(this->base_ref_frame_
                                             , this->control_frame_);
         E().block(0,0,6,6).setZero();
     }
 
     // Compute dotJ * v
-    cart_acc_bias_ = robot().getFrameBiasAcc(this->control_frame_);
+    cart_acc_bias_ = robot()->getFrameBiasAcc(this->control_frame_);
     // b = dotJ.v - AccDes
     f() = ( cart_acc_bias_ - cart_acc_des_ );
+}
+
+void CartesianTask::onResize()
+{
+    const int fulldim = this->robot()->getConfigurationSpaceDimension();
+    euclidianNorm().resize(6,fulldim);
+
+    // If no frame has been set before, use the default Floating Base.
+    if(base_ref_frame_.empty())
+    {
+        LOG_WARNING << "Calling resize but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
+        setBaseFrame(robot()->getBaseFrame());
+    }
 }

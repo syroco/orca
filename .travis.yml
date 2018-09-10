@@ -16,8 +16,8 @@ compiler:
 script:
   - mkdir build ; cd build
   - cmake .. -DCMAKE_INSTALL_PREFIX=../install || true
-  - cmake --build . --config $BUILD_TYPE 
+  - cmake --build . --config $BUILD_TYPE
   - cmake --build . --target install
-  
+
 after_success:
-  - ./examples/orca-demo1 ../examples/lwr.urdf
+  - ./examples/01-simple_controller ../examples/resources/lwr.urdf

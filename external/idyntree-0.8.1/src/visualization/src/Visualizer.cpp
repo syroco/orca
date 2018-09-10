@@ -399,14 +399,18 @@ IModelVisualization& Visualizer::modelViz(const std::string& instanceName)
 #endif
 }
 
+#ifdef IDYNTREE_USES_IRRLICHT
 IModelVisualization& Visualizer::modelViz(size_t modelIdx)
 {
-#ifdef IDYNTREE_USES_IRRLICHT
     return *(this->pimpl->m_modelViz[modelIdx]);
-#else
-    return this->pimpl->m_invalidModelViz;
-#endif
 }
+#else
+
+IModelVisualization& Visualizer::modelViz(size_t)
+{
+    return this->pimpl->m_invalidModelViz;
+}
+#endif
 
 ICamera& Visualizer::camera()
 {

@@ -1,5 +1,6 @@
-#include <orca/math/WeightedEuclidianNormFunction.h>
+#include "orca/math/WeightedEuclidianNormFunction.h"
 using namespace orca::math;
+using namespace orca::utils;
 
 WeightedEuclidianNormFunction::WeightedEuclidianNormFunction()
 {
@@ -48,7 +49,7 @@ void WeightedEuclidianNormFunction::QuadraticCost::computeGradient(const Eigen::
                                                 , const Eigen::MatrixXd& A
                                                 , const Eigen::VectorXd& b)
 {
-    Gradient_.noalias() =  2.0 * SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
+    Gradient_.noalias() = SelectionVector.asDiagonal() * Weight * A.transpose() * b ;
 }
 
 const Eigen::MatrixXd& WeightedEuclidianNormFunction::QuadraticCost::getHessian() const
@@ -63,7 +64,7 @@ const Eigen::VectorXd& WeightedEuclidianNormFunction::QuadraticCost::getGradient
 
 void WeightedEuclidianNormFunction::print() const
 {
-    std::cout << "WeightedEuclidianNormFunction SelectionVector || Ax + b ||weight" << std::endl;
+    std::cout << "WeightedEuclidianNormFunction S * || Ax + b ||W" << std::endl;
     AffineFunction::print();
     std::cout << "Weight" << std::endl;
     std::cout << getWeight() << std::endl;
@@ -77,14 +78,8 @@ void WeightedEuclidianNormFunction::print() const
 
 void WeightedEuclidianNormFunction::setWeight(const Eigen::MatrixXd& weight)
 {
-    if(Size(weight) == Size(Weight_))
-    {
-        Weight_ = weight;
-    }
-    else
-    {
-        throw std::runtime_error(util::Formatter() << "Size of weight matix do not match, provided " << Size(weight) << ", but expected " << Size(Weight_));
-    }
+    assertSize(weight,Weight_);
+    Weight_ = weight;
 }
 
 void WeightedEuclidianNormFunction::setWeight(double weight)
@@ -102,6 +97,12 @@ const Eigen::VectorXd& WeightedEuclidianNormFunction::getSelectionVector() const
 {
     return SelectionVector_;
 }
+
+void WeightedEuclidianNormFunction::setSelectionVector(const Eigen::VectorXd& s)
+{
+    SelectionVector_ = s;
+}
+
 
 const Eigen::MatrixXd& WeightedEuclidianNormFunction::getWeight() const
 {
@@ -127,4 +128,3 @@ void WeightedEuclidianNormFunction::resize(int rows,int cols)
         this->computeQuadraticCost();
     }
 }
-

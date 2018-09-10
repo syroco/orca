@@ -1,83 +1,28 @@
-#include <orca/constraint/Contact.h>
-#include <orca/optim/OptimisationVector.h>
+#include "orca/constraint/Contact.h"
+
 using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::common;
+using namespace orca::robot;
 
-Contact::Contact()
-: TaskCommon(optim::ControlVariable::Composite)
-, friction_cone_(std::make_shared<LinearizedCoulombConstraint>())
-, ex_condition_(std::make_shared<ContactExistenceConditionConstraint>())
-, wrench_(std::make_shared<Wrench>())
+Contact::Contact(const std::string& name)
+: TaskBase(name,ControlVariable::ExternalWrench)
+, friction_cone_(std::make_shared<LinearizedCoulombConstraint>(name + "_coulomb"))
+, ex_condition_(std::make_shared<ContactExistenceConditionConstraint>(name + "_existence_condition"))
 {
-    this->desactivate();
-}
-
-void Contact::setName(const std::string& name)
-{
-    TaskCommon::setName(name);
-    friction_cone_->setName(name + "_FrCone");
-    ex_condition_->setName(name + "_ExCond");
-    wrench_->setName(name + "_Wrench");
+    this->link(friction_cone_);
+    this->link(ex_condition_);
+    //TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0;
 }
 
-void Contact::addInRegister()
+const std::string& Contact::getBaseFrame() const
 {
-    
+    return this->getWrench()->getBaseFrame();
 }
 
-void Contact::removeFromRegister()
+const std::string& Contact::getControlFrame() const
 {
-    
-}
-
-bool Contact::isInitialized() const
-{
-    return wrench_->isInitialized();
-}
-bool Contact::isActivated() const
-{
-    return wrench_->isActivated();
-}
-bool Contact::isInsertedInProblem() const
-{
-    return wrench_->isInsertedInProblem();
-}
-
-bool Contact::insertInProblem()
-{
-    return friction_cone_->insertInProblem()
-        && ex_condition_->insertInProblem() 
-        && wrench_->insertInProblem();
-}
-
-bool Contact::removeFromProblem()
-{
-    return friction_cone_->removeFromProblem() 
-        && ex_condition_->removeFromProblem() 
-        && wrench_->removeFromProblem();
-}
-
-bool Contact::desactivate()
-{
-    // TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0
-    return friction_cone_->desactivate() 
-        && ex_condition_->desactivate() 
-        && wrench_->desactivate();
-}
-
-bool Contact::activate()
-{
-    return friction_cone_->activate() 
-        && ex_condition_->activate() 
-        && wrench_->activate();
-}
-
-void Contact::update()
-{
-    friction_cone_->update();
-    ex_condition_->update();
-    wrench_->update();
+    return this->getWrench()->getControlFrame();
 }
 
 double Contact::getFrictionCoeff() const
@@ -120,36 +65,20 @@ void Contact::setNumberOfFaces(int nfaces)
     friction_cone_->setNumberOfFaces(nfaces);
 }
 
-const std::string& Contact::getBaseFrame() const
-{
-    return wrench_->getBaseFrame();
-}
-
-const std::string& Contact::getControlFrame() const
-{
-    return wrench_->getControlFrame();
-}
-
 void Contact::setBaseFrame(const std::string& base_ref_frame)
 {
     ex_condition_->setBaseFrame(base_ref_frame);
-    wrench_->setBaseFrame(base_ref_frame);
+    this->wrench()->setBaseFrame(base_ref_frame);
 }
 
 void Contact::setControlFrame(const std::string& control_frame)
 {
     ex_condition_->setControlFrame(control_frame);
-    wrench_->setControlFrame(control_frame);
+    this->wrench()->setControlFrame(control_frame);
 }
 
-void Contact::setCurrentWrench(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
-{
-    wrench_->setCurrent(current_wrench_from_ft_sensor);
-}
 
-void Contact::resize()
+void Contact::setCurrentWrenchValue(const Eigen::Matrix<double,6,1>& current_wrench_from_ft_sensor)
 {
-    ex_condition_->setRobotModel( this->robotPtr() );
-    friction_cone_->setRobotModel( this->robotPtr() );
-    wrench_->setRobotModel( this->robotPtr() );
+    this->wrench()->setCurrentValue(current_wrench_from_ft_sensor);
 }
