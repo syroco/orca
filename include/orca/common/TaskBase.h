@@ -42,6 +42,7 @@
 #include "orca/optim/Problem.h"
 #include "orca/common/Wrench.h"
 #include "orca/common/Mutex.h"
+#include "orca/common/Parameter.h"
 
 namespace orca
 {
@@ -63,7 +64,7 @@ namespace common
         * @brief Represents the internal state of the task
         */
         enum State {
-             Init /*!< Task is instanciated */
+             Init = 0/*!< Task is instanciated */
             ,Resized /*!< The robot and the problem have been set */
             ,Activating /*!< Task is running but ramping up */
             ,Activated /*!< Task is running */
@@ -71,7 +72,33 @@ namespace common
             ,Deactivated /*!< Task has finishing ramping down and is now stopped */
             ,Error /*!< Task update returned an error (not used yet) */
         };
-
+        
+        /**
+        * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool configureFromString(const std::string& yaml_str);
+        /**
+        * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool configureFromFile(const std::string& yaml_url);
+        /**
+        * @brief Returns true if all params added with @addParam have been set
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool isConfigured() const;
+        
+        enum ParamPolicy
+        {
+              Required = 0
+            , Optional
+        };
+        void addParam(const std::string& param_name,ParameterBase * param,ParamPolicy policy = Required);
+        
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
         bool isActivated() const;
@@ -108,6 +135,7 @@ namespace common
         std::shared_ptr<const common::Wrench> getWrench() const;
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
+
         void link(std::shared_ptr<common::TaskBase> e);
 
         void onResizedCallback(std::function<void(void)> cb);
@@ -121,11 +149,11 @@ namespace common
         * @brief The recursive mutex to protect the #update function
         *
         */
-        mutable common::MutexRecursive mutex;
+        mutable orca::common::MutexRecursive mutex;
     protected:
         virtual void resize();
         std::shared_ptr<robot::RobotModel> robot();
-        std::shared_ptr<common::Wrench> wrench();
+        std::shared_ptr<Wrench> wrench();
 
         virtual void onResize() = 0;
         virtual void onResized() {};
@@ -150,9 +178,9 @@ namespace common
         const std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
-        std::shared_ptr<common::Wrench> wrench_;
+        std::shared_ptr<Wrench> wrench_;
         optim::ControlVariable control_var_;
-        std::list<std::shared_ptr<common::TaskBase> > linked_elements_;
+        std::list<std::shared_ptr<TaskBase> > linked_elements_;
 
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
@@ -164,6 +192,7 @@ namespace common
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
+        std::map<std::string,ParameterBase*> parameters_;
     };
 
 

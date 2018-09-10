@@ -121,7 +121,6 @@ public:
      */
     const math::ConstraintFunction& getConstraintFunction() const;
 
-
 protected:
     virtual void onResize() = 0;
     virtual void onCompute(double current_time, double dt);

@@ -49,17 +49,22 @@
 #include <map>
 #include "orca/utils/Logger.h"
 
+#define UNUSED(expr) (void)(expr)
+
 namespace orca
 {
 namespace utils
 {
 
+// Waiting for c++17 to have this
 template<typename T, typename ...Args>
 std::unique_ptr<T> make_unique( Args&& ...args )
 {
     return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
 }
 
+
+// Throwing exceptions with the line number
 // From https://stackoverflow.com/a/348862
 class orca_exception : public std::runtime_error {
     std::string msg;
@@ -116,53 +121,6 @@ private:
     high_resolution_clock::time_point _start;
 };
 
-
-
-template<class T>
-struct UniquePtr
-{
-    typedef std::unique_ptr<T> Ptr;
-    static std::unique_ptr<T> createPtr(){ return std::unique_ptr<T>(new T); }
-};
-
-template<class T>
-struct SharedPtr
-{
-    typedef std::shared_ptr<T> Ptr;
-    static std::shared_ptr<T> createPtr(){ return std::shared_ptr<T>(new T); }
-};
-
-template <typename T>
-struct Counter
-{
-    Counter()
-    {
-        NrOfInstances++;
-    }
-
-    virtual ~Counter()
-    {
-        --NrOfInstances;
-    }
-    static std::atomic<int> NrOfInstances;
-};
-template <typename T> std::atomic<int> Counter<T>::NrOfInstances( 0 );
-
-template <typename T>
-class Singleton
-{
-public:
-   static Singleton<T>& getInstance() {
-       static Singleton<T> theInstance;
-       return theInstance;
-   }
-
-private:
-   Singleton() {}
-   Singleton(const Singleton<T>&);
-   Singleton<T>& operator=(const Singleton<T>&);
-};
-
 class Formatter
 {
 public:
@@ -195,67 +153,66 @@ private:
 // throw std::runtime_error(Formatter() << foo << 13 << ", bar" << myData >> Formatter::to_str);    // explicitly cast to std::string
 
 
-
-class PeriodicPosixThread
-{
-public:
-    PeriodicPosixThread(std::function<void(void)> f , const unsigned long period_ms, bool start_now = false)
-    : f_(f)
-    , running_(false)
-    , period_ms_(period_ms)
-    {
-        if(start_now)
-            start();
-    }
-
-    void start()
-    {
-        if(!running_)
-        {
-            running_ = true;
-            th_ = std::thread( std::bind(&PeriodicPosixThread::run,this) );
-        }
-    }
-
-    void run()
-    {
-        const auto timeWindow = std::chrono::milliseconds(period_ms_);
-
-        while(running_)
-        {
-            auto start = std::chrono::steady_clock::now();
-            f_();
-            auto end = std::chrono::steady_clock::now();
-            auto elapsed = end - start;
-
-            auto timeToWait = timeWindow - elapsed;
-            if(timeToWait > std::chrono::milliseconds::zero())
-            {
-                std::this_thread::sleep_for(timeToWait);
-            }
-        }
-    }
-
-    void stop()
-    {
-        if(running_)
-        {
-            running_ = false;
-            th_.join();
-        }
-    }
-
-    ~PeriodicPosixThread()
-    {
-        stop();
-    }
-
-private:
-    std::function<void(void)> f_;
-    std::thread th_;
-    std::atomic<bool> running_;
-    const unsigned long period_ms_;
-};
+// class PeriodicPosixThread
+// {
+// public:
+//     PeriodicPosixThread(std::function<void(void)> f , const unsigned long period_ms, bool start_now = false)
+//     : f_(f)
+//     , running_(false)
+//     , period_ms_(period_ms)
+//     {
+//         if(start_now)
+//             start();
+//     }
+// 
+//     void start()
+//     {
+//         if(!running_)
+//         {
+//             running_ = true;
+//             th_ = std::thread( std::bind(&PeriodicPosixThread::run,this) );
+//         }
+//     }
+// 
+//     void run()
+//     {
+//         const auto timeWindow = std::chrono::milliseconds(period_ms_);
+// 
+//         while(running_)
+//         {
+//             auto start = std::chrono::steady_clock::now();
+//             f_();
+//             auto end = std::chrono::steady_clock::now();
+//             auto elapsed = end - start;
+// 
+//             auto timeToWait = timeWindow - elapsed;
+//             if(timeToWait > std::chrono::milliseconds::zero())
+//             {
+//                 std::this_thread::sleep_for(timeToWait);
+//             }
+//         }
+//     }
+// 
+//     void stop()
+//     {
+//         if(running_)
+//         {
+//             running_ = false;
+//             th_.join();
+//         }
+//     }
+// 
+//     ~PeriodicPosixThread()
+//     {
+//         stop();
+//     }
+// 
+// private:
+//     std::function<void(void)> f_;
+//     std::thread th_;
+//     std::atomic<bool> running_;
+//     const unsigned long period_ms_;
+// };
 
 template <typename Derived>
 void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Derived>& b)
@@ -265,9 +222,98 @@ void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Deriv
     throw std::length_error(Formatter() << "Size mismatched, provided size (" << a.rows() << " , " << a.cols() << "), but have size (" << b.rows() << " , " << b.cols() << ")");
 }
 
-template<class T> bool exists(const std::shared_ptr<T> t, std::list< std::shared_ptr<T> > l){
+template<class T> bool exists(const T& t,std::list< T > l){
     return std::find(l.begin(),l.end(),t) != l.end();
 }
+
+template <typename Key,typename Vals>
+bool key_exists(const std::map<Key,Vals>& container, const Key& key)
+{
+    auto it = container.begin();
+    while(it != container.end())
+    {
+        if(it->first == key)
+            return true;
+        ++it;
+    }
+    return false;
+}
+
+// class Param
+// {
+//     virtual loadFromString() = 0;
+//     set(std::string s);
+//     Param * get() { return this; }
+//     T* as()
+//     {
+//         return static_cast<T>(this);
+//     }
+//     loadFromString(const std::string s)
+//     {
+//         data_ = s.as<T>();
+//     }
+//     T& get(){ return data_ }
+//     T data_;
+// }
+// class EigenVectorParam : public Param
+// {
+//     typedef Eigen::VectorXd type;
+// 
+//     loadFromString(const std::string s)
+//     {
+//         data_ = s.as<type>();
+//     }
+//     Eigen::VectorXd& get(){ return data_ }
+//     Eigen::VectorXd data_;
+// }
+// 
+// 
+// std::map<std::string, Param*> parameters_;
+// 
+// MyTask()
+// {
+// private:
+//     EigenVectorParam Kp_;
+//     EigenVectorParam Kd_;
+//     StringParam control_frame_;
+// MyTask()
+// {
+//     addParam("Kp",&Kp_);
+//     addParam("Kd",&Kd_);
+//     addParam("control_frame",&control_frame_);
+// }
+// }
+// 
+// MyTask task;
+// task.proportionalGain() = Eigen::VectorXd::Zero(6);
+// 
+// myTask:
+//     - kp : [0,0,0,0,0,0,0,0]
+//     - kd : [0,0,0,0,0,0,0,0]
+//     - control_frame : link_7
+// 
+// loadFromString(string params_str)
+// {
+//     YAML::Node lineup = YAML::Load("{1B: Prince Fielder, 2B: Rickie Weeks, LF: Ryan Braun}");
+//     for(YAML::const_iterator it=lineup.begin();it!=lineup.end();++it)
+//     {
+//       auto param_name = it->first.as<std::string>(); // "kp"
+//       Param * param = parameters_[param_name];
+// 
+// 
+//       auto param_value_str =   << "\n";
+// 
+//       parameters_[param_name]->loadFromNode(it->second)
+//     }
+// 
+// }
+// 
+// auto p = MyParam.as<MyParam::type>()
+// 
+// std::vector< Param > params_;
+
+
+
 
 } // namespace utils
 } // namespace orca

@@ -8,6 +8,10 @@ using namespace orca::common;
 CartesianTask::CartesianTask(const std::string& name)
 : GenericTask(name,ControlVariable::GeneralisedAcceleration)
 {
+    this->addParam("control_frame",&control_frame_);
+    this->addParam("base_frame",&base_ref_frame_,Optional);
+    this->addParam("desired_cartesian_acceleration",&cart_acc_des_,Optional);
+    
     setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
@@ -19,8 +23,8 @@ std::shared_ptr<CartesianAccelerationPID> CartesianTask::servoController()
 void CartesianTask::print() const
 {
     std::cout << "[" << getName() << "]" << '\n';
-    std::cout << " Base frame " << base_ref_frame_ << '\n';
-    std::cout << " Control Frame " << control_frame_ << '\n';
+    std::cout << " Base frame " << getBaseFrame() << '\n';
+    std::cout << " Control Frame " << getControlFrame() << '\n';
     servo_->print();
     getEuclidianNorm().print();
 }
@@ -33,12 +37,12 @@ void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID>
 
 const std::string& CartesianTask::getBaseFrame() const
 {
-    return base_ref_frame_;
+    return base_ref_frame_.get();
 }
 
 const std::string& CartesianTask::getControlFrame() const
 {
-    return control_frame_;
+    return control_frame_.get();
 }
 
 void CartesianTask::setBaseFrame(const std::string& base_ref_frame)
@@ -56,15 +60,14 @@ void CartesianTask::setControlFrame(const std::string& control_frame)
 void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
 {
     cart_acc_des_ = cartesian_acceleration_des;
-    desired_set_ = true;
 }
 
 void CartesianTask::onActivation()
 {
-    if(!desired_set_)
+    if(!cart_acc_des_.isSet())
     {
         // Do not move if no desired target is set
-        cart_acc_des_.setZero();
+        cart_acc_des_.get().setZero();
     }
 }
 
@@ -72,23 +75,22 @@ void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
 {
     setDesired(servo_->getCommand());
 
-    if(base_ref_frame_ == robot()->getBaseFrame())
+    if(getBaseFrame() == robot()->getBaseFrame())
     {
-        E() = robot()->getFrameFreeFloatingJacobian(this->control_frame_);
+        E() = robot()->getFrameFreeFloatingJacobian(getControlFrame());
     }
     else
     {
         const int ndof = robot()->getNrOfDegreesOfFreedom();
         // Compute Jacobian
-        E().block(0,6,6,ndof) = robot()->getRelativeJacobian(this->base_ref_frame_
-                                            , this->control_frame_);
+        E().block(0,6,6,ndof) = robot()->getRelativeJacobian(getBaseFrame(), getControlFrame());
         E().block(0,0,6,6).setZero();
     }
 
     // Compute dotJ * v
-    cart_acc_bias_ = robot()->getFrameBiasAcc(this->control_frame_);
+    cart_acc_bias_ = robot()->getFrameBiasAcc(getControlFrame());
     // b = dotJ.v - AccDes
-    f() = ( cart_acc_bias_ - cart_acc_des_ );
+    f() = ( cart_acc_bias_ - cart_acc_des_.get() );
 }
 
 void CartesianTask::onResize()
@@ -97,7 +99,7 @@ void CartesianTask::onResize()
     euclidianNorm().resize(6,fulldim);
 
     // If no frame has been set before, use the default Floating Base.
-    if(base_ref_frame_.empty())
+    if(base_ref_frame_.get().empty())
     {
         LOG_WARNING << "Calling resize but no baseFrame was set, setting it to the robot base frame " << robot()->getBaseFrame();
         setBaseFrame(robot()->getBaseFrame());

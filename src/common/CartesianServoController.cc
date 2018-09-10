@@ -1,8 +1,10 @@
 #include "orca/common/CartesianServoController.h"
 #include "orca/optim/ControlVariable.h"
+#include "orca/utils/Utils.h"
 
 using namespace orca::common;
 using namespace orca::optim;
+using namespace orca::utils;
 
 CartesianServoController::CartesianServoController(const std::string& name)
 : TaskBase(name,ControlVariable::None)

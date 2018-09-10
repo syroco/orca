@@ -3,6 +3,7 @@ using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::utils;
+using namespace orca::common;
 
 GenericConstraint::GenericConstraint(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)

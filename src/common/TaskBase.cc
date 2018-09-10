@@ -18,17 +18,123 @@ using namespace orca::utils;
         orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
 
 
-TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
-: control_var_(control_var)
-, name_(name)
+TaskBase::TaskBase(const std::string& name,ControlVariable control_var) 
+: name_(name)
+, control_var_(control_var)
 {}
 
 TaskBase::~TaskBase()
 {}
 
+void TaskBase::addParam(const std::string& param_name,ParameterBase * param,ParamPolicy policy /*= true*/)
+{
+    if(key_exists(parameters_,param_name))
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter " << param_name << " already declared !";
+        return;
+    }
+    param->setName(param_name);
+    param->setRequired(policy == ParamPolicy::Required);
+    parameters_[param_name] = param;
+}
+
+bool TaskBase::configureFromFile(const std::string& yaml_url)
+{
+    YAML::Node config = YAML::LoadFile(yaml_url);
+    
+    YAML::Emitter out;
+    out << config;
+    
+    this->configureFromString(out.c_str());
+}
+
+bool TaskBase::configureFromString(const std::string& yaml_str)
+{
+    if(parameters_.empty())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "No parameters declared with addParam!";
+        return false;
+    }
+    
+    YAML::Node config = YAML::Load(yaml_str);
+    if(!config)
+    {
+        return false;
+    }
+    if(!(config.IsMap() || config.IsSequence()))
+    {
+        return false;
+    }
+    
+    auto to_string = [](const YAML::Node& n) -> std::string 
+            { YAML::Emitter out; out << n; return out.c_str(); };
+    
+    std::cout << "Configuring from config " << to_string(config) << '\n';
+    
+    for(auto c : config)
+    {
+        std::cout << "Analysing subconfig " << to_string(c.first) << '\n';
+        
+        auto param_name = c.first.as<std::string>();
+        
+        if(!key_exists(parameters_,param_name))
+        {
+            LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" not declared !";
+            std::stringstream ss;
+            ss << "[" << TaskBase::getName() << "] " << "Declared parameters : \n";
+            for(auto p : parameters_)
+            {
+                ss << " - " << p.second->getName() << '\n';
+            }
+            LOG_ERROR << ss.str();
+            //return false;
+        }
+        else
+        {
+            auto param = parameters_[param_name];
+            if(param->loadFromString(to_string(c.second)))
+            {
+                LOG_INFO << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" --> " << c.second;
+            }
+            else
+            {
+                LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not load \"" << param_name << "\"";
+            }
+        }
+    }
+    bool is_configured = isConfigured();
+    if(!is_configured)
+    {
+        for(auto p : parameters_)
+        {
+            if(p.second->isRequired())
+            {
+                if(!p.second->isSet())
+                {
+                    LOG_WARNING << "[" << TaskBase::getName() << "] " << "parameter \"" << p.second->getName() << "\" is not set";
+                }
+            }
+        }
+    }
+    return is_configured;
+}
+
+bool TaskBase::isConfigured() const
+{
+    bool ok = true;
+    for(auto p : parameters_)
+    {
+        if(p.second->isRequired())
+        {
+            ok &= p.second->isSet();
+        }
+    }
+    return ok;
+}
+
 void TaskBase::link(std::shared_ptr<TaskBase> e)
 {
-    if(std::find(linked_elements_.begin(),linked_elements_.end(),e) == linked_elements_.end())
+    if(!exists(e,linked_elements_))
     {
         linked_elements_.push_back(e);
     }
@@ -372,6 +478,13 @@ void TaskBase::onComputeBeginCallback(std::function<void(double,double)> cb)
     LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateBegin callback";
     this->on_update_begin_cb_ = cb;
 }
+
+void TaskBase::onResizedCallback(std::function<void(void)> cb)
+{
+    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onResized callback";
+    this->on_resized_cb_ = cb;
+}
+
 
 void TaskBase::onComputeEndCallback(std::function<void(double,double)> cb)
 {

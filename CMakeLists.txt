@@ -114,11 +114,14 @@ if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     set(matplotlibcpp_include_dirs ${PROJECT_SOURCE_DIR}/external/matplotlibcpp/include)
 endif()
 
+#################### YamlCpp ############################
+find_package(yaml-cpp REQUIRED)
+
 #################### Catkin package ###########################
 if(catkin_FOUND)
     catkin_package(
         INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR} ${matplotlibcpp_include_dirs} external/plog-1.1.4/include
-        LIBRARIES orca ${PYTHON_LIBRARIES}
+        LIBRARIES orca ${PYTHON_LIBRARIES} yaml-cpp
         CFG_EXTRAS orca-extras.cmake
     )
 else()
@@ -205,6 +208,7 @@ target_link_libraries(orca PRIVATE
     ${PROJECT_NAME}_priv_qpOASES
     osqpstatic
     ${PROJECT_NAME}_priv_tinyxml
+    yaml-cpp
 )
 
 #################### ORCA Examples #########################
