@@ -8,9 +8,9 @@ using namespace orca::common;
 CartesianTask::CartesianTask(const std::string& name)
 : GenericTask(name,ControlVariable::GeneralisedAcceleration)
 {
-    this->addParam("control_frame",&control_frame_);
-    this->addParam("base_frame",&base_ref_frame_,Optional);
-    this->addParam("desired_cartesian_acceleration",&cart_acc_des_,Optional);
+    this->addParameter("control_frame",&control_frame_);
+    this->addParameter("base_frame",&base_ref_frame_,Optional);
+    this->addParameter("desired_cartesian_acceleration",&cart_acc_des_,Optional);
     
     setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }

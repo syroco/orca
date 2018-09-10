@@ -86,7 +86,7 @@ namespace common
         */
         bool configureFromFile(const std::string& yaml_url);
         /**
-        * @brief Returns true if all params added with @addParam have been set
+        * @brief Returns true if all params added with @addParameter have been set
         *
         * @return true is all the required parameters are loaded properly
         */
@@ -97,7 +97,8 @@ namespace common
               Required = 0
             , Optional
         };
-        void addParam(const std::string& param_name,ParameterBase * param,ParamPolicy policy = Required);
+        void addParameter(const std::string& param_name,ParameterBase * param,ParamPolicy policy = Required);
+        const ParameterBase* getParam(const std::string& param_name);
         
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();

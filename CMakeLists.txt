@@ -11,6 +11,11 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if(NOT BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+set(build_shared_libs_saved ${BUILD_SHARED_LIBS})
+
 #################### Xenomai ###########################
 find_package(Xenomai QUIET)
 
@@ -94,15 +99,21 @@ set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes t
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 
 #################### iDynTree #########################
-if(NOT BUILD_SHARED_LIBS)
-    set(BUILD_SHARED_LIBS ON)
-endif()
-set(build_shared_libs_saved ${BUILD_SHARED_LIBS})
-
 set(BUILD_SHARED_LIBS OFF)
 set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
+
+#################### Yaml cpp #########################
+find_package(yaml-cpp QUIET)
+if(NOT yaml-cpp_FOUND)
+    set(BUILD_SHARED_LIBS OFF)
+    set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
+    set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
+    set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/ EXCLUDE_FROM_ALL)
+    set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
+endif()
 
 #################### Catkin ###########################
 find_package(catkin QUIET)
@@ -113,9 +124,6 @@ find_package(NumPy QUIET)
 if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
     set(matplotlibcpp_include_dirs ${PROJECT_SOURCE_DIR}/external/matplotlibcpp/include)
 endif()
-
-#################### YamlCpp ############################
-find_package(yaml-cpp REQUIRED)
 
 #################### Catkin package ###########################
 if(catkin_FOUND)
@@ -195,7 +203,7 @@ if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
 endif()
 
 #################### Public linking #########################
-target_link_libraries(orca PUBLIC Eigen3::Eigen)
+target_link_libraries(orca PUBLIC Eigen3::Eigen yaml-cpp)
 if(XENOMAI_FOUND)
     target_compile_definitions(orca PRIVATE CONFIG_XENO_VERSION_MAJOR=${XENOMAI_VERSION_MAJOR})
     target_include_directories(orca PRIVATE ${XENOMAI_INCLUDE_DIRS})
@@ -208,7 +216,6 @@ target_link_libraries(orca PRIVATE
     ${PROJECT_NAME}_priv_qpOASES
     osqpstatic
     ${PROJECT_NAME}_priv_tinyxml
-    yaml-cpp
 )
 
 #################### ORCA Examples #########################

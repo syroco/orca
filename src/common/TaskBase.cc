@@ -26,7 +26,7 @@ TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 TaskBase::~TaskBase()
 {}
 
-void TaskBase::addParam(const std::string& param_name,ParameterBase * param,ParamPolicy policy /*= true*/)
+void TaskBase::addParameter(const std::string& param_name,ParameterBase * param,ParamPolicy policy /*= true*/)
 {
     if(key_exists(parameters_,param_name))
     {
@@ -37,6 +37,16 @@ void TaskBase::addParam(const std::string& param_name,ParameterBase * param,Para
     param->setRequired(policy == ParamPolicy::Required);
     parameters_[param_name] = param;
 }
+
+const ParameterBase * TaskBase::getParam(const std::string& param_name)
+{
+    if(!key_exists(parameters_,param_name))
+    {
+        return nullptr;
+    }
+    return parameters_.at(param_name);
+}
+
 
 bool TaskBase::configureFromFile(const std::string& yaml_url)
 {
