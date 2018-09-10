@@ -101,6 +101,7 @@ add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 #################### iDynTree #########################
 set(BUILD_SHARED_LIBS OFF)
 set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
+set(__ADD_UNINSTALL_TARGET_INCLUDED TRUE CACHE BOOL "")
 add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
