@@ -1,5 +1,6 @@
 #include "orca/task/CartesianTask.h"
 #include "orca/common/CartesianAccelerationPID.h"
+#include <orca/common/Factory.h>
 
 using namespace orca::task;
 using namespace orca::optim;
@@ -106,3 +107,5 @@ void CartesianTask::onResize()
         setBaseFrame(robot()->getBaseFrame());
     }
 }
+
+ORCA_REGISTER_CLASS(orca::task::CartesianTask)

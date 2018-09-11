@@ -47,12 +47,13 @@ namespace YAML {
   {
     static Node encode(const std::shared_ptr<T>& s)
     {
+      (void)s;
       return Node();
     }
 
     static bool decode(const Node& node, std::shared_ptr<T>& e)
     {
-      return true;
+      return false;
     }
   };
 }
@@ -82,12 +83,11 @@ template<class T>
 class ParameterData
 {
 public:
-    ParameterData()
-    : val_(std::make_shared<T>())
-    {}
+    ParameterData(){}
     
     ParameterData(const T& val)
-    : val_(std::make_shared<T>(val))
+    : val_(val)
+    , is_set_(true)
     {}
 
     template<class T2>
@@ -97,31 +97,31 @@ public:
          
     T& get()
     {
-        if(!val_)
-            throw std::runtime_error(utils::Formatter() << "ParameterData is not set");
-        return *val_;
+        if(!is_set_)
+            throw std::runtime_error("ParameterData is not set");
+        return val_;
     }
     const T& get() const
     {
-        if(!val_)
-            throw std::runtime_error(utils::Formatter() << "ParameterData is not set");
-        return *val_;
+        if(!is_set_)
+            throw std::runtime_error("ParameterData is not set");
+        return val_;
     }
 
     void set(const T& val)
     {
-        if(!val_)
-            val_ = std::make_shared<T>(val);
-        else
-            *val_ = val;
+        val_ = val;
+        if(!is_set_)
+            is_set_ = true;
     }
     
     bool isSet() const
     {
-        return bool(val_);
+        return is_set_;
     }
 private:
-    std::shared_ptr<T> val_;
+    bool is_set_ = false;
+    T val_;
 };
 
 

@@ -40,7 +40,7 @@
 
 
 #include <orca/orca.h>
-#include <orca/common/SimpleFactory.h>
+#include <orca/common/Factory.h>
 
 using namespace orca::all;
 

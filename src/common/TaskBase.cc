@@ -120,7 +120,7 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
             task_base->setName(param_name);
             task_base->configureFromString(to_string(c.second));
             
-            auto original_param = dynamic_cast<Parameter<TaskBase::Ptr> *>(parameters_[param_name]);
+            //parameters_[param_name] = task_base;
         }
         else if(!key_exists(parameters_,param_name))
         {
@@ -169,6 +169,9 @@ bool TaskBase::isConfigured() const
     bool ok = true;
     for(auto p : parameters_)
     {
+         std::cout << "Param " << p.second->getName() 
+                << " is required " << std::boolalpha << p.second->isRequired() 
+                << " is set " << std::boolalpha << p.second->isSet() << '\n'; 
         if(p.second->isRequired())
         {
             ok &= p.second->isSet();

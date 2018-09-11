@@ -3,17 +3,15 @@
 #include <memory>
 #include <map>
 #include <functional>
+#include <orca/common/TaskBase.h>
 
-namespace orca
-{
-    namespace common
-    {
-        class TaskBase;
-    }
-}
-
-#define ORCA_REGISTER_CLASS(CLASSNAME) \
-    orca::common::Factory()->registerClass(#CLASSNAME,[](){ return std::make_shared<CLASSNAME>() });
+// namespace orca
+// {
+//     namespace common
+//     {
+//         class TaskBase;
+//     }
+// }
 
 namespace orca
 {
@@ -33,7 +31,6 @@ namespace orca
         private:
             std::map<std::string,std::function<std::shared_ptr<TaskBase>(void)> > m_;
         };
-        
         static SimpleFactory* Factory()
         {
             static SimpleFactory factory;
@@ -42,3 +39,11 @@ namespace orca
     }
 }
 
+
+// #define ORCA_REGISTER_CLASS(CLASSNAME) \
+//     orca::common::Factory()->registerClass(#CLASSNAME,[]() -> std::shared_ptr<TaskBase> { return std::make_shared<CLASSNAME>(); });
+//     
+#define ORCA_REGISTER_CLASS(CLASSNAME) \
+namespace { \
+    double a = 1.0; \
+};
