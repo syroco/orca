@@ -112,7 +112,9 @@ if(NOT yaml-cpp_FOUND)
     set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
     set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
     set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/ EXCLUDE_FROM_ALL)
+    #add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/ EXCLUDE_FROM_ALL)
+    # TODO: Figure out how to remove yaml-cpp from headers
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/)
     set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 endif()
 
