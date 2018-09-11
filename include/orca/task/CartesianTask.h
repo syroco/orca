@@ -57,18 +57,18 @@ public:
     const std::string& getBaseFrame() const;
     const std::string& getControlFrame() const;
     void print() const;
-    std::shared_ptr<common::CartesianAccelerationPID> servoController();
+    std::shared_ptr<common::CartesianServoController> servoController();
 protected:
     virtual void onActivation();
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
+    Vector6d cart_acc_bias_;
+private:
     common::Parameter<std::string> base_ref_frame_;
     common::Parameter<std::string> control_frame_;
     common::Parameter<Vector6d> cart_acc_des_;
-    Vector6d cart_acc_bias_;
-    
-    std::shared_ptr<common::CartesianAccelerationPID> servo_;
+    common::Parameter<std::shared_ptr<common::CartesianServoController> > servo_;
 };
 
 } // namespace task

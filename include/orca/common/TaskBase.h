@@ -56,7 +56,7 @@ namespace common
     * is currently being used, and a state machine. Although this class is
     * called TaskBase, both tasks and constraints inherit from this.
     */
-    class TaskBase
+    class TaskBase : public utils::SharedPointer<TaskBase>
     {
         friend optim::Problem;
     public:
@@ -72,7 +72,6 @@ namespace common
             ,Deactivated /*!< Task has finishing ramping down and is now stopped */
             ,Error /*!< Task update returned an error (not used yet) */
         };
-        
         /**
         * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
         *
@@ -97,8 +96,8 @@ namespace common
               Required = 0
             , Optional
         };
-        void addParameter(const std::string& param_name,ParameterBase * param,ParamPolicy policy = Required);
-        const ParameterBase* getParam(const std::string& param_name);
+        void addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy = Required);
+        ParameterBase* getParam(const std::string& param_name);
         
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
@@ -109,6 +108,7 @@ namespace common
         optim::ControlVariable getControlVariable() const;
 
         const std::string& getName() const;
+        void setName(const std::string& name);
 
         virtual bool activate();
         virtual void update(double current_time, double dt);
@@ -137,7 +137,7 @@ namespace common
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
 
-        void link(std::shared_ptr<common::TaskBase> e);
+        void link(TaskBase::Ptr e);
 
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
@@ -176,12 +176,12 @@ namespace common
         double ramp_value_ = 0;
         bool activation_requested_ = false;
         bool deactivation_requested_ = false;
-        const std::string name_;
+        std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
         optim::ControlVariable control_var_;
-        std::list<std::shared_ptr<TaskBase> > linked_elements_;
+        std::list<TaskBase::Ptr> linked_elements_;
 
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
@@ -193,7 +193,7 @@ namespace common
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
-        std::map<std::string,ParameterBase*> parameters_;
+        std::map<std::string, ParameterBase* > parameters_;
     };
 
 
@@ -213,4 +213,23 @@ namespace common
         return os;
     }
 } // namespace common
+} // namespace orca
+
+namespace orca
+{
+    namespace common
+    {
+        template<>
+        class Parameter<TaskBase::Ptr> 
+        : public ParameterBase
+        , public ParameterData<TaskBase::Ptr>
+        {
+        public:
+            bool loadFromString(const std::string& s)
+            {
+                std::cout << "loadFromString Parameter<TaskBase::Ptr> " << std::endl;
+                return true;
+            }
+        };
+    } // namespace common
 } // namespace orca

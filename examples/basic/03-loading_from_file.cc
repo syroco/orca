@@ -40,6 +40,8 @@
 
 
 #include <orca/orca.h>
+#include <orca/common/Factory.h>
+
 using namespace orca::all;
 
 int main(int argc, char const *argv[])

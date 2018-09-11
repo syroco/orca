@@ -1,7 +1,7 @@
 #include "orca/optim/QPSolver.h"
 #include "orca/utils/Utils.h"
 #include "QPSolverImpl_qpOASES.impl"
-#include "QPSolverImpl_osqp.impl"
+// #include "QPSolverImpl_osqp.impl"
 #include "QPSolverImpl_eigQuadProg.impl"
 #include <iostream>
 using namespace orca::optim;
@@ -15,9 +15,9 @@ QPSolver::QPSolver(QPSolver::SolverType solver_type)
         case SolverType::qpOASES:
             pimpl = make_unique<QPSolverImpl_qpOASES>();
             break;
-        case SolverType::osqp:
-            pimpl = make_unique<QPSolverImpl_osqp>();
-            break;
+        // case SolverType::osqp:
+        //     pimpl = make_unique<QPSolverImpl_osqp>();
+        //     break;
         case SolverType::eigQuadProg:
             pimpl = make_unique<QPSolverImpl_eigQuadProg>();
             break;

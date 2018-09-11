@@ -1,5 +1,6 @@
 #include "orca/task/CartesianTask.h"
 #include "orca/common/CartesianAccelerationPID.h"
+#include <orca/common/Factory.h>
 
 using namespace orca::task;
 using namespace orca::optim;
@@ -11,13 +12,14 @@ CartesianTask::CartesianTask(const std::string& name)
     this->addParameter("control_frame",&control_frame_);
     this->addParameter("base_frame",&base_ref_frame_,Optional);
     this->addParameter("desired_cartesian_acceleration",&cart_acc_des_,Optional);
+    this->addParameter("servo_controller",&servo_);
     
     setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
-std::shared_ptr<CartesianAccelerationPID> CartesianTask::servoController()
+std::shared_ptr<CartesianServoController> CartesianTask::servoController()
 {
-    return servo_;
+    return servo_.get();
 }
 
 void CartesianTask::print() const
@@ -25,14 +27,14 @@ void CartesianTask::print() const
     std::cout << "[" << getName() << "]" << '\n';
     std::cout << " Base frame " << getBaseFrame() << '\n';
     std::cout << " Control Frame " << getControlFrame() << '\n';
-    servo_->print();
+    servo_.get()->print();
     getEuclidianNorm().print();
 }
 
 void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
     servo_ = servo;
-    this->link(servo_);
+    this->link(servo_.get());
 }
 
 const std::string& CartesianTask::getBaseFrame() const
@@ -48,13 +50,13 @@ const std::string& CartesianTask::getControlFrame() const
 void CartesianTask::setBaseFrame(const std::string& base_ref_frame)
 {
     base_ref_frame_ = base_ref_frame;
-    servo_->setBaseFrame(base_ref_frame);
+    servo_.get()->setBaseFrame(base_ref_frame);
 }
 
 void CartesianTask::setControlFrame(const std::string& control_frame)
 {
     control_frame_ = control_frame;
-    servo_->setControlFrame(control_frame);
+    servo_.get()->setControlFrame(control_frame);
 }
 
 void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
@@ -73,7 +75,7 @@ void CartesianTask::onActivation()
 
 void CartesianTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    setDesired(servo_->getCommand());
+    setDesired(servo_.get()->getCommand());
 
     if(getBaseFrame() == robot()->getBaseFrame())
     {
@@ -105,3 +107,5 @@ void CartesianTask::onResize()
         setBaseFrame(robot()->getBaseFrame());
     }
 }
+
+ORCA_REGISTER_CLASS(orca::task::CartesianTask)

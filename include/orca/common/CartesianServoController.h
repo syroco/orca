@@ -42,7 +42,9 @@ namespace orca
 {
     namespace common
     {
-        class CartesianServoController : public TaskBase
+        class CartesianServoController 
+        : public TaskBase
+        , public utils::SharedPointer<CartesianServoController>
         {
         public:
             CartesianServoController(const std::string& name);
@@ -54,5 +56,24 @@ namespace orca
         private:
             std::string base_ref_frame_,control_frame_;
         };
-    }
-}
+    } // namespace common
+} // namespace orca
+
+// namespace orca
+// {
+//     namespace common
+//     {
+//         template<>
+//         class Parameter<CartesianServoController::Ptr> 
+//         : public ParameterBase
+//         , public ParameterData<CartesianServoController::Ptr>
+//         {
+//         public:
+//             bool loadFromString(const std::string& s)
+//             {
+//                 std::cout << "loadFromString Parameter<CartesianServoController::Ptr> " << std::endl;
+//                 return true;
+//             }
+//         };
+//     } // namespace common
+// } // namespace orca

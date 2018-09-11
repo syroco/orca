@@ -40,12 +40,31 @@ namespace YAML {
 
 } // namespace YAML
 
+// Hack to remove shared_ptr (TaskBase::Ptr for example) YAML support
+namespace YAML {
+  template < typename T>
+  struct convert< std::shared_ptr<T> >
+  {
+    static Node encode(const std::shared_ptr<T>& s)
+    {
+      (void)s;
+      return Node();
+    }
+
+    static bool decode(const Node& node, std::shared_ptr<T>& e)
+    {
+      return false;
+    }
+  };
+}
+
+
 namespace orca
 {
 namespace common
 {
 
-class ParameterBase
+class ParameterBase : public utils::SharedPointer<ParameterBase>
 {
 public:
     virtual bool loadFromString(const std::string& s) = 0;
@@ -149,7 +168,6 @@ public:
         this->set(val);
         return *this;
     }
-    
 };
 
 } // namespace common
