@@ -133,10 +133,10 @@ int main(int argc, char const *argv[])
 
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    //cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
+    //cart_task->servoController()->pid()->setDerivativeGain(D);
 
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
@@ -172,7 +172,7 @@ int main(int argc, char const *argv[])
     });
 
     cart_task->onActivatedCallback([&](){
-        start_position = cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1);
+        //start_position = cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1);
         end_position = cart_pos_ref.translation();
         traj.resetTrajectory(start_position, end_position);
         std::cout << "CartesianTask activated. Begining trajectory." << '\n';
@@ -184,7 +184,7 @@ int main(int argc, char const *argv[])
         cart_pos_ref.translation() = p;
         cart_vel_ref.head(3) = v;
         cart_acc_ref.head(3) = a;
-        cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+        //cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     });
 
     cart_task->onComputeEndCallback([&](double current_time, double dt){

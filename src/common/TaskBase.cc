@@ -1,5 +1,6 @@
 #include "orca/common/TaskBase.h"
 #include "orca/utils/Utils.h"
+#include "orca/common/Factory.h"
 
 using namespace orca::common;
 using namespace orca::optim;
@@ -26,7 +27,17 @@ TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 TaskBase::~TaskBase()
 {}
 
-void TaskBase::addParameter(const std::string& param_name,ParameterBase * param,ParamPolicy policy /*= true*/)
+void TaskBase::setName(const std::string& name)
+{
+    if(!name_.empty())
+    {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Cannot change name 2 times";
+        return;
+    }
+    name_ = name;
+}
+
+void TaskBase::addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy /*= true*/)
 {
     if(key_exists(parameters_,param_name))
     {
@@ -38,13 +49,13 @@ void TaskBase::addParameter(const std::string& param_name,ParameterBase * param,
     parameters_[param_name] = param;
 }
 
-const ParameterBase * TaskBase::getParam(const std::string& param_name)
+ParameterBase* TaskBase::getParam(const std::string& param_name)
 {
     if(!key_exists(parameters_,param_name))
     {
         return nullptr;
     }
-    return parameters_.at(param_name);
+    return parameters_[param_name];
 }
 
 
@@ -78,7 +89,19 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
     
     auto to_string = [](const YAML::Node& n) -> std::string 
             { YAML::Emitter out; out << n; return out.c_str(); };
-    
+            
+    auto find_type = [](const YAML::Node& n) -> std::string
+        { 
+            for(auto c : n)
+            {
+                try{
+                    if(c.first.as<std::string>() == "type")
+                        return c.second.as<std::string>();
+                }catch(...){}
+            }
+            return std::string();
+        };
+        
     std::cout << "Configuring from config " << to_string(config) << '\n';
     
     for(auto c : config)
@@ -86,8 +109,20 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
         std::cout << "Analysing subconfig " << to_string(c.first) << '\n';
         
         auto param_name = c.first.as<std::string>();
-        
-        if(!key_exists(parameters_,param_name))
+        // Check if param_name is the name of a linked_element
+        // CHeck if current node exists in subgroup
+        //bool has_type_sub_param = hasTypeSubKey(c.second);
+
+        auto type_name = find_type(c.second);
+        if(!type_name.empty())
+        {
+            TaskBase::Ptr task_base = Factory()->createPtr(type_name);
+            task_base->setName(param_name);
+            task_base->configureFromString(to_string(c.second));
+            
+            auto original_param = dynamic_cast<Parameter<TaskBase::Ptr> *>(parameters_[param_name]);
+        }
+        else if(!key_exists(parameters_,param_name))
         {
             LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" not declared !";
             std::stringstream ss;
@@ -171,6 +206,12 @@ void TaskBase::print() const
     std::cout << " - hasRobot           " << hasRobot() << '\n';
     std::cout << " - hasWrench          " << hasWrench() << '\n';
     std::cout << " - isRobotInitialized " << isRobotInitialized() << '\n';
+    if(linked_elements_.size())
+    {
+        std::cout << " - Linked elements: " << '\n';
+        for(auto e : linked_elements_)
+            e->print();
+    }
 }
 
 bool TaskBase::isRobotInitialized() const

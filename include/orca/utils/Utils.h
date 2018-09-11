@@ -152,7 +152,16 @@ private:
 // throw std::runtime_error(Formatter() << foo << 13 << ", bar" << myData);   // implicitly cast to std::string
 // throw std::runtime_error(Formatter() << foo << 13 << ", bar" << myData >> Formatter::to_str);    // explicitly cast to std::string
 
-
+template<class T>
+struct SharedPointer
+{
+    using Ptr = std::shared_ptr<T>;
+    // using ConstPtr = const std::shared_ptr<T>;
+    // Ptr createPtr()
+    // {
+    //     return std::make_shared<T>();
+    // }
+};
 // class PeriodicPosixThread
 // {
 // public:

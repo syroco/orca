@@ -81,12 +81,12 @@ int main(int argc, char const *argv[])
 
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    //cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
+    //cart_task->servoController()->pid()->setDerivativeGain(D);
 
-    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    //cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
@@ -126,7 +126,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
-    std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    //std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
     std::cout << "Desired State:\n" << cart_pos_ref.matrix() << '\n';
     std::cout << "====================================" << '\n';
     std::cout << "\n\n\n" << '\n';
@@ -139,7 +139,7 @@ int main(int argc, char const *argv[])
 
         if(print_counter == 100)
         {
-            std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
+            //std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
             print_counter = 0;
         }
         ++print_counter;
@@ -167,8 +167,8 @@ int main(int argc, char const *argv[])
     std::cout << "Simulation finished." << '\n';
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
-    std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
-    std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1) - cart_pos_ref.translation() << '\n';
+    //std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    //std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1) - cart_pos_ref.translation() << '\n';
 
 
 

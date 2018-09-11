@@ -40,12 +40,30 @@ namespace YAML {
 
 } // namespace YAML
 
+// Hack to remove shared_ptr (TaskBase::Ptr for example) YAML support
+namespace YAML {
+  template < typename T>
+  struct convert< std::shared_ptr<T> >
+  {
+    static Node encode(const std::shared_ptr<T>& s)
+    {
+      return Node();
+    }
+
+    static bool decode(const Node& node, std::shared_ptr<T>& e)
+    {
+      return true;
+    }
+  };
+}
+
+
 namespace orca
 {
 namespace common
 {
 
-class ParameterBase
+class ParameterBase : public utils::SharedPointer<ParameterBase>
 {
 public:
     virtual bool loadFromString(const std::string& s) = 0;
@@ -64,11 +82,12 @@ template<class T>
 class ParameterData
 {
 public:
-    ParameterData(){}
+    ParameterData()
+    : val_(std::make_shared<T>())
+    {}
     
     ParameterData(const T& val)
-    : val_(val)
-    , is_set_(true)
+    : val_(std::make_shared<T>(val))
     {}
 
     template<class T2>
@@ -78,31 +97,31 @@ public:
          
     T& get()
     {
-        if(!is_set_)
-            throw std::runtime_error("ParameterData is not set");
-        return val_;
+        if(!val_)
+            throw std::runtime_error(utils::Formatter() << "ParameterData is not set");
+        return *val_;
     }
     const T& get() const
     {
-        if(!is_set_)
-            throw std::runtime_error("ParameterData is not set");
-        return val_;
+        if(!val_)
+            throw std::runtime_error(utils::Formatter() << "ParameterData is not set");
+        return *val_;
     }
 
     void set(const T& val)
     {
-        val_ = val;
-        if(!is_set_)
-            is_set_ = true;
+        if(!val_)
+            val_ = std::make_shared<T>(val);
+        else
+            *val_ = val;
     }
     
     bool isSet() const
     {
-        return is_set_;
+        return bool(val_);
     }
 private:
-    bool is_set_ = false;
-    T val_;
+    std::shared_ptr<T> val_;
 };
 
 
@@ -149,7 +168,6 @@ public:
         this->set(val);
         return *this;
     }
-    
 };
 
 } // namespace common

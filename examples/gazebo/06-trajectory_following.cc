@@ -146,10 +146,10 @@ int main(int argc, char const *argv[])
 
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    //cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
+    //cart_task->servoController()->pid()->setDerivativeGain(D);
 
 
 
@@ -187,7 +187,7 @@ int main(int argc, char const *argv[])
     });
 
     cart_task->onActivatedCallback([&](){
-        desired_cartesian_pose = cart_task->servoController()->getCurrentCartesianPose();
+        //desired_cartesian_pose = cart_task->servoController()->getCurrentCartesianPose();
         Eigen::Quaterniond quat = orca::math::quatFromRPY(M_PI,0,0); // make it point to the table
         desired_cartesian_pose.linear() = quat.toRotationMatrix();
 
@@ -206,7 +206,7 @@ int main(int argc, char const *argv[])
             desired_cartesian_vel.head(3) = v;
             desired_cartesian_acc.head(3) = a;
 
-            cart_task->servoController()->setDesired(desired_cartesian_pose.matrix(),desired_cartesian_vel,desired_cartesian_acc);
+            //cart_task->servoController()->setDesired(desired_cartesian_pose.matrix(),desired_cartesian_vel,desired_cartesian_acc);
         }
     });
 
