@@ -8,7 +8,10 @@ using namespace orca::common;
 WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
 {
-    wrench_des_.setZero();
+    this->addParameter("wrench",&wrench_);
+    this->addParameter("desired_wrench",&wrench_des_);
+    this->addParameter("pid",&pid_,Required,[&](){ addChild(pid_.get()); });
+    wrench_des_.get().setZero();
 }
 
 void WrenchTask::setDesired(const Vector6d& wrench_des)
@@ -41,19 +44,19 @@ void WrenchTask::setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_se
     this->wrench()->setCurrentValue(current_wrench_from_ft_sensor);
 }
 
-std::shared_ptr<PIDController> WrenchTask::pid()
+PIDController::Ptr WrenchTask::pid()
 {
-    return pid_;
+    return pid_.get();
 }
 void WrenchTask::onActivation()
 {
-    wrench_des_.setZero();
+    wrench_des_.get().setZero();
 }
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    wrench_->update(current_time,dt);
-    f() = - pid_->computeCommand( wrench_->getCurrentValue() - wrench_des_ , dt);
+    wrench_.get()->update(current_time,dt);
+    f() = - pid_.get()->computeCommand( wrench_.get()->getCurrentValue() - wrench_des_.get() , dt);
 }
 
 void WrenchTask::onResize()

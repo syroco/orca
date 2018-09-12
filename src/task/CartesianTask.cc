@@ -30,7 +30,7 @@ void CartesianTask::print() const
 void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
     servo_.set(servo);
-    this->link(servo_.get());
+    this->addChild(servo_.get());
 }
 
 const std::string& CartesianTask::getBaseFrame() const

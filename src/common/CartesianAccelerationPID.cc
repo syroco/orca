@@ -6,8 +6,7 @@ using namespace orca::optim;
 CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 : CartesianServoController(name)
 {
-    //pid_ = PIDController::createPtr();
-    this->addParameter("pid",&pid_);
+    this->addParameter("pid",&pid_,Required,[&](){ addChild(pid_.get()); });
 }
 
 const Eigen::Vector3d& CartesianAccelerationPID::getCurrentCartesianPosition() const
