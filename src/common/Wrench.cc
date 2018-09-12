@@ -99,3 +99,5 @@ void Wrench::print() const
     std::cout << " - Current value : " << getCurrentValue().transpose() << '\n';
     std::cout << " - Current jacobian : \n" << getJacobian() << '\n';
 }
+
+ORCA_REGISTER_CLASS(orca::common::Wrench)

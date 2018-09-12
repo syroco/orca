@@ -62,3 +62,5 @@ void WrenchTask::onResize()
     euclidianNorm().resize(6,fulldim);
     E().setIdentity();
 }
+
+ORCA_REGISTER_CLASS(orca::task::WrenchTask)

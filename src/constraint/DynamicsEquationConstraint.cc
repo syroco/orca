@@ -55,3 +55,5 @@ void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time,
     // The output is a set of generalized torques (base wrenches + joint torques (Corio-Centrifugal + Gravity))
     this->bound() = this->robot()->generalizedBiasForces();
 }
+
+ORCA_REGISTER_CLASS(orca::constraint::DynamicsEquationConstraint)

@@ -58,3 +58,5 @@ void JointAccelerationTask::onResize()
         jnt_acc_des_.setZero( dof );
     }
 }
+
+ORCA_REGISTER_CLASS(orca::task::JointAccelerationTask)

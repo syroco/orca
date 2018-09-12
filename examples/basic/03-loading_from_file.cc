@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
     // Cartesian Task
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
     // Set the frame you want to control. Here we want to control the link_7.
-    cart_task->configureFromString("{ servo_controller: { type: orca::common::CartesianAccelerationPID, control_frame: link_7, kp: [1.,1.,1.,1.,1.,1.], kd: [1.,1.,1.,1.,1.,1.]} }");
+    cart_task->configureFromString("{ servo_controller: { type: orca::common::CartesianAccelerationPID, control_frame: link_7, pid: [1.,1.,1.,1.,1.,1.], kd: [1.,1.,1.,1.,1.,1.]} }");
 
     std::cout << "Task configured ? " << std::boolalpha << cart_task->isConfigured() << '\n';
     return 0;

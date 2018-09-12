@@ -56,3 +56,5 @@ void ContactExistenceConditionConstraint::onResize()
         jacobian_.setZero(6,fulldim);
     }
 }
+
+ORCA_REGISTER_CLASS(orca::constraint::ContactExistenceConditionConstraint)

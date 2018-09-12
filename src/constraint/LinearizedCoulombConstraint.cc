@@ -97,3 +97,5 @@ void LinearizedCoulombConstraint::onUpdateConstraintFunction(double current_time
     constraintFunction().constraintMatrix() *= R_cone_.transpose();
     constraintFunction().upperBound().setConstant(margin_);
 }
+
+ORCA_REGISTER_CLASS(orca::constraint::LinearizedCoulombConstraint)

@@ -63,3 +63,5 @@ void JointTorqueTask::onResize()
         E().setIdentity();
     }
 }
+
+ORCA_REGISTER_CLASS(orca::task::JointTorqueTask)

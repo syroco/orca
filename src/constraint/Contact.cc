@@ -82,3 +82,6 @@ void Contact::setCurrentWrenchValue(const Eigen::Matrix<double,6,1>& current_wre
 {
     this->wrench()->setCurrentValue(current_wrench_from_ft_sensor);
 }
+
+
+ORCA_REGISTER_CLASS(orca::constraint::Contact)

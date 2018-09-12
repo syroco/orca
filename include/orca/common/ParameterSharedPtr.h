@@ -2,6 +2,7 @@
 #include <orca/common/Parameter.h>
 #include <orca/common/TaskBase.h>
 #include <orca/common/Factory.h>
+#include <typeinfo>
 
 namespace orca
 {
@@ -26,16 +27,17 @@ class Parameter<std::shared_ptr<T> > : public ParameterBase, public ParameterDat
 public:    
     Parameter<std::shared_ptr<T> >()
     : ParameterBase(true)
-    {
-        std::cout << "Parameter<std::shared_ptr<T> > constructor subparam" << '\n';
-    }
+    {}
+    
     bool loadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
         auto type_name = findType(node);
         if(type_name.empty())
         {
-            utils::orca_throw(utils::Formatter() << "Param " << getName() << " is of type shared_ptr<T> be could not find its \"type\"" );
+            utils::orca_throw(utils::Formatter() << "Could not find \"type\" in the yaml file for param " 
+            << getName() << " of type " << typeid(T).name() << "::Ptr"
+            << "\nConfig provided : \n" << s );
         }
         
         std::cout << "Param " << getName() << " is of type " << type_name;
@@ -53,13 +55,12 @@ public:
             return false;
         }
         this->set( std::dynamic_pointer_cast<T>( task_base ));
-        std::cout << "Parameter<std::shared_ptr<T> > " << getName() << ": " << this->get() << '\n';
         return true;
     }
 
     void print() const
     {
-        std::cout << "Parameter<std::shared_ptr<T> >  " << getName() << ": " << this->get() << '\n';
+        std::cout << getName() << " [ " << typeid(T).name() << "::Ptr" << '\n';
     }
     
     bool isSet() const

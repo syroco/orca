@@ -36,3 +36,5 @@ void JointPositionLimitConstraint::onUpdateConstraintFunction(double current_tim
     constraintFunction().lowerBound().noalias() = 2. * ( minLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
     constraintFunction().upperBound().noalias() = 2. * ( maxLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
 }
+
+ORCA_REGISTER_CLASS(orca::constraint::JointPositionLimitConstraint)
