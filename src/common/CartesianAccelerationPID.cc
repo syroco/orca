@@ -126,3 +126,5 @@ const Vector6d& CartesianAccelerationPID::getCommand() const
 {
     return cart_acc_cmd_;
 }
+
+ORCA_REGISTER_CLASS(orca::common::CartesianAccelerationPID)

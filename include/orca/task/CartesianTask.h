@@ -65,8 +65,6 @@ protected:
 private:
     Vector6d cart_acc_bias_;
 private:
-    common::Parameter<std::string> base_ref_frame_;
-    common::Parameter<std::string> control_frame_;
     common::Parameter<Vector6d> cart_acc_des_;
     common::Parameter<std::shared_ptr<common::CartesianServoController> > servo_;
 };

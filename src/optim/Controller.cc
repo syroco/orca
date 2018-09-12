@@ -25,7 +25,7 @@ Controller::Controller(const std::string& name
 
     if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
     {
-        orca_throw(Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
+        orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
     }
     insertNewLevel();
 }

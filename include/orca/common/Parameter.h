@@ -67,9 +67,13 @@ namespace common
 class ParameterBase : public utils::SharedPointer<ParameterBase>
 {
 public:
+    ParameterBase(bool is_sub_param = false)
+    : is_sub_param_(is_sub_param)
+    {}
     virtual bool loadFromString(const std::string& s) = 0;
     virtual void print() const = 0;
     virtual bool isSet() const = 0;
+    virtual bool isSubParam() const { return is_sub_param_; };
     const std::string& getName() const { return name_; }
     void setName(const std::string& name) { name_ = name; }
     void setRequired(bool is_required) { is_required_ = is_required; }
@@ -77,6 +81,7 @@ public:
 private:
     std::string name_;
     bool is_required_ = false;
+    bool is_sub_param_ = false;
 };
 
 template<class T>
@@ -168,6 +173,18 @@ public:
         this->set(val);
         return *this;
     }
+// TODO : figure out how to remove the need to param->get()
+// These dont work yet
+//     template<class T2>
+//     T2& operator=(Parameter<T>& val)
+//     {
+//         return this->get();
+//     }
+//     template<class T2>
+//     T2& operator=(const Parameter<T>& val)
+//     {
+//         return this->get();
+//     }
 };
 
 } // namespace common

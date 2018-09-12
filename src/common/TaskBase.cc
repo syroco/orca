@@ -1,6 +1,5 @@
 #include "orca/common/TaskBase.h"
 #include "orca/utils/Utils.h"
-#include "orca/common/Factory.h"
 
 using namespace orca::common;
 using namespace orca::optim;
@@ -39,6 +38,9 @@ void TaskBase::setName(const std::string& name)
 
 void TaskBase::addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy /*= true*/)
 {
+    if(param_name.empty())
+        orca_throw(Formatter() << "Cannot have an empty parameter name !");
+    
     if(key_exists(parameters_,param_name))
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter " << param_name << " already declared !";
@@ -49,15 +51,33 @@ void TaskBase::addParameter(const std::string& param_name,ParameterBase* param,P
     parameters_[param_name] = param;
 }
 
-ParameterBase* TaskBase::getParam(const std::string& param_name)
+ParameterBase* TaskBase::getParameter(const std::string& param_name)
 {
     if(!key_exists(parameters_,param_name))
     {
+        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter " << param_name << " does not exists !";
         return nullptr;
     }
     return parameters_[param_name];
 }
 
+void TaskBase::printParameters() const
+{
+    if(parameters_.empty())
+    {
+        LOG_INFO << "[" << TaskBase::getName() << "] " << "No parameters declared !";
+        return;
+    }
+    std::stringstream ss;
+    ss << "[" << TaskBase::getName() << "] Parameters :\n";
+    for(auto p : parameters_)
+    {
+        ss << " * " << p.second->getName()
+            << "\n   - is required " << std::boolalpha << p.second->isRequired() 
+            << "\n   - is set " << std::boolalpha << p.second->isSet() << '\n'; 
+    }
+    LOG_INFO << ss.str();
+}
 
 bool TaskBase::configureFromFile(const std::string& yaml_url)
 {
@@ -66,11 +86,12 @@ bool TaskBase::configureFromFile(const std::string& yaml_url)
     YAML::Emitter out;
     out << config;
     
-    this->configureFromString(out.c_str());
+    return configureFromString(out.c_str());
 }
 
 bool TaskBase::configureFromString(const std::string& yaml_str)
 {
+    LOG_INFO << "[" << TaskBase::getName() << "] Starting configuring from file";
     if(parameters_.empty())
     {
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "No parameters declared with addParam!";
@@ -89,19 +110,7 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
     
     auto to_string = [](const YAML::Node& n) -> std::string 
             { YAML::Emitter out; out << n; return out.c_str(); };
-            
-    auto find_type = [](const YAML::Node& n) -> std::string
-        { 
-            for(auto c : n)
-            {
-                try{
-                    if(c.first.as<std::string>() == "type")
-                        return c.second.as<std::string>();
-                }catch(...){}
-            }
-            return std::string();
-        };
-        
+
     std::cout << "Configuring from config " << to_string(config) << '\n';
     
     for(auto c : config)
@@ -109,39 +118,24 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
         std::cout << "Analysing subconfig " << to_string(c.first) << '\n';
         
         auto param_name = c.first.as<std::string>();
-        // Check if param_name is the name of a linked_element
-        // CHeck if current node exists in subgroup
-        //bool has_type_sub_param = hasTypeSubKey(c.second);
-
-        auto type_name = find_type(c.second);
-        if(!type_name.empty())
+        // Special case for the 'type' param
+        if(param_name == "type")
         {
-            auto param = dynamic_cast<Parameter<TaskBase::Ptr> *>(parameters_[param_name]);
-            if(!param)
-            {
-                LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" could not be cast !";
-            }
-            else
-            {
-                TaskBase::Ptr task_base = Factory()->createPtr(type_name);
-                task_base->setName(param_name);
-                
-                LOG_INFO << "[" << TaskBase::getName() << "] " << "Configuring subparam \"" << param_name << "\" with " << to_string(c.second);
-
-                task_base->configureFromString(to_string(c.second));
-                param->set( task_base );
-            }
+            continue;
         }
-        else if(!key_exists(parameters_,param_name))
+        
+        if(!key_exists(parameters_,param_name))
         {
-            LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" not declared !";
             std::stringstream ss;
-            ss << "[" << TaskBase::getName() << "] " << "Declared parameters : \n";
+            ss << "[" << TaskBase::getName() << "] " 
+                << "Parameter \"" << param_name << "\" not declared but present in the yaml file\n"
+                << "Did you forget to addParameter() in the component constructor ?\n"
+                << "Declared parameters : \n";
             for(auto p : parameters_)
             {
                 ss << " - " << p.second->getName() << '\n';
             }
-            LOG_ERROR << ss.str();
+            LOG_WARNING << ss.str();
             //return false;
         }
         else
@@ -160,17 +154,20 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
     bool is_configured = isConfigured();
     if(!is_configured)
     {
+        printParameters();
+        std::stringstream ss;
+
         for(auto p : parameters_)
         {
-            if(p.second->isRequired())
-            {
-                if(!p.second->isSet())
-                {
-                    LOG_WARNING << "[" << TaskBase::getName() << "] " << "parameter \"" << p.second->getName() << "\" is not set";
-                }
-            }
+            LOG_WARNING_IF(p.second->isRequired() && ! p.second->isSet()) << "[" << TaskBase::getName() << "] "
+                    << "Required parameter \"" << p.second->getName() 
+                    << "\" is not set";
         }
+        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Configuring failed";
     }
+    
+    LOG_INFO_IF(is_configured) << "[" << TaskBase::getName() << "] " << "Sucessfully configured";
+    
     return is_configured;
 }
 
@@ -179,9 +176,6 @@ bool TaskBase::isConfigured() const
     bool ok = true;
     for(auto p : parameters_)
     {
-         std::cout << "Param " << p.second->getName() 
-                << "\n  - is required " << std::boolalpha << p.second->isRequired() 
-                << "\n  - is set " << std::boolalpha << p.second->isSet() << '\n'; 
         if(p.second->isRequired())
         {
             ok &= p.second->isSet();

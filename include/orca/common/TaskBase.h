@@ -97,7 +97,8 @@ namespace common
             , Optional
         };
         void addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy = Required);
-        ParameterBase* getParam(const std::string& param_name);
+        ParameterBase* getParameter(const std::string& param_name);
+        void printParameters() const;
         
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
@@ -215,21 +216,6 @@ namespace common
 } // namespace common
 } // namespace orca
 
-namespace orca
-{
-    namespace common
-    {
-        template<>
-        class Parameter<TaskBase::Ptr> 
-        : public ParameterBase
-        , public ParameterData<TaskBase::Ptr>
-        {
-        public:
-            bool loadFromString(const std::string& s)
-            {
-                std::cout << "loadFromString Parameter<TaskBase::Ptr> " << std::endl;
-                return true;
-            }
-        };
-    } // namespace common
-} // namespace orca
+// This header needs to have TaskBase
+// TODO: figure out if forward declaring is possible in that case
+#include "orca/common/ParameterSharedPtr.h"

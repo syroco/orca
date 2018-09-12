@@ -63,25 +63,6 @@ std::unique_ptr<T> make_unique( Args&& ...args )
     return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
 }
 
-
-// Throwing exceptions with the line number
-// From https://stackoverflow.com/a/348862
-class orca_exception : public std::runtime_error {
-    std::string msg;
-public:
-    orca_exception(const std::string &arg, const char *file, int line) :
-    std::runtime_error(arg) {
-        std::ostringstream o;
-        o << "\033[31m" << file << ":" << line << ": " << arg << "\033[0m";
-        msg = o.str();
-    }
-    ~orca_exception() throw() {}
-    const char *what() const throw() {
-        return msg.c_str();
-    }
-};
-#define orca_throw(arg) throw orca_exception(arg, __FILE__, __LINE__);
-
 class PosixTimer
 {
     typedef std::chrono::high_resolution_clock high_resolution_clock;
@@ -151,6 +132,32 @@ private:
 // Usage :
 // throw std::runtime_error(Formatter() << foo << 13 << ", bar" << myData);   // implicitly cast to std::string
 // throw std::runtime_error(Formatter() << foo << 13 << ", bar" << myData >> Formatter::to_str);    // explicitly cast to std::string
+
+// Throwing exceptions with the line number
+// From https://stackoverflow.com/a/348862
+class orca_exception : public std::runtime_error {
+    std::string msg;
+public:
+    orca_exception(const std::string &arg, const char *file, int line) :
+    std::runtime_error(arg) {
+        std::ostringstream o;
+        o << "\033[31m" << file << ":" << line << ": " << arg << "\033[0m";
+        msg = o.str();
+    }
+    ~orca_exception() throw() {}
+    const char *what() const throw() {
+        return msg.c_str();
+    }
+};
+
+inline void orca_throw(const std::stringstream& arg)
+{
+    throw orca_exception(arg.str(), __FILE__, __LINE__);
+}
+inline void orca_throw(const std::string& arg)
+{
+    throw orca_exception(arg, __FILE__, __LINE__);
+}
 
 template<class T>
 struct SharedPointer

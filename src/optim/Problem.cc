@@ -210,7 +210,7 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> constraint)
 void Problem::resize()
 {
     if(ndof_ == 0)
-        orca_throw(Formatter() << "Cannot resize if ndof is 0");
+        orca_throw("Cannot resize if ndof is 0");
 
     int nvars = this->mapping_.generate(ndof_,wrenches_.size());
     int nconstr = computeNumberOfConstraintRows();

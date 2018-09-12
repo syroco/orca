@@ -54,7 +54,8 @@ namespace orca
             const std::string& getBaseFrame() const;
             const std::string& getControlFrame() const;
         private:
-            std::string base_ref_frame_,control_frame_;
+            Parameter<std::string> base_ref_frame_;
+            Parameter<std::string> control_frame_;
         };
     } // namespace common
 } // namespace orca
