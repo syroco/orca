@@ -196,11 +196,37 @@ bool TaskBase::isConfigured() const
     return ok;
 }
 
-void TaskBase::link(std::shared_ptr<TaskBase> e)
+bool TaskBase::hasChildren() const
 {
-    if(!exists(e,linked_elements_))
+    return children_.size();
+}
+
+bool TaskBase::hasParent() const
+{
+    return (!parent_name_.empty());
+}
+
+void TaskBase::setParentName(const std::string& parent_name)
+{
+    if(parent_name_ == parent_name)
     {
-        linked_elements_.push_back(e);
+        LOG_WARNING << "[" << TaskBase::getName() << "] Parent is already set to " << parent_name_;
+        return;
+    }
+    else if(parent_name_.size())
+    {
+        LOG_WARNING << "[" << TaskBase::getName() << "] Replacing parent " << parent_name_ << " with " << parent_name;
+    }
+    parent_name_ = parent_name;
+}
+
+
+void TaskBase::addChild(std::shared_ptr<TaskBase> e)
+{
+    if(!exists(e,children_))
+    {
+        e->setParentName(this->getName());
+        children_.push_back(e);
         return;
     }
     LOG_ERROR << "[" << TaskBase::getName() << "] Task " << e->getName() << " is already linked !";
@@ -225,10 +251,10 @@ void TaskBase::print() const
     std::cout << " - hasRobot           " << hasRobot() << '\n';
     std::cout << " - hasWrench          " << hasWrench() << '\n';
     std::cout << " - isRobotInitialized " << isRobotInitialized() << '\n';
-    if(linked_elements_.size())
+    if(children_.size())
     {
         std::cout << " - Linked elements: " << '\n';
-        for(auto e : linked_elements_)
+        for(auto e : children_)
             e->print();
     }
 }
@@ -299,7 +325,7 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotModel> robot)
         wrench_->setRobotModel(robot_);
     }
 
-    for(auto e : linked_elements_)
+    for(auto e : children_)
         e->setRobotModel(robot_);
 
     if(hasProblem())
@@ -348,7 +374,7 @@ void TaskBase::resize()
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
 
-    for(auto e : linked_elements_)
+    for(auto e : children_)
         e->resize();
 
     this->onResize();
@@ -418,7 +444,7 @@ bool TaskBase::activate()
         if(hasWrench())
             wrench_->activate();
 
-        for(auto t : linked_elements_)
+        for(auto t : children_)
             t->activate();
 
         return true;
@@ -432,13 +458,28 @@ bool TaskBase::activate()
 
 void TaskBase::update(double current_time, double dt)
 {
+    if(dt == 0)
+    {
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+                << "dt cannot be 0");
+    }
+    if(current_time_ == current_time)
+    {
+        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+                << "New provided time " << current_time << " is the same as last.\n"
+                << "You cannot call update more than once in a row."
+                  );
+    }
+    current_time_ = current_time;
+    current_dt_ = dt;
+    
     // Lock the mutex to protect the update()
     // Its up the the user to lock the mutex in external thread
     // WARNING : the Controller will be blocked also as everything is serialized
     // So make sure that it blocks only to copy data 
     MutexLock lock(mutex);
 
-    for(auto t : linked_elements_)
+    for(auto t : children_)
         t->update(current_time,dt);
 
     switch (state_)
@@ -586,7 +627,7 @@ bool TaskBase::deactivate()
         if(hasWrench())
             wrench_->deactivate();
 
-        for(auto t : linked_elements_)
+        for(auto t : children_)
             t->deactivate();
 
         return true;
@@ -618,7 +659,7 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
     }
     this->problem_ = problem;
 
-    for(auto e : linked_elements_)
+    for(auto e : children_)
         e->setProblem(problem_);
 
     if(hasRobot())

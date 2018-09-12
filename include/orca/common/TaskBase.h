@@ -141,8 +141,19 @@ namespace common
         std::shared_ptr<const common::Wrench> getWrench() const;
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
-
-        void link(std::shared_ptr<TaskBase> e);
+        
+        /**
+        * @brief Add a child/slave task that will be updated BEFORE the parent task
+        */
+        void addChild(std::shared_ptr<TaskBase> e);
+        /**
+        * @brief Returns true if the task owned by a parent task.
+        */
+        bool hasParent() const;
+        /**
+        * @brief Returns true if the task has children
+        */
+        bool hasChildren() const;
 
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
@@ -152,8 +163,8 @@ namespace common
         void onDeactivationCallback(std::function<void(void)> cb);
         void onDeactivatedCallback(std::function<void(void)> cb);
         /**
-        * @brief The recursive mutex to protect the #update function
-        *
+        * @brief The recursive mutex that is locked during the #update function.
+        * It is up to the external user to lock this mutex to protect the task attributes.
         */
         mutable orca::common::MutexRecursive mutex;
     protected:
@@ -172,6 +183,7 @@ namespace common
         virtual void onDeactivation() {};
         virtual void onDeactivated() {};
     private:
+        void setParentName(const std::string& parent_name);
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;
@@ -186,7 +198,7 @@ namespace common
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
         optim::ControlVariable control_var_;
-        std::list<std::shared_ptr<TaskBase> > linked_elements_;
+        std::list<std::shared_ptr<TaskBase> > children_;
 
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
@@ -199,6 +211,9 @@ namespace common
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
         std::map<std::string, ParameterBase* > parameters_;
+        std::string parent_name_;
+        double current_time_ = -1;
+        double current_dt_ = 0;
     };
 
 
