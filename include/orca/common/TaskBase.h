@@ -40,15 +40,14 @@
 #include "orca/robot/RobotModel.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
-#include "orca/common/Wrench.h"
 #include "orca/common/Mutex.h"
 #include "orca/common/Parameter.h"
 
 namespace orca
 {
-
 namespace common
 {
+    class Wrench;
     /**
     * @brief The common base class for tasks and constraints
     *
@@ -220,3 +219,4 @@ namespace common
 // This header needs to have TaskBase
 // TODO: figure out if forward declaring is possible in that case
 #include "orca/common/ParameterSharedPtr.h"
+#include "orca/common/Wrench.h"

@@ -44,7 +44,10 @@ void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time,
     int i=0;
     for(auto w : wrenches_)
     {
-        constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
+        if(w->isComputing())
+            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6) = w->getJacobianTranspose();
+        else
+            constraintFunction().constraintMatrix().block(0,wrench_idx + i*6 , fulldim_, 6).setZero();
         i++;
     }
 

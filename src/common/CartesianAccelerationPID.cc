@@ -113,7 +113,7 @@ void CartesianAccelerationPID::onCompute(double current_time, double dt)
     cart_position_curr_ = cart_pos_curr_.block<3,1>(0,2);
     cart_rot_curr_ = cart_pos_curr_.topLeftCorner<3,3>();
     // Compute Cartesian Position Error
-    cart_pos_curr_ = robot()->getTransform(getControlFrame());
+    cart_pos_curr_ = robot()->getRelativeTransform(getBaseFrame(),getControlFrame());
     cart_pos_err_ = math::diffTransform(cart_pos_curr_ , cart_pos_des_);
 
     // Compute Cartesian Velocity Error
