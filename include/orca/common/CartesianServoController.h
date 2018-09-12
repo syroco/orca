@@ -44,9 +44,10 @@ namespace orca
     {
         class CartesianServoController 
         : public TaskBase
-        , public utils::SharedPointer<CartesianServoController>
         {
         public:
+            using Ptr = std::shared_ptr<CartesianServoController>;
+            
             CartesianServoController(const std::string& name);
             virtual const math::Vector6d& getCommand() const = 0;
             void setBaseFrame(const std::string& base_ref_frame);

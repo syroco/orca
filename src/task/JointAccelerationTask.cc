@@ -8,7 +8,6 @@ using namespace orca::utils;
 
 JointAccelerationTask::JointAccelerationTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointAcceleration)
-, pid_(std::make_shared<PIDController>())
 {
 
 }
@@ -51,8 +50,9 @@ void JointAccelerationTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
         E().setIdentity();
-        pid_->resize(dof);
-
+        
+        pid_->setDimension(dof);
+        
         jnt_pos_des_.setZero( dof );
         jnt_vel_des_.setZero( dof );
         jnt_acc_des_.setZero( dof );

@@ -35,7 +35,7 @@ public:
         auto type_name = findType(node);
         if(type_name.empty())
         {
-            utils::orca_throw(utils::Formatter() << "Param " << getName() << " is of type TaskBase::Ptr be could not find its \"type\"" );
+            utils::orca_throw(utils::Formatter() << "Param " << getName() << " is of type shared_ptr<T> be could not find its \"type\"" );
         }
         
         std::cout << "Param " << getName() << " is of type " << type_name;

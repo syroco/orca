@@ -11,9 +11,8 @@ using namespace orca::utils;
 
 JointTorqueTask::JointTorqueTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointTorque)
-, pid_(std::make_shared<PIDController>())
 {
-
+    this->addParameter("pid",&pid_);
 }
 
 void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
@@ -34,7 +33,7 @@ void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
         jnt_trq_des_ = robot()->getJointGravityTorques();
     }
 
-    f() = - pid_->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
+    f() = - pid_.get()->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
 
 void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
@@ -43,9 +42,9 @@ void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
     current_jnt_trq_ = current_joint_torque;
 }
 
-std::shared_ptr<PIDController> JointTorqueTask::pid()
+PIDController::Ptr JointTorqueTask::pid()
 {
-    return pid_;
+    return pid_.get();
 }
 
 void JointTorqueTask::onResize()
@@ -56,7 +55,7 @@ void JointTorqueTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
 
-        pid_->resize(dof);
+        pid_.get()->setDimension(dof);
 
         jnt_trq_des_.setZero(dof);
         current_jnt_trq_.setZero(dof);

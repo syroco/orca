@@ -56,10 +56,11 @@ namespace common
     * is currently being used, and a state machine. Although this class is
     * called TaskBase, both tasks and constraints inherit from this.
     */
-    class TaskBase : public utils::SharedPointer<TaskBase>
+    class TaskBase
     {
         friend optim::Problem;
     public:
+        using Ptr = std::shared_ptr<TaskBase>;
         /**
         * @brief Represents the internal state of the task
         */
@@ -138,7 +139,7 @@ namespace common
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
 
-        void link(TaskBase::Ptr e);
+        void link(std::shared_ptr<TaskBase> e);
 
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
@@ -182,7 +183,7 @@ namespace common
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
         optim::ControlVariable control_var_;
-        std::list<TaskBase::Ptr> linked_elements_;
+        std::list<std::shared_ptr<TaskBase> > linked_elements_;
 
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;

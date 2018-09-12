@@ -73,8 +73,8 @@ void TaskBase::printParameters() const
     for(auto p : parameters_)
     {
         ss << " * " << p.second->getName()
-            << "\n   - is required " << std::boolalpha << p.second->isRequired() 
-            << "\n   - is set " << std::boolalpha << p.second->isSet() << '\n'; 
+            << "\n      - is required " << std::boolalpha << p.second->isRequired() 
+            << "\n      - is set " << std::boolalpha << p.second->isSet() << '\n'; 
     }
     LOG_INFO << ss.str();
 }

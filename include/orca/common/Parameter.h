@@ -40,7 +40,7 @@ namespace YAML {
 
 } // namespace YAML
 
-// Hack to remove shared_ptr (TaskBase::Ptr for example) YAML support
+// Hack to remove shared_ptr YAML support error
 namespace YAML {
   template < typename T>
   struct convert< std::shared_ptr<T> >
@@ -64,9 +64,11 @@ namespace orca
 namespace common
 {
 
-class ParameterBase : public utils::SharedPointer<ParameterBase>
+class ParameterBase
 {
 public:
+    using Ptr = std::shared_ptr<ParameterBase>;
+    
     ParameterBase(bool is_sub_param = false)
     : is_sub_param_(is_sub_param)
     {}

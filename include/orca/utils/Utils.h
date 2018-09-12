@@ -150,25 +150,21 @@ public:
     }
 };
 
-inline void orca_throw(const std::stringstream& arg)
-{
-    throw orca_exception(arg.str(), __FILE__, __LINE__);
-}
 inline void orca_throw(const std::string& arg)
 {
     throw orca_exception(arg, __FILE__, __LINE__);
 }
 
-template<class T>
-struct SharedPointer
-{
-    using Ptr = std::shared_ptr<T>;
-    // using ConstPtr = const std::shared_ptr<T>;
-    // Ptr createPtr()
-    // {
-    //     return std::make_shared<T>();
-    // }
-};
+// template<class T>
+// struct SharedPointer
+// {
+//     using Ptr = std::shared_ptr<T>;
+// //     using ConstPtr = const std::shared_ptr<T>;
+// //     std::shared_ptr<T> createPtr()
+// //     {
+// //         return std::make_shared<T>();
+// //     }
+// };
 // class PeriodicPosixThread
 // {
 // public:
