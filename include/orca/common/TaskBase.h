@@ -96,7 +96,11 @@ namespace common
               Required = 0
             , Optional
         };
-        void addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy = Required);
+        void addParameter(const std::string& param_name,ParameterBase* param
+                    , ParamPolicy policy = Required
+                    , std::function<void()> on_loading_success = 0
+                    , std::function<void()> on_loading_failed = 0);
+        
         ParameterBase* getParameter(const std::string& param_name);
         void printParameters() const;
         

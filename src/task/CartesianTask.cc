@@ -29,8 +29,8 @@ void CartesianTask::print() const
 
 void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
-    //servo_ = servo;
-    //this->link(servo_.get());
+    servo_.set(servo);
+    this->link(servo_.get());
 }
 
 const std::string& CartesianTask::getBaseFrame() const

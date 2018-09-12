@@ -36,7 +36,10 @@ void TaskBase::setName(const std::string& name)
     name_ = name;
 }
 
-void TaskBase::addParameter(const std::string& param_name,ParameterBase* param,ParamPolicy policy /*= true*/)
+void TaskBase::addParameter(const std::string& param_name,ParameterBase* param
+                    , ParamPolicy policy /*= true*/
+                    , std::function<void()> on_loading_success /*= 0*/
+                    , std::function<void()> on_loading_failed /*= 0*/)
 {
     if(param_name.empty())
         orca_throw(Formatter() << "Cannot have an empty parameter name !");
@@ -48,6 +51,8 @@ void TaskBase::addParameter(const std::string& param_name,ParameterBase* param,P
     }
     param->setName(param_name);
     param->setRequired(policy == ParamPolicy::Required);
+    param->onLoadingSuccess(on_loading_success);
+    param->onLoadingFailed(on_loading_failed);
     parameters_[param_name] = param;
 }
 
@@ -189,9 +194,9 @@ void TaskBase::link(std::shared_ptr<TaskBase> e)
     if(!exists(e,linked_elements_))
     {
         linked_elements_.push_back(e);
+        return;
     }
-    else
-        LOG_ERROR << "Cannot link task " << e->getName() << " because it already exists";
+    LOG_ERROR << "[" << TaskBase::getName() << "] Task " << e->getName() << " is already linked !";
 }
 
 bool TaskBase::isActivated() const

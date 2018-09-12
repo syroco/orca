@@ -68,22 +68,42 @@ class ParameterBase
 {
 public:
     using Ptr = std::shared_ptr<ParameterBase>;
-    
-    ParameterBase(bool is_sub_param = false)
-    : is_sub_param_(is_sub_param)
-    {}
-    virtual bool loadFromString(const std::string& s) = 0;
+
+    bool loadFromString(const std::string& s)
+    {
+        if(onLoadFromString(s))
+        {
+            if(loading_success_)
+                loading_success_();
+        }
+        else
+        {
+            if(loading_failed_) 
+                loading_failed_();
+        }
+    }
     virtual void print() const = 0;
     virtual bool isSet() const = 0;
-    virtual bool isSubParam() const { return is_sub_param_; };
     const std::string& getName() const { return name_; }
     void setName(const std::string& name) { name_ = name; }
     void setRequired(bool is_required) { is_required_ = is_required; }
-    bool isRequired() const { return is_required_; } 
+    bool isRequired() const { return is_required_; }
+    void onLoadingSuccess(std::function<void(void)> loading_success_callback)
+    {
+        loading_success_ = loading_success_callback;
+    }
+    void onLoadingFailed(std::function<void(void)> loading_failed_callback)
+    {
+        loading_failed_ = loading_failed_callback;
+    }
+protected:
+    virtual bool onLoadFromString(const std::string& s) = 0;
 private:
     std::string name_;
     bool is_required_ = false;
     bool is_sub_param_ = false;
+    std::function<void(void)> loading_success_;
+    std::function<void(void)> loading_failed_;
 };
 
 template<class T>
@@ -137,7 +157,7 @@ class Parameter : public ParameterBase, public ParameterData<T>
 {
 public:
     
-    bool loadFromString(const std::string& s)
+    bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
         if(node.IsSequence())

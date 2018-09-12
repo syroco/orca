@@ -1,6 +1,5 @@
 #pragma once
 #include <orca/common/Parameter.h>
-#include <orca/common/TaskBase.h>
 #include <orca/common/Factory.h>
 #include <typeinfo>
 
@@ -25,11 +24,8 @@ template<class T>
 class Parameter<std::shared_ptr<T> > : public ParameterBase, public ParameterData< std::shared_ptr<T> >
 {
 public:    
-    Parameter<std::shared_ptr<T> >()
-    : ParameterBase(true)
-    {}
-    
-    bool loadFromString(const std::string& s)
+
+    bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
         auto type_name = findType(node);

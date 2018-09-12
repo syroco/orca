@@ -45,7 +45,7 @@ namespace orca
             {
                 if(utils::key_exists(m_,class_name))
                     return false;
-                std::cout << "[Factory] " << "Successfully registered class " << class_name << " in factory" << '\n';
+                std::cout << "[Factory] " << "Successfully registered class " << class_name << '\n';
                 m_[class_name] = f;
                 return true;
             }
