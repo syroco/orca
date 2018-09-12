@@ -71,16 +71,21 @@ public:
 
     bool loadFromString(const std::string& s)
     {
-        if(onLoadFromString(s))
+        try 
         {
-            if(loading_success_)
-                loading_success_();
+            if(onLoadFromString(s))
+            {
+                if(loading_success_)
+                    loading_success_();
+                return true;
+            }
+        } catch(std::exception& e) {
+            utils::orca_throw(e.what());
         }
-        else
-        {
-            if(loading_failed_) 
-                loading_failed_();
-        }
+
+        if(loading_failed_) 
+            loading_failed_();
+        return false;
     }
     virtual void print() const = 0;
     virtual bool isSet() const = 0;
@@ -160,21 +165,13 @@ public:
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
-        if(node.IsSequence())
-        {
-            std::cerr << " - " << getName() << ": " << "Node \"" << s << "\" is a sequence" 
-                << "\nPlease pecialize your Parameter templates to support your custom types"
-                << '\n';
-            return false;
-        }
         try
         {
             this->set( node.as<T>() );
         }
         catch(std::exception& e)
         {
-            std::cerr << " - " << getName() << ": " << "Could not convert \"" << s << "\" to the type asked\n" << e.what() << '\n';
-            return false;
+            utils::orca_throw(utils::Formatter() << " - " << getName() << ": " << "Could not convert \"" << s << "\" to the type asked\n" << e.what());
         }
         return true;
     }

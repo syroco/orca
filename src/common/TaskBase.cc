@@ -102,8 +102,15 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
         LOG_ERROR << "[" << TaskBase::getName() << "] " << "No parameters declared with addParam!";
         return false;
     }
+    // This can throw an exception
+    // Is it good to keep it ?
+    YAML::Node config;
+    try {
+        config = YAML::Load(yaml_str);
+    } catch(std::exception& e) {
+        orca_throw(Formatter() << e.what() << "\nYaml file does not seem to be valid.");
+    }
     
-    YAML::Node config = YAML::Load(yaml_str);
     if(!config)
     {
         return false;
