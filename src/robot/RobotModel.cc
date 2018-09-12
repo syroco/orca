@@ -26,7 +26,7 @@ using namespace orca::math;
         orca_throw("Provided frame is empty"); \
     if(!impl_->frameExists(frame)) { \
         print(); \
-        orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot"); \
+        orca_throw(Formatter() << "Frame '" << frame << "' is not part of the robot"); \
     }
 
 static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
@@ -57,7 +57,7 @@ RobotModel::RobotModel(const std::string& robot_name)
 {
     switch(robot_kinematics_type_)
     {
-        case RobotModelType::iDynTree:
+        case RobotModelImplType::iDynTree:
             impl_ = make_unique<RobotModelImpl<iDynTree> >();
             break;
         default:

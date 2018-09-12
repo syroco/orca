@@ -274,8 +274,8 @@ public:
     bool isInitialized() const;
     void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
-    enum RobotModelType { iDynTree, KDL };
-    RobotModelType robot_kinematics_type_ = iDynTree;
+    enum RobotModelImplType { iDynTree, KDL };
+    RobotModelImplType robot_kinematics_type_ = iDynTree;
 
     std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
@@ -285,7 +285,7 @@ protected:
     std::string urdf_str_;
 
 private:
-    template<RobotModelType type = iDynTree> struct RobotModelImpl;
+    template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
 };
 
