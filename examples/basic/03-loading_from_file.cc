@@ -64,7 +64,7 @@ int main(int argc, char const *argv[])
     "pid: { type: orca::common::PIDController, dimension: 6, p_gain: [1.,1.,1.,1.,1.,1.], d_gain: [1.,1.,1.,1.,1.,1.], i_gain: [0.,0.,0.,0.,0.,0.], windup_limit: [0.,0.,0.,0.,0.,0.]  } } }"
     
     );
-
+    cart_task->print();
     std::cout << "Task configured ? " << std::boolalpha << cart_task->isConfigured() << '\n';
     return 0;
 }
