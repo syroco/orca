@@ -53,7 +53,7 @@ namespace YAML {
 
     static bool decode(const Node& node, std::shared_ptr<T>& e)
     {
-      return false;
+      return true;
     }
   };
 }

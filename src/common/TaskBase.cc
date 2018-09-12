@@ -116,11 +116,21 @@ bool TaskBase::configureFromString(const std::string& yaml_str)
         auto type_name = find_type(c.second);
         if(!type_name.empty())
         {
-            TaskBase::Ptr task_base = Factory()->createPtr(type_name);
-            task_base->setName(param_name);
-            task_base->configureFromString(to_string(c.second));
-            
-            //parameters_[param_name] = task_base;
+            auto param = dynamic_cast<Parameter<TaskBase::Ptr> *>(parameters_[param_name]);
+            if(!param)
+            {
+                LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" could not be cast !";
+            }
+            else
+            {
+                TaskBase::Ptr task_base = Factory()->createPtr(type_name);
+                task_base->setName(param_name);
+                
+                LOG_INFO << "[" << TaskBase::getName() << "] " << "Configuring subparam \"" << param_name << "\" with " << to_string(c.second);
+
+                task_base->configureFromString(to_string(c.second));
+                param->set( task_base );
+            }
         }
         else if(!key_exists(parameters_,param_name))
         {
@@ -170,8 +180,8 @@ bool TaskBase::isConfigured() const
     for(auto p : parameters_)
     {
          std::cout << "Param " << p.second->getName() 
-                << " is required " << std::boolalpha << p.second->isRequired() 
-                << " is set " << std::boolalpha << p.second->isSet() << '\n'; 
+                << "\n  - is required " << std::boolalpha << p.second->isRequired() 
+                << "\n  - is set " << std::boolalpha << p.second->isSet() << '\n'; 
         if(p.second->isRequired())
         {
             ok &= p.second->isSet();
