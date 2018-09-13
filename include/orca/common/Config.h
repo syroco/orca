@@ -14,7 +14,8 @@ namespace orca
         {
         public:
             using Ptr  = std::shared_ptr<Config>;
-    
+            using ParamMap = std::map<std::string, ParameterBase* >;
+            
             Config(const std::string& config_name)
             : name_(config_name)
             {
@@ -72,7 +73,7 @@ namespace orca
                 return parameters_[param_name];
             }
 
-            void printParameters() const
+            void print() const
             {
                 if(parameters_.empty())
                 {
@@ -90,17 +91,17 @@ namespace orca
                 LOG_INFO << ss.str();
             }
 
-            bool configureFromFile(const std::string& yaml_url)
+            bool loadFromFile(const std::string& yaml_url)
             {
                 YAML::Node config = YAML::LoadFile(yaml_url);
                 
                 YAML::Emitter out;
                 out << config;
                 
-                return configureFromString(out.c_str());
+                return loadFromString(out.c_str());
             }
 
-            bool configureFromString(const std::string& yaml_str)
+            bool loadFromString(const std::string& yaml_str)
             {
                 LOG_INFO << "[" << getName() << "] Starting configuring from file";
                 if(parameters_.empty())
@@ -169,10 +170,10 @@ namespace orca
                         }
                     }
                 }
-                bool is_configured = isConfigured();
-                if(!is_configured)
+                bool all_set = areAllRequiredParametersSet();
+                if(!all_set)
                 {
-                    printParameters();
+                    print();
                     std::stringstream ss;
 
                     for(auto p : parameters_)
@@ -184,12 +185,12 @@ namespace orca
                     LOG_WARNING << "[" << getName() << "] " << "Configuring failed";
                 }
                 
-                LOG_INFO_IF(is_configured) << "[" << getName() << "] " << "Sucessfully configured";
+                LOG_INFO_IF(all_set) << "[" << getName() << "] " << "Sucessfully configured";
                 
-                return is_configured;
+                return all_set;
             }
             
-            bool isConfigured() const
+            bool areAllRequiredParametersSet() const
             {
                 bool ok = true;
                 for(auto p : parameters_)
@@ -202,9 +203,13 @@ namespace orca
                 return ok;
             }
 
+            const ParamMap& getAllParameters() const
+            {
+                return parameters_;
+            }
         private:
             std::string name_;
-            std::map<std::string, ParameterBase* > parameters_;
+            ParamMap parameters_;
         };
     } // namespace common
 } // namespace orca

@@ -21,179 +21,43 @@ using namespace orca::utils;
 TaskBase::TaskBase(const std::string& name,ControlVariable control_var) 
 : name_(name)
 , control_var_(control_var)
+, config_(std::make_shared<Config>(name))
 {}
 
 TaskBase::~TaskBase()
 {}
 
-void TaskBase::setName(const std::string& name)
-{
-    if(!name_.empty())
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Cannot change name 2 times";
-        return;
-    }
-    name_ = name;
-}
-
 void TaskBase::addParameter(const std::string& param_name,ParameterBase* param
-                    , ParamPolicy policy /*= true*/
+                    , ParamPolicy policy /*= ParamPolicy::Required*/
                     , std::function<void()> on_loading_success /*= 0*/
                     , std::function<void()> on_loading_failed /*= 0*/)
 {
-    if(param_name.empty())
-        orca_throw(Formatter() << "Cannot have an empty parameter name !");
-    
-    if(key_exists(parameters_,param_name))
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter " << param_name << " already declared !";
-        return;
-    }
-    param->setName(param_name);
-    param->setRequired(policy == ParamPolicy::Required);
-    param->onLoadingSuccess(on_loading_success);
-    param->onLoadingFailed(on_loading_failed);
-    parameters_[param_name] = param;
+    config_->addParameter(param_name,param,policy,on_loading_success,on_loading_failed);
 }
 
 ParameterBase* TaskBase::getParameter(const std::string& param_name)
 {
-    if(!key_exists(parameters_,param_name))
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Parameter " << param_name << " does not exists !";
-        return nullptr;
-    }
-    return parameters_[param_name];
+    return config_->getParameter(param_name);
 }
 
-void TaskBase::printParameters() const
+void TaskBase::printConfig() const
 {
-    if(parameters_.empty())
-    {
-        LOG_INFO << "[" << TaskBase::getName() << "] " << "No parameters declared !";
-        return;
-    }
-    std::stringstream ss;
-    ss << "[" << TaskBase::getName() << "] Parameters :\n";
-    for(auto p : parameters_)
-    {
-        ss << " * " << p.second->getName()
-            << "\n      - is required " << std::boolalpha << p.second->isRequired() 
-            << "\n      - is set " << std::boolalpha << p.second->isSet() << '\n'; 
-    }
-    LOG_INFO << ss.str();
+    config_->print();
 }
 
 bool TaskBase::configureFromFile(const std::string& yaml_url)
 {
-    YAML::Node config = YAML::LoadFile(yaml_url);
-    
-    YAML::Emitter out;
-    out << config;
-    
-    return configureFromString(out.c_str());
+    return config_->loadFromFile(yaml_url);
 }
 
 bool TaskBase::configureFromString(const std::string& yaml_str)
 {
-    LOG_INFO << "[" << TaskBase::getName() << "] Starting configuring from file";
-    if(parameters_.empty())
-    {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "No parameters declared with addParam!";
-        return false;
-    }
-    // This can throw an exception
-    // Is it good to keep it ?
-    YAML::Node config;
-    try {
-        config = YAML::Load(yaml_str);
-    } catch(std::exception& e) {
-        orca_throw(Formatter() << e.what() << "\nYaml file does not seem to be valid.");
-    }
-    
-    if(!config)
-    {
-        return false;
-    }
-    if(!(config.IsMap() || config.IsSequence()))
-    {
-        return false;
-    }
-    
-    auto to_string = [](const YAML::Node& n) -> std::string 
-            { YAML::Emitter out; out << n; return out.c_str(); };
-
-    std::cout << "Configuring from config " << to_string(config) << '\n';
-    
-    for(auto c : config)
-    {
-        std::cout << "Analysing subconfig " << to_string(c.first) << '\n';
-        
-        auto param_name = c.first.as<std::string>();
-        // Special case for the 'type' param
-        if(param_name == "type")
-        {
-            continue;
-        }
-        
-        if(!key_exists(parameters_,param_name))
-        {
-            std::stringstream ss;
-            ss << "[" << TaskBase::getName() << "] " 
-                << "Parameter \"" << param_name << "\" not declared but present in the yaml file\n"
-                << "Did you forget to addParameter() in the component constructor ?\n"
-                << "Declared parameters : \n";
-            for(auto p : parameters_)
-            {
-                ss << " - " << p.second->getName() << '\n';
-            }
-            LOG_WARNING << ss.str();
-            //return false;
-        }
-        else
-        {
-            auto param = parameters_[param_name];
-            if(param->loadFromString(to_string(c.second)))
-            {
-                LOG_INFO << "[" << TaskBase::getName() << "] " << "Parameter \"" << param_name << "\" --> " << c.second;
-            }
-            else
-            {
-                LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not load \"" << param_name << "\"";
-            }
-        }
-    }
-    bool is_configured = isConfigured();
-    if(!is_configured)
-    {
-        printParameters();
-        std::stringstream ss;
-
-        for(auto p : parameters_)
-        {
-            LOG_WARNING_IF(p.second->isRequired() && ! p.second->isSet()) << "[" << TaskBase::getName() << "] "
-                    << "Required parameter \"" << p.second->getName() 
-                    << "\" is not set";
-        }
-        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Configuring failed";
-    }
-    
-    LOG_INFO_IF(is_configured) << "[" << TaskBase::getName() << "] " << "Sucessfully configured";
-    
-    return is_configured;
+    return config_->loadFromString(yaml_str);
 }
 
 bool TaskBase::isConfigured() const
 {
-    bool ok = true;
-    for(auto p : parameters_)
-    {
-        if(p.second->isRequired())
-        {
-            ok &= p.second->isSet();
-        }
-    }
-    return ok;
+    return config_->areAllRequiredParametersSet();
 }
 
 bool TaskBase::hasChildren() const

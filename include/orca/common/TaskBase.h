@@ -97,7 +97,9 @@ namespace common
                     , std::function<void()> on_loading_failed = 0);
         
         ParameterBase* getParameter(const std::string& param_name);
-        void printParameters() const;
+        void printConfig() const;
+        
+        Config::Ptr getConfig();
         
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
@@ -108,7 +110,6 @@ namespace common
         optim::ControlVariable getControlVariable() const;
 
         const std::string& getName() const;
-        void setName(const std::string& name);
 
         virtual bool activate();
         virtual void update(double current_time, double dt);
@@ -188,7 +189,7 @@ namespace common
         double ramp_value_ = 0;
         bool activation_requested_ = false;
         bool deactivation_requested_ = false;
-        std::string name_;
+        const std::string name_;
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
@@ -205,7 +206,7 @@ namespace common
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
-        std::map<std::string, ParameterBase* > parameters_;
+        Config::Ptr config_;
         std::string parent_name_;
         double current_time_ = -1;
         double current_dt_ = 0;
