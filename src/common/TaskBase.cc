@@ -8,57 +8,23 @@ using namespace orca::utils;
 
 #define assertRobotLoaded(robot) \
     if(!robot) \
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not set"); \
+        orca_throw(Formatter() << "[" << getName() << "] Robot is not set"); \
     if(robot->getNrOfDegreesOfFreedom() <= 0) \
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot pointer is valid, but does not seem to have any DOF. Did you loadModelFromURDF() ?");
+        orca_throw(Formatter() << "[" << getName() << "] Robot pointer is valid, but does not seem to have any DOF. Did you loadModelFromURDF() ?");
 
 #define assertRobotInitialized(robot) \
     assertRobotLoaded(robot); \
     if(!robot->isInitialized()) \
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
+        orca_throw(Formatter() << "[" << getName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
 
 
 TaskBase::TaskBase(const std::string& name,ControlVariable control_var) 
-: name_(name)
+: ConfigurableOrcaObject(name)
 , control_var_(control_var)
-, config_(std::make_shared<Config>(name))
 {}
 
 TaskBase::~TaskBase()
 {}
-
-void TaskBase::addParameter(const std::string& param_name,ParameterBase* param
-                    , ParamPolicy policy /*= ParamPolicy::Required*/
-                    , std::function<void()> on_loading_success /*= 0*/
-                    , std::function<void()> on_loading_failed /*= 0*/)
-{
-    config_->addParameter(param_name,param,policy,on_loading_success,on_loading_failed);
-}
-
-ParameterBase* TaskBase::getParameter(const std::string& param_name)
-{
-    return config_->getParameter(param_name);
-}
-
-void TaskBase::printConfig() const
-{
-    config_->print();
-}
-
-bool TaskBase::configureFromFile(const std::string& yaml_url)
-{
-    return config_->loadFromFile(yaml_url);
-}
-
-bool TaskBase::configureFromString(const std::string& yaml_str)
-{
-    return config_->loadFromString(yaml_str);
-}
-
-bool TaskBase::isConfigured() const
-{
-    return config_->areAllRequiredParametersSet();
-}
 
 bool TaskBase::hasChildren() const
 {
@@ -74,12 +40,12 @@ void TaskBase::setParentName(const std::string& parent_name)
 {
     if(parent_name_ == parent_name)
     {
-        LOG_WARNING << "[" << TaskBase::getName() << "] Parent is already set to " << parent_name_;
+        LOG_WARNING << "[" << getName() << "] Parent is already set to " << parent_name_;
         return;
     }
     else if(parent_name_.size())
     {
-        LOG_WARNING << "[" << TaskBase::getName() << "] Replacing parent " << parent_name_ << " with " << parent_name;
+        LOG_WARNING << "[" << getName() << "] Replacing parent " << parent_name_ << " with " << parent_name;
     }
     parent_name_ = parent_name;
 }
@@ -93,7 +59,7 @@ void TaskBase::addChild(std::shared_ptr<TaskBase> e)
         children_.push_back(e);
         return;
     }
-    LOG_ERROR << "[" << TaskBase::getName() << "] Task " << e->getName() << " is already linked !";
+    LOG_ERROR << "[" << getName() << "] Task " << e->getName() << " is already linked !";
 }
 
 bool TaskBase::isActivated() const
@@ -108,7 +74,7 @@ bool TaskBase::isComputing() const
 
 void TaskBase::print() const
 {
-    std::cout << "[" << TaskBase::getName() << "]" << '\n';
+    std::cout << "[" << getName() << "]" << '\n';
     std::cout << " - Control variable   " << getControlVariable() << '\n';
     std::cout << " - Current state " << getState() << '\n';
     std::cout << " - hasProblem         " << hasProblem() << '\n';
@@ -144,7 +110,7 @@ void TaskBase::setRampDuration(double ramp_duration)
         ramp_value_ = 1;
     if(ramp_duration < 0)
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Ramp duration must be > 0";
+        LOG_ERROR << "[" << getName() << "] " << "Ramp duration must be > 0";
         return;
     }
     ramp_duration_ = ramp_duration;
@@ -177,7 +143,7 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotModel> robot)
     // Check if we already have a robot
     if(robot_)
     {
-        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Replacing existing robot";
+        LOG_WARNING << "[" << getName() << "] " << "Replacing existing robot";
     }
     // Copy the new robot model
     robot_ = robot;
@@ -185,7 +151,7 @@ void TaskBase::setRobotModel(std::shared_ptr<RobotModel> robot)
     // Create the wrench if you depend on ExternalWrench
     if(getControlVariable() == ControlVariable::ExternalWrench)
     {
-        wrench_ = std::make_shared<Wrench>(name_ + "_wrench");
+        wrench_ = std::make_shared<Wrench>(getName() + "_wrench");
         wrench_->setRobotModel(robot_);
     }
 
@@ -233,7 +199,7 @@ bool TaskBase::rampDown(double time_since_stop)
 
 void TaskBase::resize()
 {
-    LOG_INFO << "[" << TaskBase::getName() << "] Resizing";
+    LOG_INFO << "[" << getName() << "] Resizing";
     // Calling the user callback
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
@@ -258,17 +224,12 @@ void TaskBase::resize()
             // which is not what user expect
             break;
     }
-    LOG_INFO << "[" << TaskBase::getName() << "] Resizing done";
+    LOG_INFO << "[" << getName() << "] Resizing done";
 }
 
 ControlVariable TaskBase::getControlVariable() const
 {
     return control_var_;
-}
-
-const std::string& TaskBase::getName() const
-{
-    return name_;
 }
 
 std::shared_ptr<RobotModel> TaskBase::robot()
@@ -287,7 +248,7 @@ std::shared_ptr< Wrench > TaskBase::wrench()
 {
     if(!wrench_)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << getName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
             << "This task control variabe is " << getControlVariable());
     }
@@ -301,7 +262,7 @@ bool TaskBase::activate()
     if(state_ == Resized || state_ == Deactivated)
     {
         state_ = Activating;
-        LOG_INFO << "[" << TaskBase::getName() << "] Activation requested";
+        LOG_INFO << "[" << getName() << "] Activation requested";
 
         this->activation_requested_ = true;
 
@@ -315,7 +276,7 @@ bool TaskBase::activate()
     }
     else
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] " << "Could not activate because state is " << state_;
+        LOG_ERROR << "[" << getName() << "] " << "Could not activate because state is " << state_;
         return false;
     }
 }
@@ -324,12 +285,12 @@ void TaskBase::update(double current_time, double dt)
 {
     if(dt == 0)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << getName() << "] "
                 << "dt cannot be 0");
     }
     if(current_time_ == current_time)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << getName() << "] "
                 << "New provided time " << current_time << " is the same as last.\n"
                 << "You cannot call update more than once in a row."
                   );
@@ -349,7 +310,7 @@ void TaskBase::update(double current_time, double dt)
     switch (state_)
     {
         case Init:
-            orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+            orca_throw(Formatter() << "[" << getName() << "] "
                 << "Calling update, but the task state is Init.\n"
                 << "Please insert the task in the controller or set the robot model + "
                 << "set the problem to trigger a resize(). Then you'll be able to update the task.");
@@ -368,7 +329,7 @@ void TaskBase::update(double current_time, double dt)
             {
                 if(this->activation_requested_)
                 {
-                    LOG_INFO << "[" << TaskBase::getName() << "] " << state_;
+                    LOG_INFO << "[" << getName() << "] " << state_;
                     onActivation();
                     if(on_activation_cb_)
                         on_activation_cb_();
@@ -381,9 +342,9 @@ void TaskBase::update(double current_time, double dt)
                     state_ = Activated;
 
                     if(this->getRampDuration() > 0)
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping up is done, state is now " << state_;
+                        LOG_DEBUG << "[" << getName() << "] " << "Ramping up is done, state is now " << state_;
                     else
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
+                        LOG_DEBUG << "[" << getName() << "] " << state_;
 
                     onActivated();
                     if(on_activated_cb_)
@@ -395,7 +356,7 @@ void TaskBase::update(double current_time, double dt)
             {
                 if(this->deactivation_requested_)
                 {
-                    LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
+                    LOG_DEBUG << "[" << getName() << "] " << state_;
                     onDeactivation();
                     if(on_deactivation_cb_)
                         on_deactivation_cb_();
@@ -408,9 +369,9 @@ void TaskBase::update(double current_time, double dt)
                     state_ = Deactivated;
 
                     if(this->getRampDuration() > 0)
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Ramping down is done, state is now " << state_;
+                        LOG_DEBUG << "[" << getName() << "] " << "Ramping down is done, state is now " << state_;
                     else
-                        LOG_DEBUG << "[" << TaskBase::getName() << "] " << state_;
+                        LOG_DEBUG << "[" << getName() << "] " << state_;
 
                     onDeactivated();
                     if(on_deactivated_cb_)
@@ -431,51 +392,51 @@ void TaskBase::update(double current_time, double dt)
             break;
         }
         default:
-            //LOG_ERROR << "[" << TaskBase::getName() << "] " << "Should not be calling update when state is " << state_;
+            //LOG_ERROR << "[" << getName() << "] " << "Should not be calling update when state is " << state_;
             break;
     }
 }
 
 void TaskBase::onActivationCallback(std::function<void(void)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onActivation callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onActivation callback";
     this->on_activation_cb_ = cb;
 }
 
 void TaskBase::onActivatedCallback(std::function<void ()> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onActivated callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onActivated callback";
     this->on_activated_cb_ = cb;
 }
 
 void TaskBase::onComputeBeginCallback(std::function<void(double,double)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateBegin callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onUpdateBegin callback";
     this->on_update_begin_cb_ = cb;
 }
 
 void TaskBase::onResizedCallback(std::function<void(void)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onResized callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onResized callback";
     this->on_resized_cb_ = cb;
 }
 
 
 void TaskBase::onComputeEndCallback(std::function<void(double,double)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onUpdateEnd callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onUpdateEnd callback";
     this->on_update_end_cb_ = cb;
 }
 
 void TaskBase::onDeactivationCallback(std::function<void(void)> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onDeactivation callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onDeactivation callback";
     this->on_deactivation_cb_ = cb;
 }
 
 void TaskBase::onDeactivatedCallback(std::function<void ()> cb)
 {
-    LOG_DEBUG << "[" << TaskBase::getName() << "] " << "Registering onDeactivated callback";
+    LOG_DEBUG << "[" << getName() << "] " << "Registering onDeactivated callback";
     this->on_deactivated_cb_ = cb;
 }
 
@@ -484,7 +445,7 @@ bool TaskBase::deactivate()
     if(state_ == Activating || state_ == Activated)
     {
         state_ = Deactivating;
-        LOG_INFO << "[" << TaskBase::getName() << "] Deactivation requested";
+        LOG_INFO << "[" << getName() << "] Deactivation requested";
 
         this->deactivation_requested_ = true;
 
@@ -498,7 +459,7 @@ bool TaskBase::deactivate()
     }
     else
     {
-        LOG_ERROR << "[" << TaskBase::getName() << "] "
+        LOG_ERROR << "[" << getName() << "] "
             << "Could not deactivate because state is " << state_
             << "\nDeactivation is only possible when state is Activating or Activated";
         return false;
@@ -509,16 +470,16 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 {
     if(!problem)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is null");
+        orca_throw(Formatter() << "[" << getName() << "] "<< "Problem is null");
     }
 
     if(state_ != Init) {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
+        orca_throw(Formatter() << "[" << getName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
     }
 
     if(hasProblem())
     {
-        LOG_WARNING << "[" << TaskBase::getName() << "] " << "Problem is already set";
+        LOG_WARNING << "[" << getName() << "] " << "Problem is already set";
         return false;
     }
     this->problem_ = problem;
@@ -538,7 +499,7 @@ std::shared_ptr<const Problem> TaskBase::getProblem() const
 {
     if(!problem_)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "<< "Problem is not set");
+        orca_throw(Formatter() << "[" << getName() << "] "<< "Problem is not set");
     }
     return problem_;
 }
@@ -547,17 +508,17 @@ void TaskBase::checkIfUpdatable() const
 {
     if(!hasRobot())
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not loaded");
+        orca_throw(Formatter() << "[" << getName() << "] " << "Robot is not loaded");
     }
 
     if(!robot_->isInitialized())
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Robot is not initialised (first state not set)");
+        orca_throw(Formatter() << "[" << getName() << "] " << "Robot is not initialised (first state not set)");
     }
 
     if(!hasProblem())
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] " << "Problem is not set");
+        orca_throw(Formatter() << "[" << getName() << "] " << "Problem is not set");
     }
 }
 
@@ -580,7 +541,7 @@ std::shared_ptr<const Wrench> TaskBase::getWrench() const
 {
     if(!wrench_)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] "
+        orca_throw(Formatter() << "[" << getName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
             << "This task control variabe is " << getControlVariable());
     }

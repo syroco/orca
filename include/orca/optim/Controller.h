@@ -55,11 +55,15 @@ namespace optim
     class Controller
     {
     public:
+        Controller();
         Controller(const std::string& name
             , std::shared_ptr<robot::RobotModel> robot
             ,ResolutionStrategy resolution_strategy
             ,QPSolverImplType solver_type);
-
+        
+        bool configureFromFile(const std::string& file_url);
+        bool configureFromString(const std::string& s);
+        
         void print() const;
 
         void setPrintLevel(int level);

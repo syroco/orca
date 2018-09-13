@@ -35,39 +35,28 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <iostream>
+
+#include <string>
 
 namespace orca
 {
-namespace optim
+namespace common
 {
-    enum class QPSolverImplType
+    class OrcaObject
     {
-        qpoases
-        , osqp
-        , quadprog
+    public:
+        OrcaObject(const std::string& name)
+        : name_(name)
+        {}
+        
+        virtual ~OrcaObject() {}
+        
+        const std::string& getName() const
+        {
+            return name_;
+        }
+    private:
+        std::string name_;
     };
-    
-    inline std::string QPSolverImplTypetoString(QPSolverImplType rs)
-    {
-        if(rs == QPSolverImplType::qpoases) return "qpoases";
-        if(rs == QPSolverImplType::osqp) return "osqp";
-        if(rs == QPSolverImplType::quadprog) return "quadprog";
-        return "Not supported";
-    }
-    inline QPSolverImplType QPSolverImplTypefromString(const std::string& rs)
-    {
-        if(rs == "qpoases") return QPSolverImplType::qpoases;
-        if(rs == "osqp") return QPSolverImplType::osqp;
-        if(rs == "quadprog") return QPSolverImplType::quadprog;
-        return QPSolverImplType::qpoases;
-    }
-} // namespace optim
+} // namespace common
 } // namespace orca
-
-template<class T>
-inline T& operator<<(T& os, const orca::optim::QPSolverImplType& st)
-{
-    os << orca::optim::QPSolverImplTypetoString(st);
-    return os;
-}

@@ -8,6 +8,7 @@
 #include <fstream>
 #include <streambuf>
 #include <tinyxml.h>
+#include <orca/common/Factory.h>
 
 using namespace orca::robot;
 using namespace orca::utils;
@@ -54,6 +55,7 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 }
 
 RobotModel::RobotModel(const std::string& robot_name)
+: ConfigurableOrcaObject(robot_name)
 {
     this->initializeConfig("robot_model");
     name_ = robot_name;
@@ -71,7 +73,7 @@ RobotModel::RobotModel(const std::string& robot_name)
 
 bool RobotModel::configureFromFile(const std::string& yaml_url)
 {
-    return config_->loadFromFile(yaml_url);
+    return configureFromString(config_->fileToString(yaml_url));
 }
 
 bool RobotModel::configureFromString(const std::string& yaml_str)
@@ -468,3 +470,5 @@ const Eigen::VectorXd& RobotModel::generalizedBiasForces()
     assertInitialized();
     return impl_->generalizedBiasForces();
 }
+
+ORCA_REGISTER_CLASS(orca::robot::RobotModel)

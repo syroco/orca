@@ -38,7 +38,7 @@
 
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
-#include "orca/common/Config.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
@@ -105,7 +105,7 @@ struct RobotAcceleration
 * @brief The robot model class allow to make kinematics and dynamics computations
 * 
 */
-class RobotModel
+class RobotModel : public common::ConfigurableOrcaObject
 {
 public:
     using Ptr = std::shared_ptr<RobotModel>;
@@ -308,5 +308,5 @@ private:
     std::unique_ptr<RobotModelImpl<> > impl_;
 };
 
-}
-}
+} // namespace robot
+} // namespace orca

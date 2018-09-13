@@ -35,39 +35,52 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include <iostream>
+
+#include <orca/common/OrcaObject.h>
+#include <orca/common/Config.h>
 
 namespace orca
 {
-namespace optim
+namespace common
 {
-    enum class QPSolverImplType
+    class ConfigurableOrcaObject : public OrcaObject
     {
-        qpoases
-        , osqp
-        , quadprog
+    public:
+        using Ptr = std::shared_ptr<ConfigurableOrcaObject>;
+        
+        virtual ~ConfigurableOrcaObject() {}
+        
+        ConfigurableOrcaObject(const std::string& name);
+                /**
+        * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool configureFromString(const std::string& yaml_str);
+        /**
+        * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool configureFromFile(const std::string& yaml_url);
+        /**
+        * @brief Returns true if all params added with @addParameter have been set
+        *
+        * @return true is all the required parameters are loaded properly
+        */
+        bool isConfigured() const;
+        
+        void addParameter(const std::string& param_name,ParameterBase* param
+                    , ParamPolicy policy = ParamPolicy::Required
+                    , std::function<void()> on_loading_success = 0
+                    , std::function<void()> on_loading_failed = 0);
+        
+        ParameterBase* getParameter(const std::string& param_name);
+        void printConfig() const;
+        
+        Config::Ptr getConfig();
+    private:
+        Config::Ptr config_;
     };
-    
-    inline std::string QPSolverImplTypetoString(QPSolverImplType rs)
-    {
-        if(rs == QPSolverImplType::qpoases) return "qpoases";
-        if(rs == QPSolverImplType::osqp) return "osqp";
-        if(rs == QPSolverImplType::quadprog) return "quadprog";
-        return "Not supported";
-    }
-    inline QPSolverImplType QPSolverImplTypefromString(const std::string& rs)
-    {
-        if(rs == "qpoases") return QPSolverImplType::qpoases;
-        if(rs == "osqp") return QPSolverImplType::osqp;
-        if(rs == "quadprog") return QPSolverImplType::quadprog;
-        return QPSolverImplType::qpoases;
-    }
-} // namespace optim
+} // namespace common
 } // namespace orca
-
-template<class T>
-inline T& operator<<(T& os, const orca::optim::QPSolverImplType& st)
-{
-    os << orca::optim::QPSolverImplTypetoString(st);
-    return os;
-}

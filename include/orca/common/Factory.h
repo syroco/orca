@@ -4,7 +4,7 @@
 #include <map>
 #include <functional>
 #include <orca/utils/Utils.h>
-#include <orca/common/TaskBase.h>
+#include <orca/common/ConfigurableOrcaObject.h>
 
 namespace orca
 {
@@ -18,7 +18,7 @@ namespace orca
                 static Factory factory;
                 return &factory;
             }
-            std::shared_ptr<TaskBase> createPtr(const std::string& instance_name,const std::string& class_name)
+            std::shared_ptr<ConfigurableOrcaObject> createPtr(const std::string& instance_name,const std::string& class_name)
             {
                 if(instance_name.empty())
                 {
@@ -41,7 +41,7 @@ namespace orca
                 std::cout << "[Factory] " << instance_name << " of type " << class_name << " successfully created" << '\n';
                 return c;
             }
-            bool registerClass(const std::string& class_name,std::function<std::shared_ptr<TaskBase>(const std::string&)> f)
+            bool registerClass(const std::string& class_name,std::function<std::shared_ptr<ConfigurableOrcaObject>(const std::string&)> f)
             {
                 if(utils::key_exists(m_,class_name))
                     return false;
@@ -63,7 +63,7 @@ namespace orca
                 }
             }
         private:
-            std::map<std::string,std::function<std::shared_ptr<TaskBase>(const std::string&)> > m_;
+            std::map<std::string,std::function<std::shared_ptr<ConfigurableOrcaObject>(const std::string&)> > m_;
         };
         
     } // namespace common

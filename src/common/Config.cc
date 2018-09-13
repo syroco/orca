@@ -67,7 +67,7 @@ void Config::print() const
     LOG_INFO << ss.str();
 }
 
-bool Config::loadFromFile(const std::string& yaml_url)
+std::string Config::fileToString(const std::string& yaml_url)
 {
     YAML::Node config;
     try {
@@ -79,11 +79,21 @@ bool Config::loadFromFile(const std::string& yaml_url)
     YAML::Emitter out;
     out << config;
     
-    return loadFromString(out.c_str());
+    return out.c_str();
+}
+
+bool Config::loadFromFile(const std::string& yaml_url)
+{
+    return loadFromString(fileToString(yaml_url));
 }
 
 bool Config::loadFromString(const std::string& yaml_str)
 {
+    if(yaml_str.empty())
+    {
+        LOG_ERROR << "[" << getName() << "] " << "Provided config is empty";
+        return false;
+    }
     LOG_INFO << "[" << getName() << "] Starting configuring from file";
     if(parameters_.empty())
     {

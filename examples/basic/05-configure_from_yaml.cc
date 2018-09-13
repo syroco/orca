@@ -52,8 +52,9 @@ int main(int argc, char const *argv[])
         std::cerr << "Usage : " << argv[0] << "/path/to/orca-demo-config.yml (optionally -l debug/info/warning/error)" << "\n";
         return -1;
     }
+    //  Parse logger level as --log_level (or -l) debug/warning etc
+    orca::utils::Logger::parseArgv(argc, argv);
     
-    
-    
-    return 0;
+    orca::optim::Controller controller;
+    return controller.configureFromFile(argv[1]);
 }

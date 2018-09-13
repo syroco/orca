@@ -1,9 +1,10 @@
 #include "orca/common/PIDController.h"
+#include <orca/common/Factory.h>
 
 using namespace orca::common;
 
 PIDController::PIDController(const std::string& name)
-: TaskBase(name,optim::ControlVariable::None)
+: ConfigurableOrcaObject(name)
 {
     this->addParameter( "dimension", &dimension_ );
     this->addParameter( "p_gain", &p_gain_ );
@@ -12,27 +13,21 @@ PIDController::PIDController(const std::string& name)
     this->addParameter( "windup_limit", &windup_limit_ );
 }
 
-void PIDController::setDimension(int dim)
+void PIDController::resize(int dim)
 {
-    if(dimension_.get() != dim)
-    {
-        dimension_.set(dim);
-        onResize();
-    }
-}
-
-void PIDController::onResize()
-{
-    int dim = dimension_.get();
     if(dim > 0)
     {
-        p_gain_.get().setZero(dim);
-        i_gain_.get().setZero(dim);
-        d_gain_.get().setZero(dim);
-        i_error_.setZero(dim);
-        d_error_.setZero(dim);
-        cmd_.setZero(dim);
-        windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
+        if(dimension_.get() != dim)
+        {
+            dimension_.set(dim);
+            p_gain_.get().setZero(dim);
+            i_gain_.get().setZero(dim);
+            d_gain_.get().setZero(dim);
+            i_error_.setZero(dim);
+            d_error_.setZero(dim);
+            cmd_.setZero(dim);
+            windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
+        }
     }
     else
     {

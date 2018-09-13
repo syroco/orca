@@ -12,7 +12,7 @@ using namespace orca::utils;
 JointTorqueTask::JointTorqueTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointTorque)
 {
-    this->addParameter("pid",&pid_,ParamPolicy::Required,[&](){ addChild(pid_.get()); });
+    this->addParameter("pid",&pid_);
 }
 
 void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
@@ -55,7 +55,7 @@ void JointTorqueTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
 
-        pid_.get()->setDimension(dof);
+        pid_.get()->resize(dof);
 
         jnt_trq_des_.setZero(dof);
         current_jnt_trq_.setZero(dof);

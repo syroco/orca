@@ -37,6 +37,7 @@
 
 #pragma once
 
+#include "orca/common/ConfigurableOrcaObject.h"
 #include "orca/robot/RobotModel.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
@@ -55,7 +56,7 @@ namespace common
     * is currently being used, and a state machine. Although this class is
     * called TaskBase, both tasks and constraints inherit from this.
     */
-    class TaskBase
+    class TaskBase : public ConfigurableOrcaObject
     {
         friend optim::Problem;
     public:
@@ -72,35 +73,7 @@ namespace common
             ,Deactivated /*!< Task has finishing ramping down and is now stopped */
             ,Error /*!< Task update returned an error (not used yet) */
         };
-        /**
-        * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
-        *
-        * @return true is all the required parameters are loaded properly
-        */
-        bool configureFromString(const std::string& yaml_str);
-        /**
-        * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
-        *
-        * @return true is all the required parameters are loaded properly
-        */
-        bool configureFromFile(const std::string& yaml_url);
-        /**
-        * @brief Returns true if all params added with @addParameter have been set
-        *
-        * @return true is all the required parameters are loaded properly
-        */
-        bool isConfigured() const;
-        
-        void addParameter(const std::string& param_name,ParameterBase* param
-                    , ParamPolicy policy = ParamPolicy::Required
-                    , std::function<void()> on_loading_success = 0
-                    , std::function<void()> on_loading_failed = 0);
-        
-        ParameterBase* getParameter(const std::string& param_name);
-        void printConfig() const;
-        
-        Config::Ptr getConfig();
-        
+
         TaskBase(const std::string& name, optim::ControlVariable control_var);
         virtual ~TaskBase();
         bool isActivated() const;
@@ -108,8 +81,6 @@ namespace common
         void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
 
         optim::ControlVariable getControlVariable() const;
-
-        const std::string& getName() const;
 
         virtual bool activate();
         virtual void update(double current_time, double dt);
@@ -189,7 +160,7 @@ namespace common
         double ramp_value_ = 0;
         bool activation_requested_ = false;
         bool deactivation_requested_ = false;
-        const std::string name_;
+
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
@@ -206,7 +177,6 @@ namespace common
         //unsigned int getHierarchicalLevel() const;
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
-        Config::Ptr config_;
         std::string parent_name_;
         double current_time_ = -1;
         double current_dt_ = 0;

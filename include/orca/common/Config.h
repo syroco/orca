@@ -42,6 +42,8 @@ namespace orca
 
             void print() const;
 
+            std::string fileToString(const std::string& yaml_url);
+            
             bool loadFromFile(const std::string& yaml_url);
 
             bool loadFromString(const std::string& yaml_str);

@@ -42,8 +42,7 @@ namespace orca
 {
     namespace common
     {
-        class CartesianServoController 
-        : public TaskBase
+        class CartesianServoController : public TaskBase
         {
         public:
             using Ptr = std::shared_ptr<CartesianServoController>;

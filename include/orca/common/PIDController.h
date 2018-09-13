@@ -39,20 +39,19 @@
 
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
-#include "orca/common/TaskBase.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
 namespace common
 {
-    class PIDController
-    : public TaskBase
+    class PIDController: public ConfigurableOrcaObject
     {
     public:
         using Ptr = std::shared_ptr<PIDController>;
         
         PIDController(const std::string& name);
-        void setDimension(int dim);
+        void resize(int dim);
         void setProportionalGain(const Eigen::VectorXd& P_gain);
         const Eigen::VectorXd& P() const;
         void setIntegralGain(const Eigen::VectorXd& I_gain);
@@ -67,9 +66,6 @@ namespace common
                                           , double dt);
         const Eigen::VectorXd& computeCommand(const Eigen::VectorXd& Error, double dt);
         void print() const;
-    protected:
-        void onResize();
-        void onCompute(double current_time, double dt){}
     private:
         Parameter<int> dimension_;
         Parameter<Eigen::VectorXd> p_gain_;
