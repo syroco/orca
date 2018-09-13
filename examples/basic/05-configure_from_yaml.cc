@@ -40,7 +40,6 @@
 
 
 #include <orca/orca.h>
-#include <orca/common/Factory.h>
 
 using namespace orca::all;
 
@@ -56,5 +55,7 @@ int main(int argc, char const *argv[])
     orca::utils::Logger::parseArgv(argc, argv);
     
     orca::optim::Controller controller("demo0-controller");
-    return controller.configureFromFile(argv[1]);
+    controller.configureFromFile(argv[1]);
+    controller.print();
+    return 0;
 }

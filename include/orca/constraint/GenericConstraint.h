@@ -55,6 +55,7 @@ namespace constraint
 class GenericConstraint : public common::TaskBase
 {
 public:
+    using Ptr = std::shared_ptr<GenericConstraint>;
     /**
      * @brief Construct the double bounded function, and set its default state : activated.
      * The lowerBound is set to -inf and the upper bound to +inf

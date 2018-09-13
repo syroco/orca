@@ -146,7 +146,9 @@ namespace optim
         common::Parameter<bool> remove_coriolis_torques_;
         common::Parameter<std::string> name_;
         common::Parameter<robot::RobotModel::Ptr> robot_;
-                
+        common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
+        common::Parameter<std::list< constraint::GenericConstraint::Ptr > >constraints_;
+
         std::function<void(double,double)> update_cb_;
 
         std::list< Problem::Ptr > problems_;

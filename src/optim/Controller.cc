@@ -15,6 +15,8 @@ using namespace orca::robot;
 Controller::Controller(const std::string& name)
 : ConfigurableOrcaObject(name)
 {
+    this->addParameter("tasks",&tasks_);
+    this->addParameter("constraints",&constraints_);
     this->addParameter("robot_model",&robot_);
     this->addParameter("resolution_strategy",&resolution_strategy_str_);
     this->addParameter("qpsolver_implementation",&solver_type_str_);

@@ -51,6 +51,8 @@ class GenericTask : public common::TaskBase
 {
 
 public:
+    using Ptr = std::shared_ptr<GenericTask>;
+    
     GenericTask(const std::string& name,optim::ControlVariable control_var);
 
     virtual ~GenericTask();
