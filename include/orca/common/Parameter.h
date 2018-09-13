@@ -232,6 +232,49 @@ public:
 //     }
 };
 
+template<class T>
+class Parameter<std::list<T > > : public ParameterBase, public ParameterData< std::list<T > >
+{
+public:    
+    
+    bool onLoadFromString(const std::string& s)
+    {
+        std::cout << getName() << " Analysing list" << '\n';
+        YAML::Node node = YAML::Load(s);
+        std::list<T > l;
+        for(auto n : node)
+        {
+            auto task_base_name = n.first.as<std::string>();
+            std::cout << " -  " << task_base_name << '\n';
+            Parameter<T > p;
+            p.setName(task_base_name);
+            p.setRequired(true);
+            YAML::Emitter out; 
+            out << n.second;
+            p.loadFromString(out.c_str());
+        }
+        ParameterData< std::list<T > >::set(l);
+        return true;
+    }
+
+    void print() const
+    {
+        std::cout << getName() << " list of shared_ptr" << '\n';
+    }
+    
+    bool isSet() const
+    {
+        return ParameterData<std::list<T > >::isSet();
+    }
+    
+    template<class T2>
+    Parameter<std::list<T > >& operator=(std::list<std::shared_ptr<T2> > val)
+    {
+        this->set(val);
+        return *this;
+    }
+};
+
 } // namespace common
 } // namespace orca
 

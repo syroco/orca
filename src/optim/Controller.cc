@@ -36,60 +36,12 @@ Controller::Controller(const std::string& name)
             orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
         }
         insertNewLevel();
+        for(auto task : tasks_.get())
+            this->addTask(task);
+        for(auto constraint: constraints_.get())
+            this->addConstraint(constraint);
     });
 }
-
-// bool Controller::configureFromString(const std::string& yaml_str)
-// {
-//     if(yaml_str.empty())
-//         orca_throw(Formatter() << "Provided yaml file is empty");
-//     
-//     YAML::Node config;
-//     try {
-//         config = YAML::Load(yaml_str);
-//     } catch(std::exception& e) {
-//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file does not seem to be valid, usually bad formatting.\n\n");
-//     }
-//     
-//     YAML::Node robot_model_node;
-//     YAML::Node controller_node;
-//     
-//     try {
-//         robot_model_node = config["robot_model"];
-//     } catch(std::exception& e) {
-//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'robot_model' key\n\n");
-//     }
-//     
-//     try {
-//         controller_node = config["controller"];
-//     } catch(std::exception& e) {
-//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'controller_node' key\n\n");
-//     }
-//     
-//     auto to_string = [](const YAML::Node& n) -> std::string 
-//         { YAML::Emitter out; out << n; return out.c_str(); };
-//     
-//     if(!config()->loadFromString(to_string(controller_node)))
-//         return false;
-//     
-//     resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
-//     solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
-//     
-//     if(!robot()->configureFromString(to_string(robot_model_node)))
-//         return false;
-//     
-//     joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-//     joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-//     kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
-// 
-//     if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
-//     {
-//         orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
-//     }
-//     insertNewLevel();
-//     
-//     return true;
-// }
 
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotModel> robot
