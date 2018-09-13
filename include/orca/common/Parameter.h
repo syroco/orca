@@ -1,6 +1,7 @@
 #pragma once
 #include <orca/utils/Utils.h>
 #include <exception>
+// TODO : Try to remove this from headers
 #include <yaml-cpp/yaml.h>
 
 // Support for Eigen Vectors and Matrices
@@ -175,11 +176,12 @@ private:
 };
 
 
-template<class T>
+
 /**
 * @brief This class holds the conversion from a string (YAML string) to the data type
 * 
 */
+template<class T>
 class Parameter : public ParameterBase, public ParameterData<T>
 {
 public:
@@ -229,3 +231,10 @@ public:
 
 } // namespace common
 } // namespace orca
+
+template<class T>
+inline ::std::ostream& operator<<(::std::ostream& os, const orca::common::Parameter<T>& p)
+{
+    os << p.get();
+    return os;
+}

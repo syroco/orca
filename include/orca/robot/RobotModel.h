@@ -38,6 +38,7 @@
 
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
+#include "orca/common/Config.h"
 
 namespace orca
 {
@@ -114,6 +115,18 @@ public:
     */
     RobotModel(const std::string& name="");
     virtual ~RobotModel();
+    /**
+    * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
+    *
+    * @return true is all the required parameters are loaded properly
+    */
+    bool configureFromString(const std::string& yaml_str);
+    /**
+    * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
+    *
+    * @return true is all the required parameters are loaded properly
+    */
+    bool configureFromFile(const std::string& yaml_url);
     /**
     * @brief Returns the name of the model, either set in the constructor, or automatically extracted from the urdf
     * 
@@ -280,11 +293,15 @@ protected:
     std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
 
-    std::string name_;
-    std::string urdf_url_;
-    std::string urdf_str_;
+    common::Parameter<std::string> name_;
+    common::Parameter<std::string> urdf_url_;
+    common::Parameter<std::string> urdf_str_;
+    common::Parameter<std::string> base_frame_;
+    common::Parameter<Eigen::Vector3d> gravity_;
 
+    common::Config::Ptr config_;
 private:
+    void initializeConfig(const std::string& config_name);
     template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
 };

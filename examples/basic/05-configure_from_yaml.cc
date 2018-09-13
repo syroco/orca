@@ -49,34 +49,11 @@ int main(int argc, char const *argv[])
     // Get the urdf file from the command line
     if(argc < 2)
     {
-        std::cerr << "Usage : " << argv[0] << " /path/to/robot-urdf.urdf (optionally -l debug/info/warning/error)" << "\n";
+        std::cerr << "Usage : " << argv[0] << "/path/to/orca-demo-config.yml (optionally -l debug/info/warning/error)" << "\n";
         return -1;
     }
-    std::string urdf_url(argv[1]);
-
-    //  Parse logger level as --log_level (or -l) debug/warning etc
-    orca::utils::Logger::parseArgv(argc, argv);
     
-    // Create the kinematic model that is shared by everybody. Here you can pass a robot name
-    auto robot_model = std::make_shared<RobotModel>();
-
-     //  If you don't pass a robot name, it is extracted from the urdf
-    robot_model->loadModelFromFile(urdf_url);
-
-    // All the transformations (end effector pose for example) will be expressed wrt this base frame
-    robot_model->setBaseFrame("base_link");
-
-    // Sets the world gravity (Optional)
-    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
     
-    // Cartesian Task
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    // Set the frame you want to control. Here we want to control the link_7.
-    cart_task->configureFromString("{ servo_controller: { type: orca::common::CartesianAccelerationPID, control_frame: link_7,"
-    "pid: { type: orca::common::PIDController, dimension: 6, p_gain: [1.,1.,1.,1.,1.,1.], d_gain: [1.,1.,1.,1.,1.,1.], i_gain: [0.,0.,0.,0.,0.,0.], windup_limit: [0.,0.,0.,0.,0.,0.]  } } }"
     
-    );
-    cart_task->print();
-    std::cout << "Task configured ? " << std::boolalpha << cart_task->isConfigured() << '\n';
     return 0;
 }

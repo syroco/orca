@@ -12,6 +12,7 @@
 using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
+using namespace orca::common;
 
 #define assertInitialized() \
     if(!is_initialized_) \
@@ -53,8 +54,11 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 }
 
 RobotModel::RobotModel(const std::string& robot_name)
-: name_(robot_name)
 {
+    this->initializeConfig("robot_model");
+    name_ = robot_name;
+    gravity_ = Eigen::Vector3d(0,0,-9.809);
+
     switch(robot_kinematics_type_)
     {
         case RobotModelImplType::iDynTree:
@@ -65,6 +69,27 @@ RobotModel::RobotModel(const std::string& robot_name)
     }
 }
 
+bool RobotModel::configureFromFile(const std::string& yaml_url)
+{
+    return config_->loadFromFile(yaml_url);
+}
+
+bool RobotModel::configureFromString(const std::string& yaml_str)
+{
+    if(!config_->loadFromString(yaml_str))
+        return false;
+}
+
+void RobotModel::initializeConfig(const std::string& config_name)
+{
+    config_ = std::make_shared<Config>(config_name);
+    config_->addParameter("name",&name_,ParamPolicy::Optional);
+    config_->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
+    config_->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
+    config_->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
+    config_->addParameter("gravity",&gravity_,ParamPolicy::Optional);
+}
+
 RobotModel::~RobotModel()
 {
 
@@ -72,7 +97,7 @@ RobotModel::~RobotModel()
 
 const std::string& RobotModel::getName() const
 {
-    return name_;
+    return name_.get();
 }
 
 const std::vector<std::string>& RobotModel::getLinkNames() const
@@ -100,12 +125,15 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     // Extract the model name from the URDF
     // WARNING : in multi robot environnement + ROS
     // This will cause topic names collisions as they are based on robot names
-    if(name_.empty())
+    if(name_.get().empty())
     {
         // If no name is provided, let's find it on the URDF
         TiXmlDocument doc;
         doc.Parse(modelString.c_str());
-        if(!getRobotNameFromTinyXML(&doc,name_))
+        
+        std::string name_in_xml;
+        
+        if(!getRobotNameFromTinyXML(&doc,name_in_xml))
         {
             std::cerr << "modelString : \n" << modelString << '\n';
             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
@@ -114,8 +142,11 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         }
         else
         {
-            LOG_DEBUG << "Name extracted from URDF string : " << name_;
+            LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
         }
+        
+        // Set the new name
+        name_.set( name_in_xml );
     }
     if(impl_->loadModelFromString(modelString))
     {
@@ -149,17 +180,17 @@ bool RobotModel::loadModelFromFile(const std::string &modelFile)
 
 const std::string& RobotModel::getUrdfUrl() const
 {
-    if(urdf_url_.empty() && !urdf_str_.empty())
+    if(urdf_url_.get().empty() && !urdf_str_.get().empty())
         LOG_WARNING << "Robot model has been loaded with a URDF string, so the url is empty";
     assertLoaded();
-    return urdf_url_;
+    return urdf_url_.get();
 }
 
 const std::string& RobotModel::getUrdfString() const
 {
-    if(urdf_str_.empty())
+    if(urdf_str_.get().empty())
         LOG_ERROR << "Robot is not loaded, URDF string is empty";
-    return urdf_str_;
+    return urdf_str_.get();
 }
 
 const Eigen::VectorXd& RobotModel::getMinJointPos()
