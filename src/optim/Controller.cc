@@ -20,8 +20,8 @@ Controller::Controller(const std::string& name)
     this->addParameter("robot_model",&robot_);
     this->addParameter("resolution_strategy",&resolution_strategy_str_);
     this->addParameter("qpsolver_implementation",&solver_type_str_);
-    this->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_);
-    this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_);
+    this->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_, ParamPolicy::Optional);
+    this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_, ParamPolicy::Optional);
     this->config()->onSuccess([&](){
 
         resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());

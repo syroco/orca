@@ -36,7 +36,6 @@ void PIDController::resize(int dim)
 
 void PIDController::setProportionalGain(const Eigen::VectorXd& P_gain)
 {
-    utils::assertSize(P_gain,p_gain_.get());
     p_gain_ = P_gain;
 }
 
@@ -47,13 +46,11 @@ const Eigen::VectorXd& PIDController::P() const
 
 void PIDController::setIntegralGain(const Eigen::VectorXd& I_gain)
 {
-    utils::assertSize(I_gain,i_gain_.get());
     i_gain_ = I_gain;
 }
 
 void PIDController::setWindupLimit(const Eigen::VectorXd& windup_lim)
 {
-    utils::assertSize(windup_lim,windup_limit_.get());
     windup_limit_ = windup_lim;
 }
 
@@ -69,7 +66,6 @@ const Eigen::VectorXd& PIDController::I() const
 
 void PIDController::setDerivativeGain(const Eigen::VectorXd& D_gain)
 {
-    utils::assertSize(D_gain,d_gain_.get());
     d_gain_ = D_gain;
 }
 

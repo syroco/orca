@@ -24,7 +24,12 @@ template<class T>
 class Parameter<std::shared_ptr<T> > : public ParameterBase, public ParameterData< std::shared_ptr<T> >
 {
 public:    
-
+    Parameter()
+    {}
+    Parameter(const std::shared_ptr<T >& t)
+    {
+        ParameterData< std::shared_ptr<T > >::set(t);
+    }
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);

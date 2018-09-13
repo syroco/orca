@@ -50,7 +50,7 @@ namespace common
     public:
         using Ptr = std::shared_ptr<PIDController>;
         
-        PIDController(const std::string& name);
+        PIDController(const std::string& name = "");
         void resize(int dim);
         void setProportionalGain(const Eigen::VectorXd& P_gain);
         const Eigen::VectorXd& P() const;

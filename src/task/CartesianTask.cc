@@ -11,8 +11,6 @@ CartesianTask::CartesianTask(const std::string& name)
 {
     this->addParameter("desired_cartesian_acceleration",&cart_acc_des_,ParamPolicy::Optional);
     this->addParameter("servo_controller",&servo_);
-    
-    //setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));
 }
 
 std::shared_ptr<CartesianServoController> CartesianTask::servoController()
@@ -29,8 +27,11 @@ void CartesianTask::print() const
 
 void CartesianTask::setServoController(std::shared_ptr<CartesianAccelerationPID> servo)
 {
+    std::cout << "[" << getName() << "] Setting servo controller" << '\n';
     servo_.set(servo);
+    std::cout << "[" << getName() << "] Adding as child" << '\n';
     this->addChild(servo_.get());
+    std::cout << "[" << getName() << "] Servo controller set !" << '\n';
 }
 
 const std::string& CartesianTask::getBaseFrame() const

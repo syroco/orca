@@ -93,16 +93,12 @@ int main(int argc, char const *argv[])
 
     // Cartesian Task
     auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-    // Set the frame you want to control. Here we want to control the link_7.
-    cart_task->setControlFrame("link_7"); //
 
     // Set the pose desired for the link_7
     Eigen::Affine3d cart_pos_ref;
 
     // Setting the translational components.
     cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
-
-
 
     // Rotation is done with a Matrix3x3 and it can be initialized in a few ways. Note that each of these methods produce equivalent Rotation matrices in this case.
 
@@ -136,10 +132,10 @@ int main(int argc, char const *argv[])
     D << 100, 100, 100, 1, 1, 1;
     cart_acc_pid->pid()->setDerivativeGain(D);
 
-
+    cart_acc_pid->setControlFrame("link_7");
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-
+    // Set the servo controller to the cartesian task
     cart_task->setServoController(cart_acc_pid);
     
     // Get the number of actuated joints

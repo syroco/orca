@@ -142,8 +142,8 @@ namespace optim
     private:
         common::Parameter<std::string> resolution_strategy_str_;
         common::Parameter<std::string> solver_type_str_;
-        common::Parameter<bool> remove_gravity_torques_;
-        common::Parameter<bool> remove_coriolis_torques_;
+        common::Parameter<bool> remove_gravity_torques_ = false;
+        common::Parameter<bool> remove_coriolis_torques_ = true;
         common::Parameter<std::string> name_;
         common::Parameter<robot::RobotModel::Ptr> robot_;
         common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
@@ -152,8 +152,6 @@ namespace optim
         std::function<void(double,double)> update_cb_;
 
         std::list< Problem::Ptr > problems_;
-
-        
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;

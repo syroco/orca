@@ -17,8 +17,6 @@ JointLimitConstraint::JointLimitConstraint(const std::string& name,ControlVariab
 
 void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max)
 {
-    assertSize(min,min_.get());
-    assertSize(max,max_.get());
     min_ = min;
     max_ = max;
 }
@@ -41,16 +39,18 @@ Eigen::VectorXd& JointLimitConstraint::maxLimit()
 void JointLimitConstraint::onResize()
 {
     const int dim = this->robot()->getNrOfDegreesOfFreedom();
-
-    if(min_.get().size() != dim || max_.get().size() != dim)
+    if(!min_.isSet() || min_.get().size() != dim)
+    {
+        min_ = Eigen::VectorXd::Constant(dim, - math::Infinity);
+    }
+    if(!max_.isSet() || max_.get().size() != dim)
+    {
+        max_ = Eigen::VectorXd::Constant(dim,   math::Infinity);
+    }
+    
+    if(constraintFunction().rows() != dim)
     {
         constraintFunction().resize(dim,dim);
         constraintFunction().constraintMatrix().setIdentity();
-
-        min_.get().conservativeResize(dim);
-        max_.get().conservativeResize(dim);
-
-        math::setToLowest(min_.get());
-        math::setToHighest(max_.get());
     }
 }

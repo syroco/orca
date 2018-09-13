@@ -55,6 +55,8 @@ void TaskBase::addChild(std::shared_ptr<TaskBase> e)
 {
     if(!exists(e,children_))
     {
+        e->setProblem(getProblem());
+        e->setRobotModel(robot());
         e->setParentName(this->getName());
         children_.push_back(e);
         return;

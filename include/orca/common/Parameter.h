@@ -252,8 +252,13 @@ public:
 template<class T>
 class Parameter<std::list<T > > : public ParameterBase, public ParameterData< std::list<T > >
 {
-public:    
-    
+public:   
+    Parameter()
+    {}
+    Parameter(const std::list<T >& t)
+    {
+        ParameterData< std::list<T > >::set(t);
+    }
     bool onLoadFromString(const std::string& s)
     {
         std::cout << getName() << " Analysing list" << '\n';
