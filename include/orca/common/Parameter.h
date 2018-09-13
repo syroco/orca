@@ -182,6 +182,12 @@ template<class T>
 class Parameter : public ParameterBase, public ParameterData<T>
 {
 public:
+    Parameter()
+    {}
+    Parameter(const T& t)
+    {
+        this->set(t);
+    }
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
