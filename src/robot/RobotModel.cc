@@ -56,8 +56,10 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 
 RobotModel::RobotModel(const std::string& robot_name)
 : ConfigurableOrcaObject(robot_name)
+, name_(robot_name)
 {
     this->config()->onSuccess([&](){ loadFromParameters(); });
+    this->addParameter("name",&name_,ParamPolicy::Optional);
     this->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
     this->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
     this->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
@@ -143,29 +145,29 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     // Extract the model name from the URDF
     // WARNING : in multi robot environnement + ROS
     // This will cause topic names collisions as they are based on robot names
-//     if(name_.empty())
-//     {
-//         // If no name is provided, let's find it on the URDF
-//         TiXmlDocument doc;
-//         doc.Parse(modelString.c_str());
-//         
-//         std::string name_in_xml;
-//         
-//         if(!getRobotNameFromTinyXML(&doc,name_in_xml))
-//         {
-//             std::cerr << "modelString : \n" << modelString << '\n';
-//             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
-//                 << '\n'
-//                 << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
-//         }
-//         else
-//         {
-//             LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
-//         }
-//         
-//         // Set the new name
-//         name_.set( name_in_xml );
-//     }
+    if(name_.get().empty())
+    {
+        // If no name is provided, let's find it on the URDF
+        TiXmlDocument doc;
+        doc.Parse(modelString.c_str());
+        
+        std::string name_in_xml;
+        
+        if(!getRobotNameFromTinyXML(&doc,name_in_xml))
+        {
+            std::cerr << "modelString : \n" << modelString << '\n';
+            LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
+                << '\n'
+                << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
+        }
+        else
+        {
+            LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
+        }
+        
+        // Set the new name
+        name_.set( name_in_xml );
+    }
     if(impl_->loadModelFromString(modelString))
     {
         urdf_str_ = modelString;
@@ -175,6 +177,11 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     std::cerr << "modelString : \n" << modelString << "\n\n";
     orca_throw(Formatter() << modelString << "\n\nCould not load robot model from above urdf string.\n\n");
     return false;
+}
+
+const std::string& RobotModel::getName() const
+{
+    return name_.get();
 }
 
 bool RobotModel::loadModelFromFile(const std::string &modelFile)

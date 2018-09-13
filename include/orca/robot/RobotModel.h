@@ -175,6 +175,11 @@ public:
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel);
     /**
+    * @brief Returns the name of the robot, either provided via constructor
+    * or extracted from the urdf is no name is provided
+    */
+    const std::string& getName() const;
+    /**
     * @brief Print information about the model to cout
     * 
     */
@@ -270,6 +275,7 @@ public:
     bool isInitialized() const;
     void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
+    
     enum RobotModelImplType { iDynTree, KDL };
     RobotModelImplType robot_kinematics_type_ = iDynTree;
 
@@ -281,11 +287,14 @@ protected:
     common::Parameter<std::string> base_frame_;
     common::Parameter<Eigen::Vector3d> gravity_;
     common::Parameter<Eigen::VectorXd> home_joint_positions_;
-
-private:
+    common::Parameter<std::string> name_;
+    
     bool loadFromParameters();
+private:
+    
     template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
+    
 };
 
 } // namespace robot

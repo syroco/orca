@@ -55,6 +55,10 @@ namespace common
         {
             return name_;
         }
+        void setName(const std::string& name)
+        {
+            name_ = name;
+        }
     private:
         std::string name_;
     };
