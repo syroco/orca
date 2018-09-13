@@ -108,6 +108,7 @@ struct RobotAcceleration
 class RobotModel
 {
 public:
+    using Ptr = std::shared_ptr<RobotModel>;
     /**
     * @brief The default constructor
     * 

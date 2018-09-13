@@ -17,7 +17,7 @@ using namespace orca::math;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolver::SolverType solver_type)
+Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolverImplType solver_type)
 : qpsolver_(std::make_shared<QPSolver>(solver_type))
 , robot_(robot)
 {

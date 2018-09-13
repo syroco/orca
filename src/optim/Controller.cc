@@ -13,12 +13,21 @@ using namespace orca::common;
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotModel> robot
     ,ResolutionStrategy resolution_strategy
-    ,QPSolver::SolverType solver_type)
-: name_(name)
-, robot_(robot)
-, resolution_strategy_(resolution_strategy)
-, solver_type_(solver_type)
+    ,QPSolverImplType solver_type)
 {
+    config_ = std::make_shared<Config>("controller");
+    
+    config_->addParameter("name",&name_);
+    config_->addParameter("resolution_strategy",&resolution_strategy_str_);
+    config_->addParameter("solver_type",&solver_type_str_);
+    config_->addParameter("remove_gravity_torques",&remove_gravity_torques_);
+    config_->addParameter("remove_coriolis_torques",&remove_coriolis_torques_);
+    
+    name_.set(name);
+    resolution_strategy_ = resolution_strategy;
+    solver_type_ = solver_type;
+    robot_ = robot;
+    
     joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
     joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
     kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
@@ -48,7 +57,7 @@ void Controller::setPrintLevel(int level)
 
 const std::string& Controller::getName()
 {
-    return name_;
+    return name_.get();
 }
 
 std::shared_ptr<robot::RobotModel> Controller::robot()
@@ -231,10 +240,10 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
 
             joint_torque_command_ = problem->getSolution(ControlVariable::JointTorque);
 
-            if(remove_gravity_torques || remove_gravity_torques_)
+            if(remove_gravity_torques || remove_gravity_torques_.get())
                 joint_torque_command_ -= robot_->getJointGravityTorques();
 
-            if(remove_coriolis_torques || remove_coriolis_torques_)
+            if(remove_coriolis_torques || remove_coriolis_torques_.get())
                 joint_torque_command_ -= robot_->getJointCoriolisTorques();
 
             return joint_torque_command_;
@@ -346,11 +355,11 @@ bool Controller::tasksAndConstraintsDeactivated()
 
 void Controller::removeGravityTorquesFromSolution(bool do_remove)
 {
-    remove_gravity_torques_ = do_remove;
+    remove_gravity_torques_.get() = do_remove;
 }
 void Controller::removeCoriolisTorquesFromSolution(bool do_remove)
 {
-    remove_coriolis_torques_ = do_remove;
+    remove_coriolis_torques_.get() = do_remove;
 }
 
 std::shared_ptr<Problem> Controller::getProblemAtLevel(int level)

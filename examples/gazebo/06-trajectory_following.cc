@@ -114,7 +114,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpoases
     );
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();

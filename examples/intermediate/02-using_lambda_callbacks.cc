@@ -119,7 +119,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpoases
     );
 
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");

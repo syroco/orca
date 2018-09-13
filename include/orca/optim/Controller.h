@@ -46,6 +46,7 @@
 #include "orca/robot/RobotModel.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/task/RegularisationTask.h"
+#include "orca/common/Config.h"
 
 namespace orca
 {
@@ -57,7 +58,7 @@ namespace optim
         Controller(const std::string& name
             , std::shared_ptr<robot::RobotModel> robot
             ,ResolutionStrategy resolution_strategy
-            ,QPSolver::SolverType solver_type);
+            ,QPSolverImplType solver_type);
 
         void print() const;
 
@@ -81,7 +82,7 @@ namespace optim
             auto t = std::make_shared<T>(name);
             if(this->addTask(t))
                 return t;
-            return 0;
+            return nullptr;
         }
 
         std::shared_ptr<task::GenericTask> getTask(const std::string& name, int level = 0);
@@ -95,7 +96,7 @@ namespace optim
             auto c = std::make_shared<C>(name);
             if(this->addConstraint(c))
                 return c;
-            return 0;
+            return nullptr;
         }
 
         bool solutionFound() const;
@@ -138,23 +139,28 @@ namespace optim
 
         void updateConstraints(double current_time, double dt);
     private:
+        common::Parameter<std::string> resolution_strategy_str_;
+        common::Parameter<std::string> solver_type_str_;
+        common::Parameter<bool> remove_gravity_torques_;
+        common::Parameter<bool> remove_coriolis_torques_;
+        common::Parameter<std::string> name_;
+        
+        common::Config::Ptr config_;
+        
         std::function<void(double,double)> update_cb_;
 
-        std::list< std::shared_ptr<Problem> > problems_;
+        std::list< Problem::Ptr > problems_;
 
-        std::shared_ptr<robot::RobotModel> robot_;
+        robot::RobotModel::Ptr robot_;
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;
         Eigen::VectorXd joint_acceleration_command_;
 
-        bool remove_gravity_torques_ = false;
-        bool remove_coriolis_torques_ = false;
-
-        ResolutionStrategy resolution_strategy_;
-        QPSolver::SolverType solver_type_;
-        const std::string name_;
         bool solution_found_ = false;
+        
+        ResolutionStrategy resolution_strategy_;
+        QPSolverImplType solver_type_;
     };
 } // namespace optim
 } //namespace orca

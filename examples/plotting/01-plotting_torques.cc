@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpoases
     );
 
     // Cartesian Task

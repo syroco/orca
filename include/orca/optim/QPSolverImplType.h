@@ -41,33 +41,33 @@ namespace orca
 {
 namespace optim
 {
-    enum class ResolutionStrategy
+    enum class QPSolverImplType
     {
-        OneLevelWeighted
-        , MultiLevelWeighted
-        , Generalized
+        qpoases
+        , osqp
+        , quadprog
     };
     
-    inline std::string ResolutionStrategytoString(ResolutionStrategy rs)
+    inline std::string QPSolverTypetoString(QPSolverImplType rs)
     {
-        if(rs == ResolutionStrategy::OneLevelWeighted) return "OneLevelWeighted";
-        if(rs == ResolutionStrategy::MultiLevelWeighted) return "MultiLevelWeighted";
-        if(rs == ResolutionStrategy::Generalized) return "Generalized";
+        if(rs == QPSolverImplType::qpoases) return "qpoases";
+        if(rs == QPSolverImplType::osqp) return "osqp";
+        if(rs == QPSolverImplType::quadprog) return "quadprog";
         return "Not supported";
     }
-    inline ResolutionStrategy ResolutionStrategyfromString(const std::string& rs)
+    inline QPSolverImplType QPSolverTypefromString(const std::string& rs)
     {
-        if(rs == "OneLevelWeighted") return ResolutionStrategy::OneLevelWeighted;
-        if(rs == "MultiLevelWeighted") return ResolutionStrategy::MultiLevelWeighted;
-        if(rs == "Generalized") return ResolutionStrategy::Generalized;
-        return ResolutionStrategy::OneLevelWeighted;
+        if(rs == "qpoases") return QPSolverImplType::qpoases;
+        if(rs == "osqp") return QPSolverImplType::osqp;
+        if(rs == "quadprog") return QPSolverImplType::quadprog;
+        return QPSolverImplType::qpoases;
     }
 } // namespace optim
 } // namespace orca
 
 template<class T>
-inline T& operator<<(T& os, const orca::optim::ResolutionStrategy& rs)
+inline T& operator<<(T& os, const orca::optim::QPSolverImplType& st)
 {
-    os << orca::optim::ResolutionStrategytoString(rs);
+    os << orca::optim::QPSolverTypetoString(st);
     return os;
 }

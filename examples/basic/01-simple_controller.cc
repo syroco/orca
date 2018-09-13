@@ -87,7 +87,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpoases
     );
     // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
 

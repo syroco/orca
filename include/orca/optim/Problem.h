@@ -78,7 +78,9 @@ namespace optim
 class Problem
 {
 public:
-    Problem(std::shared_ptr<robot::RobotModel> robot,QPSolver::SolverType solver_type);
+    using Ptr = std::shared_ptr<Problem>;
+    
+    Problem(std::shared_ptr<robot::RobotModel> robot,QPSolverImplType solver_type);
 
     virtual ~Problem();
 

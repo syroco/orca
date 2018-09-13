@@ -556,7 +556,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpoases
     );
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
     controller.addTask(cart_task);
