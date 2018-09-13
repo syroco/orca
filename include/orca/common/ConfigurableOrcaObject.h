@@ -72,13 +72,12 @@ namespace common
         
         void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
-                    , std::function<void()> on_loading_success = 0
-                    , std::function<void()> on_loading_failed = 0);
+                    , std::function<void()> on_loading_success = 0);
         
         ParameterBase* getParameter(const std::string& param_name);
         void printConfig() const;
         
-        Config::Ptr getConfig();
+        Config::Ptr config();
     private:
         Config::Ptr config_;
     };

@@ -117,24 +117,6 @@ public:
     RobotModel(const std::string& name="");
     virtual ~RobotModel();
     /**
-    * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
-    *
-    * @return true is all the required parameters are loaded properly
-    */
-    bool configureFromString(const std::string& yaml_str);
-    /**
-    * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
-    *
-    * @return true is all the required parameters are loaded properly
-    */
-    bool configureFromFile(const std::string& yaml_url);
-    /**
-    * @brief Returns the name of the model, either set in the constructor, or automatically extracted from the urdf
-    * 
-    * @return const std::string&
-    */
-    const std::string& getName() const;
-    /**
     * @brief Load the model from an absolute urdf file path
     * 
     * @param modelFile The absolute file path
@@ -294,16 +276,14 @@ protected:
     std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
 
-    common::Parameter<std::string> name_;
     common::Parameter<std::string> urdf_url_;
     common::Parameter<std::string> urdf_str_;
     common::Parameter<std::string> base_frame_;
     common::Parameter<Eigen::Vector3d> gravity_;
     common::Parameter<Eigen::VectorXd> home_joint_positions_;
 
-    common::Config::Ptr config_;
 private:
-    void initializeConfig(const std::string& config_name);
+    bool loadFromParameters();
     template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
 };

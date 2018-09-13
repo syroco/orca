@@ -17,8 +17,7 @@ const std::string& Config::getName() const
 
 void Config::addParameter(const std::string& param_name,ParameterBase* param
         , ParamPolicy policy /*= ParamPolicy::Required*/
-        , std::function<void()> on_loading_success /*= 0*/
-        , std::function<void()> on_loading_failed /*= 0*/)
+        , std::function<void()> on_loading_success /*= 0*/)
 {
     if(param_name.empty())
         orca_throw(Formatter() << "Cannot have an empty parameter name !");
@@ -33,8 +32,7 @@ void Config::addParameter(const std::string& param_name,ParameterBase* param
     }
     param->setName(param_name);
     param->setRequired(policy == ParamPolicy::Required);
-    param->onLoadingSuccess(on_loading_success);
-    param->onLoadingFailed(on_loading_failed);
+    param->onSuccess(on_loading_success);
     parameters_[param_name] = param;
 }
 
@@ -85,6 +83,11 @@ std::string Config::fileToString(const std::string& yaml_url)
 bool Config::loadFromFile(const std::string& yaml_url)
 {
     return loadFromString(fileToString(yaml_url));
+}
+
+void Config::onSuccess(std::function<void()> f)
+{
+    on_success_ = f;
 }
 
 bool Config::loadFromString(const std::string& yaml_str)
@@ -184,6 +187,12 @@ bool Config::loadFromString(const std::string& yaml_str)
     }
     
     LOG_INFO_IF(all_set) << "[" << getName() << "] " << "Sucessfully configured";
+    
+    if(all_set)
+    {
+        if(on_success_)
+            on_success_();
+    }
     
     return all_set;
 }

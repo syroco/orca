@@ -46,29 +46,26 @@
 #include "orca/robot/RobotModel.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/task/RegularisationTask.h"
-#include "orca/common/Config.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
 namespace optim
 {
-    class Controller
+    class Controller : public common::ConfigurableOrcaObject
     {
     public:
-        Controller();
+        Controller(const std::string& name);
         Controller(const std::string& name
             , std::shared_ptr<robot::RobotModel> robot
             ,ResolutionStrategy resolution_strategy
             ,QPSolverImplType solver_type);
         
-        bool configureFromFile(const std::string& file_url);
-        bool configureFromString(const std::string& s);
-        
         void print() const;
 
         void setPrintLevel(int level);
 
-        const std::string& getName();
+        const std::string& getName() const;
 
         std::shared_ptr<robot::RobotModel> robot();
 
@@ -148,14 +145,13 @@ namespace optim
         common::Parameter<bool> remove_gravity_torques_;
         common::Parameter<bool> remove_coriolis_torques_;
         common::Parameter<std::string> name_;
-        
-        common::Config::Ptr config_;
-        
+        common::Parameter<robot::RobotModel::Ptr> robot_;
+                
         std::function<void(double,double)> update_cb_;
 
         std::list< Problem::Ptr > problems_;
 
-        robot::RobotModel::Ptr robot_;
+        
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;

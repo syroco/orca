@@ -90,16 +90,14 @@ public:
         {
             if(onLoadFromString(s))
             {
-                if(loading_success_)
-                    loading_success_();
+                if(on_success_)
+                    on_success_();
                 return true;
             }
         } catch(std::exception& e) {
             utils::orca_throw(e.what());
         }
 
-        if(loading_failed_) 
-            loading_failed_();
         return false;
     }
     virtual void print() const = 0;
@@ -108,13 +106,9 @@ public:
     void setName(const std::string& name) { name_ = name; }
     void setRequired(bool is_required) { is_required_ = is_required; }
     bool isRequired() const { return is_required_; }
-    void onLoadingSuccess(std::function<void(void)> loading_success_callback)
+    void onSuccess(std::function<void(void)> f)
     {
-        loading_success_ = loading_success_callback;
-    }
-    void onLoadingFailed(std::function<void(void)> loading_failed_callback)
-    {
-        loading_failed_ = loading_failed_callback;
+        on_success_ = f;
     }
 protected:
     virtual bool onLoadFromString(const std::string& s) = 0;
@@ -122,8 +116,7 @@ private:
     std::string name_;
     bool is_required_ = false;
     bool is_sub_param_ = false;
-    std::function<void(void)> loading_success_;
-    std::function<void(void)> loading_failed_;
+    std::function<void(void)> on_success_;
 };
 
 template<class T>

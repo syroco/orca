@@ -11,10 +11,9 @@ ConfigurableOrcaObject::ConfigurableOrcaObject(const std::string& name)
 
 void ConfigurableOrcaObject::addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy /*= ParamPolicy::Required*/
-                    , std::function<void()> on_loading_success /*= 0*/
-                    , std::function<void()> on_loading_failed /*= 0*/)
+                    , std::function<void()> on_loading_success /*= 0*/)
 {
-    config_->addParameter(param_name,param,policy,on_loading_success,on_loading_failed);
+    config_->addParameter(param_name,param,policy,on_loading_success);
 }
 
 ParameterBase* ConfigurableOrcaObject::getParameter(const std::string& param_name)
@@ -40,4 +39,9 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
 bool ConfigurableOrcaObject::isConfigured() const
 {
     return config_->areAllRequiredParametersSet();
+}
+
+Config::Ptr ConfigurableOrcaObject::config()
+{
+    return config_;
 }

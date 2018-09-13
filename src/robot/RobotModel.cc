@@ -57,8 +57,13 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 RobotModel::RobotModel(const std::string& robot_name)
 : ConfigurableOrcaObject(robot_name)
 {
-    this->initializeConfig("robot_model");
-    name_ = robot_name;
+    this->config()->onSuccess([&](){ loadFromParameters(); });
+    this->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
+    this->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
+    this->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
+    this->addParameter("gravity",&gravity_,ParamPolicy::Optional);
+    this->addParameter("home_joint_positions",&home_joint_positions_,ParamPolicy::Optional);
+    
     gravity_ = Eigen::Vector3d(0,0,-9.809);
 
     switch(robot_kinematics_type_)
@@ -71,18 +76,10 @@ RobotModel::RobotModel(const std::string& robot_name)
     }
 }
 
-bool RobotModel::configureFromFile(const std::string& yaml_url)
+bool RobotModel::loadFromParameters()
 {
-    return configureFromString(config_->fileToString(yaml_url));
-}
-
-bool RobotModel::configureFromString(const std::string& yaml_str)
-{
-    if(!config_->loadFromString(yaml_str))
-        return false;
-
     if(!urdf_url_.isSet() && !urdf_str_.isSet())
-        orca_throw(Formatter() << "urdf_str and urdf_url are not set !\nYou shoudl at least provide one of them to load the robot model.");
+        orca_throw(Formatter() << "urdf_str and urdf_url are not set !\nYou should at least provide one of them to load the robot model.");
     
     if(urdf_url_.isSet())
     {
@@ -116,25 +113,9 @@ bool RobotModel::configureFromString(const std::string& yaml_str)
     return true;
 }
 
-void RobotModel::initializeConfig(const std::string& config_name)
-{
-    config_ = std::make_shared<Config>(config_name);
-    config_->addParameter("name",&name_,ParamPolicy::Optional);
-    config_->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
-    config_->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
-    config_->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
-    config_->addParameter("gravity",&gravity_,ParamPolicy::Optional);
-    config_->addParameter("home_joint_positions",&home_joint_positions_,ParamPolicy::Optional);
-}
-
 RobotModel::~RobotModel()
 {
 
-}
-
-const std::string& RobotModel::getName() const
-{
-    return name_.get();
 }
 
 const std::vector<std::string>& RobotModel::getLinkNames() const
@@ -162,29 +143,29 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     // Extract the model name from the URDF
     // WARNING : in multi robot environnement + ROS
     // This will cause topic names collisions as they are based on robot names
-    if(name_.get().empty())
-    {
-        // If no name is provided, let's find it on the URDF
-        TiXmlDocument doc;
-        doc.Parse(modelString.c_str());
-        
-        std::string name_in_xml;
-        
-        if(!getRobotNameFromTinyXML(&doc,name_in_xml))
-        {
-            std::cerr << "modelString : \n" << modelString << '\n';
-            LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
-                << '\n'
-                << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
-        }
-        else
-        {
-            LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
-        }
-        
-        // Set the new name
-        name_.set( name_in_xml );
-    }
+//     if(name_.empty())
+//     {
+//         // If no name is provided, let's find it on the URDF
+//         TiXmlDocument doc;
+//         doc.Parse(modelString.c_str());
+//         
+//         std::string name_in_xml;
+//         
+//         if(!getRobotNameFromTinyXML(&doc,name_in_xml))
+//         {
+//             std::cerr << "modelString : \n" << modelString << '\n';
+//             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
+//                 << '\n'
+//                 << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
+//         }
+//         else
+//         {
+//             LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
+//         }
+//         
+//         // Set the new name
+//         name_.set( name_in_xml );
+//     }
     if(impl_->loadModelFromString(modelString))
     {
         urdf_str_ = modelString;

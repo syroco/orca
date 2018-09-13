@@ -4,6 +4,7 @@
 #include "orca/constraint/Contact.h"
 #include "orca/task/RegularisationTask.h"
 #include "orca/constraint/DynamicsEquationConstraint.h"
+#include "orca/common/ParameterSharedPtr.h"
 
 using namespace orca;
 using namespace orca::optim;
@@ -11,88 +12,96 @@ using namespace orca::utils;
 using namespace orca::common;
 using namespace orca::robot;
 
-Controller::Controller()
+Controller::Controller(const std::string& name)
+: ConfigurableOrcaObject(name)
 {
-    robot_ = std::make_shared<RobotModel>();
-    config_ = std::make_shared<Config>("controller");
-    config_->addParameter("name",&name_);
-    config_->addParameter("resolution_strategy",&resolution_strategy_str_);
-    config_->addParameter("qpsolver_implementation",&solver_type_str_);
-    config_->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_);
-    config_->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_);
+    this->addParameter("robot_model",&robot_);
+    this->addParameter("resolution_strategy",&resolution_strategy_str_);
+    this->addParameter("qpsolver_implementation",&solver_type_str_);
+    this->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_);
+    this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_);
+    this->config()->onSuccess([&](){
+
+        resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
+        solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
+
+        joint_acceleration_command_.setZero(robot()->getNrOfDegreesOfFreedom());
+        joint_torque_command_.setZero(robot()->getNrOfDegreesOfFreedom());
+        kkt_torques_.setZero(robot()->getNrOfDegreesOfFreedom());
+
+        if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
+        {
+            orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
+        }
+        insertNewLevel();
+    });
 }
 
-bool Controller::configureFromFile(const std::string& yaml_url)
-{
-    return configureFromString(config_->fileToString(yaml_url));
-}
-
-bool Controller::configureFromString(const std::string& yaml_str)
-{
-    if(yaml_str.empty())
-        orca_throw(Formatter() << "Provided yaml file is empty");
-    
-    YAML::Node config;
-    try {
-        config = YAML::Load(yaml_str);
-    } catch(std::exception& e) {
-        orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file does not seem to be valid, usually bad formatting.\n\n");
-    }
-    
-    YAML::Node robot_model_node;
-    YAML::Node controller_node;
-    
-    try {
-        robot_model_node = config["robot_model"];
-    } catch(std::exception& e) {
-        orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'robot_model' key\n\n");
-    }
-    
-    try {
-        controller_node = config["controller"];
-    } catch(std::exception& e) {
-        orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'controller_node' key\n\n");
-    }
-    
-    auto to_string = [](const YAML::Node& n) -> std::string 
-        { YAML::Emitter out; out << n; return out.c_str(); };
-    
-    if(!config_->loadFromString(to_string(controller_node)))
-        return false;
-    
-    resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
-    solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
-    
-    if(!robot_->configureFromString(to_string(robot_model_node)))
-        return false;
-    
-    joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
-
-    if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
-    {
-        orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
-    }
-    insertNewLevel();
-    
-    return true;
-}
+// bool Controller::configureFromString(const std::string& yaml_str)
+// {
+//     if(yaml_str.empty())
+//         orca_throw(Formatter() << "Provided yaml file is empty");
+//     
+//     YAML::Node config;
+//     try {
+//         config = YAML::Load(yaml_str);
+//     } catch(std::exception& e) {
+//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file does not seem to be valid, usually bad formatting.\n\n");
+//     }
+//     
+//     YAML::Node robot_model_node;
+//     YAML::Node controller_node;
+//     
+//     try {
+//         robot_model_node = config["robot_model"];
+//     } catch(std::exception& e) {
+//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'robot_model' key\n\n");
+//     }
+//     
+//     try {
+//         controller_node = config["controller"];
+//     } catch(std::exception& e) {
+//         orca_throw(Formatter() << e.what() << "\n\n" << yaml_str << "\n\nYaml file must have a 'controller_node' key\n\n");
+//     }
+//     
+//     auto to_string = [](const YAML::Node& n) -> std::string 
+//         { YAML::Emitter out; out << n; return out.c_str(); };
+//     
+//     if(!config()->loadFromString(to_string(controller_node)))
+//         return false;
+//     
+//     resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
+//     solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
+//     
+//     if(!robot()->configureFromString(to_string(robot_model_node)))
+//         return false;
+//     
+//     joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
+//     joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
+//     kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
+// 
+//     if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
+//     {
+//         orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
+//     }
+//     insertNewLevel();
+//     
+//     return true;
+// }
 
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotModel> robot
     ,ResolutionStrategy resolution_strategy
     ,QPSolverImplType solver_type)
-: Controller()
+: Controller(name)
 {
-    name_.set(name);
     resolution_strategy_ = resolution_strategy;
     solver_type_ = solver_type;
     robot_ = robot;
     
-    joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
+    joint_acceleration_command_.setZero(robot->getNrOfDegreesOfFreedom());
+    joint_torque_command_.setZero(robot->getNrOfDegreesOfFreedom());
+    kkt_torques_.setZero(robot->getNrOfDegreesOfFreedom());
 
     if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
     {
@@ -117,16 +126,16 @@ void Controller::setPrintLevel(int level)
     }
 }
 
-const std::string& Controller::getName()
+const std::string& Controller::getName() const
 {
     return name_.get();
 }
 
 std::shared_ptr<robot::RobotModel> Controller::robot()
 {
-    if(!robot_)
+    if(!robot_.get())
         orca_throw(Formatter() << "Robot is not set");
-    return robot_;
+    return robot_.get();
 }
 
 void Controller::setRobotModel(std::shared_ptr<robot::RobotModel> robot)
@@ -211,7 +220,7 @@ bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
     {
         if(!problems_.front()->taskExists(task))
         {
-            task->setRobotModel(robot_);
+            task->setRobotModel(robot());
             task->setProblem(problems_.front());
             return problems_.front()->addTask(task);
         }
@@ -250,7 +259,7 @@ bool Controller::addConstraint(std::shared_ptr<constraint::GenericConstraint> cs
     {
         if(!problems_.front()->constraintExists(cstr))
         {
-            cstr->setRobotModel(robot_);
+            cstr->setRobotModel(robot_.get());
             cstr->setProblem(problems_.front());
             return problems_.front()->addConstraint(cstr);
         }
@@ -303,10 +312,10 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
             joint_torque_command_ = problem->getSolution(ControlVariable::JointTorque);
 
             if(remove_gravity_torques || remove_gravity_torques_.get())
-                joint_torque_command_ -= robot_->getJointGravityTorques();
+                joint_torque_command_ -= robot()->getJointGravityTorques();
 
             if(remove_coriolis_torques || remove_coriolis_torques_.get())
-                joint_torque_command_ -= robot_->getJointCoriolisTorques();
+                joint_torque_command_ -= robot()->getJointCoriolisTorques();
 
             return joint_torque_command_;
         }
@@ -452,7 +461,7 @@ std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globa
 void Controller::insertNewLevel()
 {
     LOG_INFO << "Inserting new dry Problem at level " << problems_.size();
-    auto problem = std::make_shared<Problem>(robot_,solver_type_);
+    auto problem = std::make_shared<Problem>(robot_.get(),solver_type_);
     problems_.push_back(problem);
 
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");

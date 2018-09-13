@@ -55,6 +55,6 @@ int main(int argc, char const *argv[])
     //  Parse logger level as --log_level (or -l) debug/warning etc
     orca::utils::Logger::parseArgv(argc, argv);
     
-    orca::optim::Controller controller;
+    orca::optim::Controller controller("demo0-controller");
     return controller.configureFromFile(argv[1]);
 }

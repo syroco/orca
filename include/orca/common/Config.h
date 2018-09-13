@@ -29,8 +29,7 @@ namespace orca
             */
             void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
-                    , std::function<void()> on_loading_success = 0
-                    , std::function<void()> on_loading_failed = 0);
+                    , std::function<void()> on_loading_success = 0);
 
             /**
             * @brief Returns a param via its name.
@@ -51,9 +50,12 @@ namespace orca
             bool areAllRequiredParametersSet() const;
 
             const ParamMap& getAllParameters() const;
+            
+            void onSuccess(std::function<void()> f);
         private:
             std::string name_;
             ParamMap parameters_;
+            std::function<void()> on_success_;
         };
     } // namespace common
 } // namespace orca
