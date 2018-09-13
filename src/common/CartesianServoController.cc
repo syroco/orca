@@ -9,7 +9,7 @@ using namespace orca::utils;
 CartesianServoController::CartesianServoController(const std::string& name)
 : TaskBase(name,ControlVariable::None)
 {
-    this->addParameter("base_frame",&base_ref_frame_,Optional);
+    this->addParameter("base_frame",&base_ref_frame_,ParamPolicy::Optional);
     this->addParameter("control_frame",&control_frame_);
 }
 

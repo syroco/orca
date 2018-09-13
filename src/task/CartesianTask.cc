@@ -9,7 +9,7 @@ using namespace orca::common;
 CartesianTask::CartesianTask(const std::string& name)
 : GenericTask(name,ControlVariable::GeneralisedAcceleration)
 {
-    this->addParameter("desired_cartesian_acceleration",&cart_acc_des_,Optional);
+    this->addParameter("desired_cartesian_acceleration",&cart_acc_des_,ParamPolicy::Optional);
     this->addParameter("servo_controller",&servo_);
     
     //setServoController(std::make_shared<CartesianAccelerationPID>(name + "_CartPID-EE"));

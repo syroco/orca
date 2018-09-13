@@ -56,7 +56,19 @@ int main(int argc, char const *argv[])
 
     //  Parse logger level as --log_level (or -l) debug/warning etc
     orca::utils::Logger::parseArgv(argc, argv);
+    
+    // Create the kinematic model that is shared by everybody. Here you can pass a robot name
+    auto robot_model = std::make_shared<RobotModel>();
 
+     //  If you don't pass a robot name, it is extracted from the urdf
+    robot_model->loadModelFromFile(urdf_url);
+
+    // All the transformations (end effector pose for example) will be expressed wrt this base frame
+    robot_model->setBaseFrame("base_link");
+
+    // Sets the world gravity (Optional)
+    robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
+    
     // Cartesian Task
     auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
     // Set the frame you want to control. Here we want to control the link_7.

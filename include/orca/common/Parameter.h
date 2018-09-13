@@ -64,6 +64,20 @@ namespace orca
 namespace common
 {
 
+/**
+* @brief The ParamPolicy defines if an error should be thrown when trying to do anything with the task
+* before all #Required parameters are set at least once.
+*/
+enum class ParamPolicy
+{
+    Required = 0
+    , Optional
+};
+
+/**
+* @brief ParameterBase is the public interface to any parameter
+* 
+*/
 class ParameterBase
 {
 public:
@@ -112,6 +126,10 @@ private:
 };
 
 template<class T>
+/**
+* @brief This class contains the data and throws exceptions if trying to access it but not set.
+* 
+*/
 class ParameterData
 {
 public:
@@ -130,13 +148,13 @@ public:
     T& get()
     {
         if(!is_set_)
-            throw std::runtime_error("ParameterData is not set");
+            utils::orca_throw("ParameterData is not set");
         return val_;
     }
     const T& get() const
     {
         if(!is_set_)
-            throw std::runtime_error("ParameterData is not set");
+            utils::orca_throw("ParameterData is not set");
         return val_;
     }
 
@@ -158,10 +176,13 @@ private:
 
 
 template<class T>
+/**
+* @brief This class holds the conversion from a string (YAML string) to the data type
+* 
+*/
 class Parameter : public ParameterBase, public ParameterData<T>
 {
 public:
-    
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);

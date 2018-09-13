@@ -10,7 +10,7 @@ WrenchTask::WrenchTask(const std::string& name)
 {
     this->addParameter("wrench",&wrench_);
     this->addParameter("desired_wrench",&wrench_des_);
-    this->addParameter("pid",&pid_,Required,[&](){ addChild(pid_.get()); });
+    this->addParameter("pid",&pid_,ParamPolicy::Required,[&](){ addChild(pid_.get()); });
     wrench_des_.get().setZero();
 }
 

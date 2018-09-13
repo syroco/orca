@@ -9,7 +9,7 @@ using namespace orca::utils;
 JointAccelerationTask::JointAccelerationTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointAcceleration)
 {
-    this->addParameter("pid",&pid_,Required,[&](){ addChild(pid_.get()); });
+    this->addParameter("pid",&pid_,ParamPolicy::Required,[&](){ addChild(pid_.get()); });
 }
 
 void JointAccelerationTask::setDesired(const Eigen::VectorXd& jnt_pos_des

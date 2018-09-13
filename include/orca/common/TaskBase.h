@@ -41,7 +41,7 @@
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
 #include "orca/common/Mutex.h"
-#include "orca/common/Parameter.h"
+#include "orca/common/Config.h"
 
 namespace orca
 {
@@ -91,13 +91,8 @@ namespace common
         */
         bool isConfigured() const;
         
-        enum ParamPolicy
-        {
-              Required = 0
-            , Optional
-        };
         void addParameter(const std::string& param_name,ParameterBase* param
-                    , ParamPolicy policy = Required
+                    , ParamPolicy policy = ParamPolicy::Required
                     , std::function<void()> on_loading_success = 0
                     , std::function<void()> on_loading_failed = 0);
         
