@@ -78,6 +78,41 @@ bool RobotModel::configureFromString(const std::string& yaml_str)
 {
     if(!config_->loadFromString(yaml_str))
         return false;
+
+    if(!urdf_url_.isSet() && !urdf_str_.isSet())
+        orca_throw(Formatter() << "urdf_str and urdf_url are not set !\nYou shoudl at least provide one of them to load the robot model.");
+    
+    if(urdf_url_.isSet())
+    {
+        if(!this->loadModelFromFile(urdf_url_.get()))
+            return false;
+    }
+    
+    if(urdf_str_.isSet())
+    {
+        if(!this->loadModelFromString(urdf_str_.get()))
+            return false;
+    }
+    
+    this->setBaseFrame(base_frame_.get());
+
+    if(gravity_.isSet())
+        this->setGravity(gravity_.get());
+
+    if(home_joint_positions_.isSet())
+    {
+        if(home_joint_positions_.get().size() != getNrOfDegreesOfFreedom())
+            orca_throw(Formatter() << "home_joint_positions provided does not match ndof (" 
+                << home_joint_positions_.get().size() 
+                << " vs " << getNrOfDegreesOfFreedom() << ")"
+            );
+        
+        Eigen::VectorXd zero_vel = Eigen::VectorXd::Zero(getNrOfDegreesOfFreedom());
+
+        // Set the first state to the robot
+        this->setRobotState(home_joint_positions_.get(),zero_vel);
+    }
+    return true;
 }
 
 void RobotModel::initializeConfig(const std::string& config_name)
@@ -88,6 +123,7 @@ void RobotModel::initializeConfig(const std::string& config_name)
     config_->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
     config_->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
     config_->addParameter("gravity",&gravity_,ParamPolicy::Optional);
+    config_->addParameter("home_joint_positions",&home_joint_positions_,ParamPolicy::Optional);
 }
 
 RobotModel::~RobotModel()
@@ -151,11 +187,11 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     if(impl_->loadModelFromString(modelString))
     {
         urdf_str_ = modelString;
-        LOG_INFO << "Robot model " << getName() << " successfully loaded";
+        LOG_INFO << "Robot model '" << getName() << "' (" << getNrOfDegreesOfFreedom() << " dof) successfully loaded";
         return true;
     }
     std::cerr << "modelString : \n" << modelString << "\n\n";
-    orca_throw(Formatter() << "Could not load robot model from string");
+    orca_throw(Formatter() << modelString << "\n\nCould not load robot model from above urdf string.\n\n");
     return false;
 }
 

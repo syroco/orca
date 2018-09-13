@@ -298,6 +298,7 @@ protected:
     common::Parameter<std::string> urdf_str_;
     common::Parameter<std::string> base_frame_;
     common::Parameter<Eigen::Vector3d> gravity_;
+    common::Parameter<Eigen::VectorXd> home_joint_positions_;
 
     common::Config::Ptr config_;
 private:
