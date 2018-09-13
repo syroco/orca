@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
     // Create the kinematic model that is shared by everybody. Here you can pass a robot name
     auto robot_model = std::make_shared<RobotModel>();
     
-    robot_model->configureFromString("{ name: lwr, urdf_url: /home/hoarau/ws/orca_ws/src/orca/examples/resources/lwr.urdf, init_joint_positions: [1.0,0,0,1.57,0,-1.57,0], base_frame: base_link , gravity: [0,0,-9.81] }");
+    robot_model->configureFromString("{ name: lwr, urdf_url: /home/hoarau/ws/orca_ws/src/orca/examples/resources/lwr.urdf, home_joint_positions: [1.0,0,0,1.57,0,-1.57,0], base_frame: base_link , gravity: [0,0,-9.81] }");
 
     
     return 0;

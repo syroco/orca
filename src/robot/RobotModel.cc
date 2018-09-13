@@ -87,8 +87,7 @@ bool RobotModel::configureFromString(const std::string& yaml_str)
         if(!this->loadModelFromFile(urdf_url_.get()))
             return false;
     }
-    
-    if(urdf_str_.isSet())
+    else if(urdf_str_.isSet())
     {
         if(!this->loadModelFromString(urdf_str_.get()))
             return false;
