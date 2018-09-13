@@ -146,13 +146,13 @@ public:
     T& get()
     {
         if(!is_set_)
-            utils::orca_throw("ParameterData is not set");
+            utils::orca_throw("Trying to get() but parameter is not set");
         return val_;
     }
     const T& get() const
     {
         if(!is_set_)
-            utils::orca_throw("ParameterData is not set");
+            utils::orca_throw("Trying to get() but parameter is not set");
         return val_;
     }
 
@@ -186,14 +186,14 @@ public:
     {}
     Parameter(const T& t)
     {
-        this->set(t);
+        ParameterData<T>::set(t);
     }
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
         try
         {
-            this->set( node.as<T>() );
+            ParameterData<T>::set( node.as<T>() );
         }
         catch(std::exception& e)
         {
@@ -204,12 +204,29 @@ public:
 
     void print() const
     {
-        std::cout << " - " << getName() << ": " << this->get() << '\n';
+        std::cout << " - " << getName() << ": " << ParameterData<T>::get() << '\n';
     }
     
     bool isSet() const
     {
         return ParameterData<T>::isSet();
+    }
+    
+    T& get()
+    {
+        try {
+            return ParameterData<T>::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
+    }
+    const T& get() const
+    {
+        try {
+            return ParameterData<T>::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
     }
     
     template<class T2>
@@ -265,6 +282,23 @@ public:
     bool isSet() const
     {
         return ParameterData<std::list<T > >::isSet();
+    }
+    
+    std::list<T >& get()
+    {
+        try {
+            return ParameterData< std::list<T > >::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
+    }
+    const std::list<T >& get() const
+    {
+        try {
+            return ParameterData< std::list<T > >::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
     }
     
     template<class T2>

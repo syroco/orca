@@ -127,18 +127,21 @@ int main(int argc, char const *argv[])
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
 
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
     // Now set the servoing PID
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    //cart_task->servoController()->pid()->setProportionalGain(P);
+    cart_acc_pid->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    //cart_task->servoController()->pid()->setDerivativeGain(D);
+    cart_acc_pid->pid()->setDerivativeGain(D);
 
 
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
-    //cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
+    cart_task->setServoController(cart_acc_pid);
+    
     // Get the number of actuated joints
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
@@ -148,7 +151,8 @@ int main(int argc, char const *argv[])
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
 
-    // Joint position limits are automatically extracted from the URDF model. Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
+    // Joint position limits are automatically extracted from the URDF model.
+    // Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
     auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     // Joint velocity limits are usually given by the robot manufacturer

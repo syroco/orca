@@ -63,7 +63,22 @@ public:
     {
         return ParameterData<std::shared_ptr<T> >::isSet();
     }
-    
+    std::shared_ptr<T>& get()
+    {
+        try {
+            return ParameterData< std::shared_ptr<T> >::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
+    }
+    const std::shared_ptr<T>& get() const
+    {
+        try {
+            return ParameterData< std::shared_ptr<T> >::get();
+        } catch (std::exception& e) {
+            utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
+        }
+    }
     template<class T2>
     Parameter<std::shared_ptr<T> >& operator=(std::shared_ptr<T2> val)
     {

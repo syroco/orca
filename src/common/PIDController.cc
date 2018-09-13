@@ -6,32 +6,31 @@ using namespace orca::common;
 PIDController::PIDController(const std::string& name)
 : ConfigurableOrcaObject(name)
 {
-    this->addParameter( "dimension", &dimension_ );
+    this->addParameter( "dimension", &dimension_ ,ParamPolicy::Optional);
     this->addParameter( "p_gain", &p_gain_ );
-    this->addParameter( "i_gain", &i_gain_ );
-    this->addParameter( "d_gain", &d_gain_ );
-    this->addParameter( "windup_limit", &windup_limit_ );
+    this->addParameter( "i_gain", &i_gain_ ,ParamPolicy::Optional);
+    this->addParameter( "d_gain", &d_gain_ ,ParamPolicy::Optional);
+    this->addParameter( "windup_limit", &windup_limit_ ,ParamPolicy::Optional);
+    this->config()->onSuccess([&](){ dimension_.set(p_gain_.get().size()); });
 }
 
 void PIDController::resize(int dim)
 {
-    if(dim > 0)
-    {
-        if(dimension_.get() != dim)
-        {
-            dimension_.set(dim);
-            p_gain_.get().setZero(dim);
-            i_gain_.get().setZero(dim);
-            d_gain_.get().setZero(dim);
-            i_error_.setZero(dim);
-            d_error_.setZero(dim);
-            cmd_.setZero(dim);
-            windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
-        }
-    }
-    else
+    if(dim <= 0)
     {
         LOG_ERROR << "Dimension as to be > 0";
+        return;
+    }
+    if(dimension_.get() != dim)
+    {
+        dimension_.set(dim);
+        p_gain_.get().setZero(dim);
+        i_gain_.get().setZero(dim);
+        d_gain_.get().setZero(dim);
+        i_error_.setZero(dim);
+        d_error_.setZero(dim);
+        cmd_.setZero(dim);
+        windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
     }
 }
 

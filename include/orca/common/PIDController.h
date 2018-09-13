@@ -67,7 +67,7 @@ namespace common
         const Eigen::VectorXd& computeCommand(const Eigen::VectorXd& Error, double dt);
         void print() const;
     private:
-        Parameter<int> dimension_;
+        Parameter<int> dimension_ = 0;
         Parameter<Eigen::VectorXd> p_gain_;
         Parameter<Eigen::VectorXd> i_gain_;
         Parameter<Eigen::VectorXd> d_gain_;
