@@ -61,16 +61,10 @@ void CartesianTask::setDesired(const Vector6d& cartesian_acceleration_des)
 
 void CartesianTask::onActivation()
 {
-    // If no frame has been set before, use the default Floating Base.
-    if(servo_.get()->getBaseFrame().empty())
-    {
-        setBaseFrame(robot()->getBaseFrame());
-    }
-    
     if(!cart_acc_des_.isSet())
     {
         // Do not move if no desired target is set
-        cart_acc_des_.get().setZero();
+        cart_acc_des_ = Vector6d::Zero();
     }
 }
 

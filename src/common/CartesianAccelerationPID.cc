@@ -45,6 +45,8 @@ const Vector6d& CartesianAccelerationPID::getDesiredCartesianAcceleration() cons
 
 void CartesianAccelerationPID::onResize()
 {
+    if(pid_.isSet())
+        pid_.get()->resize(6);
     cart_pos_curr_.setZero();
     cart_pos_des_.setZero();
     cart_acc_cmd_.setZero();
@@ -91,6 +93,12 @@ PIDController::Ptr CartesianAccelerationPID::pid()
 
 void CartesianAccelerationPID::onActivation()
 {
+    // If no frame has been set before, use the default Floating Base.
+    if(!getParameter("base_frame")->isSet())
+    {
+        setBaseFrame(robot()->getBaseFrame());
+    }
+    
     if(!desired_set_)
     {
         // Defaults the task to the current pose of the robot

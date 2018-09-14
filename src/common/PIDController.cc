@@ -23,14 +23,27 @@ void PIDController::resize(int dim)
     }
     if(dimension_.get() != dim)
     {
-        dimension_.set(dim);
-        p_gain_.get().setZero(dim);
-        i_gain_.get().setZero(dim);
-        d_gain_.get().setZero(dim);
-        i_error_.setZero(dim);
-        d_error_.setZero(dim);
-        cmd_.setZero(dim);
-        windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
+        dimension_ = dim;
+        if(!p_gain_.isSet() || p_gain_.get().size() != dim)
+            p_gain_ = Eigen::VectorXd::Zero(dim);
+        
+        if(!i_gain_.isSet() || i_gain_.get().size() != dim)
+            i_gain_ = Eigen::VectorXd::Zero(dim);
+        
+        if(!d_gain_.isSet() || d_gain_.get().size() != dim)
+            d_gain_ = Eigen::VectorXd::Zero(dim);
+        
+        if(i_error_.size() != dim)
+            i_error_ = Eigen::VectorXd::Zero(dim);
+        
+        if(d_error_.size() != dim)
+            d_error_ = Eigen::VectorXd::Zero(dim);
+        
+        if(cmd_.size() != dim)
+            cmd_ = Eigen::VectorXd::Zero(dim);
+        
+        if(!windup_limit_.isSet() || windup_limit_.get().size() != dim)
+            windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
     }
 }
 
