@@ -134,6 +134,9 @@ int main(int argc, char const *argv[])
     controller.update(current_time, dt);
     current_time += dt;
     
+    
+    controller.print();
+    
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
     //std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
