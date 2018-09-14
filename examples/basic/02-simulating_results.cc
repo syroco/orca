@@ -149,16 +149,16 @@ int main(int argc, char const *argv[])
     for (; current_time < 10.0; current_time +=dt)
     {
 
-
+        
         if(print_counter == 100)
         {
-            //std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
+            std::cout << "Task position at t = " << current_time << "\t---\t" << cart_acc_pid->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
             print_counter = 0;
         }
         ++print_counter;
 
         controller.update(current_time, dt);
-
+        
         if(controller.solutionFound())
         {
             trq_cmd = controller.getJointTorqueCommand();
