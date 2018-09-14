@@ -30,6 +30,19 @@ namespace orca
             void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
                     , std::function<void()> on_loading_success = 0);
+            
+            // TODO: Figure out if we can move the Parameter class inside
+            // the config, so you can have :
+            // struct MyTask{ my_param; }
+            // MyTask() { addParameter("my_param",my_param); } --> init with ref
+            //
+            // template<class T>
+            // void addParameter(const std::string& param_name,T& param
+            //         , ParamPolicy policy = ParamPolicy::Required
+            //         , std::function<void()> on_loading_success = 0)
+            // {
+            //     this->addParameter(param_name,new Parameter<T>(param),policy,on_loading_success);
+            // }
 
             /**
             * @brief Returns a param via its name.
@@ -38,11 +51,11 @@ namespace orca
             * @return orca::common::ParameterBase* The param pointer, nullptr if if does not exists
             */
             ParameterBase* getParameter(const std::string& param_name);
-
+            /**
+            * @brief Print all parameters to std::cout
+            */
             void print() const;
 
-            std::string fileToString(const std::string& yaml_url);
-            
             bool loadFromFile(const std::string& yaml_url);
 
             bool loadFromString(const std::string& yaml_str);
@@ -53,6 +66,7 @@ namespace orca
             
             void onSuccess(std::function<void()> f);
         private:
+            std::string fileToString(const std::string& yaml_url);
             std::string name_;
             ParamMap parameters_;
             std::function<void()> on_success_;
