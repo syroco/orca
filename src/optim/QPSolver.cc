@@ -35,7 +35,7 @@ bool QPSolver::setImplementationType(QPSolverImplType solver_type)
 //             pimpl_ = make_unique<QPSolverImpl_eigQuadProg>();
 //             break;
         default:
-            orca_throw(Formatter() << "QPSolver " << solver_type << " not implemented");
+            orca_throw(Formatter() << "QPSolver '" << QPSolverImplTypetoString(solver_type) << "' not implemented");
     }
     
     solver_type_ = solver_type;
