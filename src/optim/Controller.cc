@@ -168,8 +168,43 @@ common::ReturnCode Controller::getReturnCode() const
     }
 }
 
+bool Controller::addTaskFromString(const std::string& task_description)
+{
+    try
+    {
+        Parameter<task::GenericTask::Ptr> param;
+        param.loadFromString(task_description);
+        return this->addTask(param.get());
+    } 
+    catch(std::exception& e)
+    {
+        LOG_WARNING << "Could not add task from string : " << e.what();
+    }
+    return false;
+}
+
+bool Controller::addConstraintFromString(const std::string& cstr_description)
+{
+    try
+    {
+        Parameter<constraint::GenericConstraint::Ptr> param;
+        if(!param.loadFromString(cstr_description))
+            return false;
+        return this->addConstraint(param.get());
+    } 
+    catch(std::exception& e)
+    {
+        LOG_WARNING << "Could not add constraint from string : " << e.what();
+    }
+    return false;
+}
+
 bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
 {
+    if(!task)
+    {
+        return false;
+    }
     if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
     {
         if(!problems_.front()->taskExists(task))

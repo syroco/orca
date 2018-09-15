@@ -77,6 +77,10 @@ namespace optim
 
         bool addTask(std::shared_ptr<task::GenericTask> task);
 
+        bool addTaskFromString(const std::string& task_description);
+        
+        bool addConstraintFromString(const std::string& task_description);
+        
         template<class T>
         std::shared_ptr<T> addTask(const std::string& name)
         {
