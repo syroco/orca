@@ -124,7 +124,7 @@ void GenericTask::onCompute(double current_time, double dt)
 
     if(Esize_before != Esize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Matrix E() changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Matrix E() changed size during onUpdateAffineFunction, it was ("
                 << Esize_before
                 << ") but now its ("
                 << Esize_after
@@ -133,7 +133,7 @@ void GenericTask::onCompute(double current_time, double dt)
     }
     if(fsize_before != fsize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Vector f() changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Vector f() changed size during onUpdateAffineFunction, it was ("
                 << Esize_before
                 << ") but now its ("
                 << Esize_after

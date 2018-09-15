@@ -66,6 +66,7 @@ namespace orca
             std::string fileToString(const std::string& yaml_url);
             ParamMap parameters_;
             std::function<void()> on_success_;
+            bool config_loaded_ = false;
         };
     } // namespace common
 } // namespace orca

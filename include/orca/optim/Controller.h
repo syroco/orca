@@ -65,8 +65,6 @@ namespace optim
 
         void setPrintLevel(int level);
 
-        const std::string& getName() const;
-
         std::shared_ptr<robot::RobotModel> robot();
 
         void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
@@ -148,7 +146,6 @@ namespace optim
         common::Parameter<std::string> solver_type_str_;
         common::Parameter<bool> remove_gravity_torques_ = false;
         common::Parameter<bool> remove_coriolis_torques_ = true;
-        common::Parameter<std::string> name_;
         common::Parameter<robot::RobotModel::Ptr> robot_;
         common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
         common::Parameter<std::list< constraint::GenericConstraint::Ptr > >constraints_;
@@ -163,8 +160,8 @@ namespace optim
 
         bool solution_found_ = false;
         
-        ResolutionStrategy resolution_strategy_;
-        QPSolverImplType solver_type_;
+        ResolutionStrategy resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
+        QPSolverImplType solver_type_ = QPSolverImplType::qpoases;
     };
 } // namespace optim
 } //namespace orca

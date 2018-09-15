@@ -7,9 +7,8 @@ using namespace orca::common;
 
 WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
-, pid_(std::make_shared<PIDController>("pid"))
 {
-    this->addParameter("wrench",&wrench_);
+    this->addParameter("wrench",&wrench_, ParamPolicy::Required, [&](){ addChild(wrench_.get()); });
     this->addParameter("desired_wrench",&wrench_des_);
     this->addParameter("pid",&pid_);
 }
@@ -55,7 +54,6 @@ void WrenchTask::onActivation()
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    wrench_.get()->update(current_time,dt);
     f() = - pid_.get()->computeCommand( wrench_.get()->getCurrentValue() - wrench_des_.get() , dt);
 }
 

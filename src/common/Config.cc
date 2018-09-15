@@ -85,6 +85,11 @@ void Config::onSuccess(std::function<void()> f)
 
 bool Config::loadFromString(const std::string& yaml_str)
 {
+    if(config_loaded_)
+    {
+        LOG_ERROR << "[" << getName() << "] " << "Config is already loaded";
+        return true;
+    }
     if(yaml_str.empty())
     {
         LOG_ERROR << "[" << getName() << "] " << "Provided config is empty";
@@ -213,6 +218,7 @@ bool Config::loadFromString(const std::string& yaml_str)
     if(on_success_)
         on_success_();
 
+    config_loaded_ = true;
     return true;
 }
 

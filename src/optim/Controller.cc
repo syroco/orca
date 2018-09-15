@@ -24,6 +24,8 @@ Controller::Controller(const std::string& name)
     this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_, ParamPolicy::Optional);
     this->config()->onSuccess([&](){
 
+        LOG_WARNING << "[" << getName() << "]" << " Config sucessfully loaded ";
+        
         resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
         solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
 
@@ -36,6 +38,10 @@ Controller::Controller(const std::string& name)
             orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
         }
         insertNewLevel();
+        
+        LOG_WARNING << "[" << getName() << "]" << " Adding " << tasks_.get().size() << " tasks "
+            << " and " << constraints_.get().size() << " constraints";
+        
         for(auto task : tasks_.get())
             this->addTask(task);
         for(auto constraint: constraints_.get())
@@ -78,11 +84,6 @@ void Controller::setPrintLevel(int level)
     {
         problem->qpSolver()->setPrintLevel(level);
     }
-}
-
-const std::string& Controller::getName() const
-{
-    return name_.get();
 }
 
 std::shared_ptr<robot::RobotModel> Controller::robot()
