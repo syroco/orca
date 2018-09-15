@@ -83,7 +83,9 @@ class ParameterBase
 {
 public:
     using Ptr = std::shared_ptr<ParameterBase>;
-
+    
+    virtual ~ParameterBase() {}
+    
     bool loadFromString(const std::string& s)
     {
         try 
@@ -127,6 +129,7 @@ class ParameterData
 {
 public:
     ParameterData(){}
+    virtual ~ParameterData() {}
     
     ParameterData(const T& val)
     : val_(val)
@@ -250,8 +253,8 @@ template<class T>
 class Parameter<std::list<T > > : public ParameterBase, public ParameterData< std::list<T > >
 {
 public:   
-    Parameter()
-    {}
+    Parameter() {}
+    virtual ~Parameter() {}
     Parameter(const std::list<T >& t)
     {
         ParameterData< std::list<T > >::set(t);

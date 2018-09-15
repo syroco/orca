@@ -22,7 +22,27 @@ TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 : ConfigurableOrcaObject(name)
 , control_var_(control_var)
 , printable_name_(name)
-{}
+{
+    if(dependsOnWrench())
+    {
+        wrench_ = std::make_shared<Wrench>("wrench");
+        this->addChild(wrench_);
+        this->addParameter("wrench",wrench_);
+    }
+}
+
+// Maybe we'll need to have a vector of wrenches
+// void TaskBase::addWrench(const std::string& wrench_name)
+// {
+//     if(wrench_)
+//     {
+//         LOG_WARNING << "[" << getPrintableName() << "] Wrench already declared ! You can only declare 1 wrench per Task.";
+//         return;
+//     }
+//     wrench_ = std::make_shared<Wrench>(wrench_name);
+//     this->addChild(wrench_);
+//     this->addParameter(wrench_name,wrench_);
+// }
 
 TaskBase::~TaskBase()
 {}
@@ -70,10 +90,10 @@ void TaskBase::addChild(TaskBase::Ptr e)
 {
     if(!exists(e,children_))
     {
-        if(e->dependsOnProblem() && hasProblem())
+        if(hasProblem() && !e->hasProblem())
             e->setProblem(getProblem());
         
-        if(hasRobot())
+        if(hasRobot() && !e->hasRobot())
             e->setRobotModel(robot());
         
         e->setParentName(this->getName());
@@ -184,6 +204,12 @@ bool TaskBase::setRobotModel(RobotModel::Ptr robot)
     return true;
 }
 
+bool TaskBase::dependsOnWrench() const
+{
+    return control_var_ == ControlVariable::ExternalWrench;
+}
+
+
 bool TaskBase::dependsOnProblem() const
 {
     return control_var_ == ControlVariable::ExternalWrench
@@ -266,7 +292,7 @@ std::shared_ptr<const RobotModel> TaskBase::getRobot() const
 
 std::shared_ptr< Wrench > TaskBase::wrench()
 {
-    if(!wrench_)
+    if(!hasWrench())
     {
         orca_throw(Formatter() << "[" << getPrintableName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"
@@ -514,8 +540,8 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 
     for(auto e : children_)
     {
-        if(e->dependsOnProblem())
-            e->setProblem(problem_);
+        if(!e->hasProblem())
+            e->setProblem(getProblem());
     }
 
     if(hasRobot())
@@ -561,22 +587,22 @@ void TaskBase::checkIfUpdatable() const
 
 bool TaskBase::hasProblem() const
 {
-    return static_cast<bool>(problem_);
+    return bool(problem_);
 }
 
 bool TaskBase::hasRobot() const
 {
-    return static_cast<bool>(robot_);
+    return bool(robot_);
 }
 
 bool TaskBase::hasWrench() const
 {
-    return static_cast<bool>(wrench_);
+    return bool(wrench_);
 }
 
 std::shared_ptr<const Wrench> TaskBase::getWrench() const
 {
-    if(!wrench_)
+    if(!hasWrench())
     {
         orca_throw(Formatter() << "[" << getPrintableName() << "] "
             << "Wrench is not set, this happens when the task does not depend on ExternalWrench\n"

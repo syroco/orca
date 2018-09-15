@@ -18,7 +18,7 @@ namespace orca
             using ParamMap = std::map<std::string, ParameterBase* >;
             
             Config(const std::string& config_name);
-
+            virtual ~Config();
             /**
             * @brief Returns true if all params added with @addParameter have been set
             *
@@ -27,19 +27,15 @@ namespace orca
             void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
                     , std::function<void()> on_loading_success = 0);
-            
-            // TODO: Figure out if we can move the Parameter class inside
-            // the config, so you can have :
-            // struct MyTask{ my_param; }
-            // MyTask() { addParameter("my_param",my_param); } --> init with ref
-            //
-            // template<class T>
-            // void addParameter(const std::string& param_name,T& param
-            //         , ParamPolicy policy = ParamPolicy::Required
-            //         , std::function<void()> on_loading_success = 0)
-            // {
-            //     this->addParameter(param_name,new Parameter<T>(param),policy,on_loading_success);
-            // }
+
+            template<class T>
+            void addParameter(const std::string& param_name,T& param
+                    , ParamPolicy policy = ParamPolicy::Required
+                    , std::function<void()> on_loading_success = 0)
+            {
+                parameters_to_delete_.push_back(new Parameter<T>(param));
+                this->addParameter(param_name,parameters_to_delete_.back(),policy,on_loading_success);
+            }
 
             /**
             * @brief Returns a param via its name.
@@ -52,9 +48,17 @@ namespace orca
             * @brief Print all parameters to std::cout
             */
             void print() const;
-
+            /**
+            * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
+            *
+            * @return true is all the required parameters are loaded properly
+            */
             bool loadFromFile(const std::string& yaml_url);
-
+            /**
+            * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
+            *
+            * @return true is all the required parameters are loaded properly
+            */
             bool loadFromString(const std::string& yaml_str);
             
             bool areAllRequiredParametersSet() const;
@@ -65,6 +69,7 @@ namespace orca
         private:
             std::string fileToString(const std::string& yaml_url);
             ParamMap parameters_;
+            std::list<ParameterBase*> parameters_to_delete_;
             std::function<void()> on_success_;
             bool config_loaded_ = false;
         };

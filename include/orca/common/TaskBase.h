@@ -44,11 +44,12 @@
 #include "orca/common/Mutex.h"
 #include "orca/common/Config.h"
 
+
 namespace orca
 {
 namespace common
 {
-    class Wrench;
+    //class Wrench;
     /**
     * @brief The common base class for tasks and constraints
     *
@@ -91,9 +92,12 @@ namespace common
 
         bool hasProblem() const;
         bool hasRobot() const;
+        
         bool dependsOnProblem() const;
+        bool dependsOnWrench() const;
         bool dependsOnRobotJoints() const;
         bool dependsOnFloatingBase() const;
+        
         bool hasWrench() const;
         bool isRobotInitialized() const;
         State getState() const;
@@ -103,7 +107,7 @@ namespace common
 
         double getStartTime() const;
         double getStopTime() const;
-
+        
         std::shared_ptr<const optim::Problem> getProblem()const;
         std::shared_ptr<const common::Wrench> getWrench() const;
         std::shared_ptr<const robot::RobotModel> getRobot() const;
@@ -158,6 +162,7 @@ namespace common
         virtual void onDeactivated() {};
     private:
         common::Parameter<double> ramp_duration_ = 0;
+        std::shared_ptr<Wrench> wrench_;
     private:
         void setParentName(const std::string& parent_name);
         void checkIfUpdatable() const;
@@ -171,7 +176,6 @@ namespace common
 
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
-        std::shared_ptr<Wrench> wrench_;
         
         optim::ControlVariable control_var_;
         std::list< TaskBase::Ptr > children_;

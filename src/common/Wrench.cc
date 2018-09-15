@@ -54,7 +54,7 @@ const Eigen::MatrixXd& Wrench::getJacobian() const
 
 void Wrench::onActivation()
 {
-    if(base_ref_frame_.get().empty())
+    if(!base_ref_frame_.isSet())
     {
         base_ref_frame_ = robot()->getBaseFrame();
     }

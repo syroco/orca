@@ -7,6 +7,15 @@ Config::Config(const std::string& config_name)
 : OrcaObject(config_name)
 {}
 
+Config::~Config()
+{
+    while(!parameters_to_delete_.empty())
+    {
+        delete parameters_to_delete_.front();
+        parameters_to_delete_.pop_front();
+    }
+}
+
 
 void Config::addParameter(const std::string& param_name,ParameterBase* param
         , ParamPolicy policy /*= ParamPolicy::Required*/

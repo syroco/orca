@@ -71,7 +71,6 @@ protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
-    common::Parameter<common::Wrench::Ptr > wrench_;
     common::Parameter<Vector6d> wrench_des_;
     common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
 };

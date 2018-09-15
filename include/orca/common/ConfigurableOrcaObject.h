@@ -73,7 +73,13 @@ namespace common
         void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
                     , std::function<void()> on_loading_success = 0);
-        
+        template<class T>
+        void addParameter(const std::string& param_name,T& param
+                , ParamPolicy policy = ParamPolicy::Required
+                , std::function<void()> on_loading_success = 0)
+        {
+            config_->addParameter(param_name,param,policy,on_loading_success);
+        }
         ParameterBase* getParameter(const std::string& param_name);
         void printConfig() const;
         
