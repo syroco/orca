@@ -54,7 +54,7 @@ protected:
     virtual void onActivation();
     virtual void onUpdateConstraintFunction(double current_time, double dt);
 private:
-    double horizon_ = 15;
+    common::Parameter<double> horizon_ = 15;
 };
 
 }

@@ -8,9 +8,8 @@ using namespace orca::utils;
 
 JointAccelerationTask::JointAccelerationTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointAcceleration)
-, pid_(std::make_shared<PIDController>())
 {
-
+    this->addParameter("pid",&pid_);
 }
 
 void JointAccelerationTask::setDesired(const Eigen::VectorXd& jnt_pos_des
@@ -26,9 +25,9 @@ void JointAccelerationTask::setDesired(const Eigen::VectorXd& jnt_pos_des
     jnt_acc_des_ = jnt_acc_des;
 }
 
-std::shared_ptr<PIDController> JointAccelerationTask::pid()
+PIDController::Ptr JointAccelerationTask::pid()
 {
-    return pid_;
+    return pid_.get();
 }
 void JointAccelerationTask::onActivation()
 {
@@ -40,7 +39,7 @@ void JointAccelerationTask::onUpdateAffineFunction(double current_time, double d
     const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
 
-    f() = - (jnt_acc_des_ + pid_->computeCommand( jnt_pos_des_ - current_jnt_pos , jnt_vel_des_ - current_jnt_vel , dt) );
+    f() = - (jnt_acc_des_ + pid_.get()->computeCommand( jnt_pos_des_ - current_jnt_pos , jnt_vel_des_ - current_jnt_vel , dt) );
 }
 
 void JointAccelerationTask::onResize()
@@ -51,10 +50,13 @@ void JointAccelerationTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
         E().setIdentity();
-        pid_->resize(dof);
-
+        
+        pid_.get()->resize(dof);
+        
         jnt_pos_des_.setZero( dof );
         jnt_vel_des_.setZero( dof );
         jnt_acc_des_.setZero( dof );
     }
 }
+
+ORCA_REGISTER_CLASS(orca::task::JointAccelerationTask)

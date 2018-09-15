@@ -10,44 +10,47 @@ using namespace orca::utils;
 
 JointLimitConstraint::JointLimitConstraint(const std::string& name,ControlVariable control_var)
 : GenericConstraint(name,control_var)
-{}
+{
+    this->addParameter("upper_limit",&max_);
+    this->addParameter("lower_limit",&min_);
+}
 
 void JointLimitConstraint::setLimits(const Eigen::VectorXd& min, const Eigen::VectorXd& max)
 {
-    assertSize(min,min_);
-    assertSize(max,max_);
     min_ = min;
     max_ = max;
 }
 
 void JointLimitConstraint::onUpdateConstraintFunction(double current_time, double dt)
 {
-    constraintFunction().lowerBound() = min_ ;
-    constraintFunction().upperBound() = max_ ;
+    constraintFunction().lowerBound() = min_.get() ;
+    constraintFunction().upperBound() = max_.get() ;
 }
 
 Eigen::VectorXd& JointLimitConstraint::minLimit()
 {
-    return min_;
+    return min_.get();
 }
 Eigen::VectorXd& JointLimitConstraint::maxLimit()
 {
-    return max_;
+    return max_.get();
 }
 
 void JointLimitConstraint::onResize()
 {
     const int dim = this->robot()->getNrOfDegreesOfFreedom();
-
-    if(min_.size() != dim || max_.size() != dim)
+    if(!min_.isSet() || min_.get().size() != dim)
+    {
+        min_ = Eigen::VectorXd::Constant(dim, - math::Infinity);
+    }
+    if(!max_.isSet() || max_.get().size() != dim)
+    {
+        max_ = Eigen::VectorXd::Constant(dim,   math::Infinity);
+    }
+    
+    if(constraintFunction().rows() != dim)
     {
         constraintFunction().resize(dim,dim);
         constraintFunction().constraintMatrix().setIdentity();
-
-        min_.conservativeResize(dim);
-        max_.conservativeResize(dim);
-
-        math::setToLowest(min_);
-        math::setToHighest(max_);
     }
 }

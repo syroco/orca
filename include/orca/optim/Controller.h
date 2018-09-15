@@ -46,24 +46,24 @@
 #include "orca/robot/RobotModel.h"
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/task/RegularisationTask.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
 namespace optim
 {
-    class Controller
+    class Controller : public common::ConfigurableOrcaObject
     {
     public:
+        Controller(const std::string& name);
         Controller(const std::string& name
             , std::shared_ptr<robot::RobotModel> robot
             ,ResolutionStrategy resolution_strategy
-            ,QPSolver::SolverType solver_type);
-
+            ,QPSolverImplType solver_type);
+        
         void print() const;
 
         void setPrintLevel(int level);
-
-        const std::string& getName();
 
         std::shared_ptr<robot::RobotModel> robot();
 
@@ -75,13 +75,17 @@ namespace optim
 
         bool addTask(std::shared_ptr<task::GenericTask> task);
 
+        bool addTaskFromString(const std::string& task_description);
+        
+        bool addConstraintFromString(const std::string& task_description);
+        
         template<class T>
         std::shared_ptr<T> addTask(const std::string& name)
         {
             auto t = std::make_shared<T>(name);
             if(this->addTask(t))
                 return t;
-            return 0;
+            return nullptr;
         }
 
         std::shared_ptr<task::GenericTask> getTask(const std::string& name, int level = 0);
@@ -95,7 +99,7 @@ namespace optim
             auto c = std::make_shared<C>(name);
             if(this->addConstraint(c))
                 return c;
-            return 0;
+            return nullptr;
         }
 
         bool solutionFound() const;
@@ -138,23 +142,26 @@ namespace optim
 
         void updateConstraints(double current_time, double dt);
     private:
+        common::Parameter<std::string> resolution_strategy_str_;
+        common::Parameter<std::string> solver_type_str_;
+        common::Parameter<bool> remove_gravity_torques_ = false;
+        common::Parameter<bool> remove_coriolis_torques_ = true;
+        common::Parameter<robot::RobotModel::Ptr> robot_;
+        common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
+        common::Parameter<std::list< constraint::GenericConstraint::Ptr > >constraints_;
+
         std::function<void(double,double)> update_cb_;
 
-        std::list< std::shared_ptr<Problem> > problems_;
-
-        std::shared_ptr<robot::RobotModel> robot_;
+        std::list< Problem::Ptr > problems_;
 
         Eigen::VectorXd joint_torque_command_;
         Eigen::VectorXd kkt_torques_;
         Eigen::VectorXd joint_acceleration_command_;
 
-        bool remove_gravity_torques_ = false;
-        bool remove_coriolis_torques_ = false;
-
-        ResolutionStrategy resolution_strategy_;
-        QPSolver::SolverType solver_type_;
-        const std::string name_;
         bool solution_found_ = false;
+        
+        ResolutionStrategy resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
+        QPSolverImplType solver_type_ = QPSolverImplType::qpOASES;
     };
 } // namespace optim
 } //namespace orca

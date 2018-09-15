@@ -53,14 +53,14 @@ public:
                 , const Eigen::VectorXd& jnt_vel_des
                 , const Eigen::VectorXd& jnt_acc_des);
 
-    std::shared_ptr<common::PIDController> pid();
+    common::PIDController::Ptr pid();
 protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
     virtual void onActivation();
 private:
     Eigen::VectorXd jnt_pos_des_,jnt_vel_des_,jnt_acc_des_;
-    std::shared_ptr<common::PIDController> pid_;
+    common::Parameter<common::PIDController::Ptr> pid_ = std::make_shared<common::PIDController>("pid");
 };
 
 }

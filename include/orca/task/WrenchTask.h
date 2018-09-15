@@ -64,16 +64,15 @@ public:
 
     void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
 
-    std::shared_ptr<common::PIDController> pid();
+    common::PIDController::Ptr pid();
 
 protected:
     virtual void onActivation();
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
-    std::shared_ptr<common::Wrench> wrench_;
-    Vector6d wrench_des_;
-    std::shared_ptr<common::PIDController> pid_;
+    common::Parameter<Vector6d> wrench_des_;
+    common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
 };
 
 } // namespace task

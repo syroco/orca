@@ -120,10 +120,10 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpOASES
     );
 
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    auto cart_task = std::make_shared<CartesianTask>("CartTask_EE");
     controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;
@@ -134,12 +134,12 @@ int main(int argc, char const *argv[])
 
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    //cart_task->servoController()->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
+    //cart_task->servoController()->pid()->setDerivativeGain(D);
 
-    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    //cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 

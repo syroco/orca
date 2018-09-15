@@ -8,10 +8,12 @@
 #include <fstream>
 #include <streambuf>
 #include <tinyxml.h>
+#include <orca/common/Factory.h>
 
 using namespace orca::robot;
 using namespace orca::utils;
 using namespace orca::math;
+using namespace orca::common;
 
 #define assertInitialized() \
     if(!is_initialized_) \
@@ -26,7 +28,7 @@ using namespace orca::math;
         orca_throw("Provided frame is empty"); \
     if(!impl_->frameExists(frame)) { \
         print(); \
-        orca_throw(Formatter() << "Frame \'" << frame << "\' is not part of the robot"); \
+        orca_throw(Formatter() << "Frame '" << frame << "' is not part of the robot"); \
     }
 
 static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
@@ -53,11 +55,22 @@ static bool getRobotNameFromTinyXML(TiXmlDocument* doc, std::string& model_name)
 }
 
 RobotModel::RobotModel(const std::string& robot_name)
-: name_(robot_name)
+: ConfigurableOrcaObject(robot_name)
+, name_(robot_name)
 {
+    this->config()->onSuccess([&](){ loadFromParameters(); });
+    this->addParameter("name",&name_,ParamPolicy::Optional);
+    this->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
+    this->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);
+    this->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
+    this->addParameter("gravity",&gravity_,ParamPolicy::Optional);
+    this->addParameter("home_joint_positions",&home_joint_positions_,ParamPolicy::Optional);
+    
+    gravity_ = Eigen::Vector3d(0,0,-9.809);
+
     switch(robot_kinematics_type_)
     {
-        case RobotModelType::iDynTree:
+        case RobotModelImplType::iDynTree:
             impl_ = make_unique<RobotModelImpl<iDynTree> >();
             break;
         default:
@@ -65,14 +78,46 @@ RobotModel::RobotModel(const std::string& robot_name)
     }
 }
 
+bool RobotModel::loadFromParameters()
+{
+    if(!urdf_url_.isSet() && !urdf_str_.isSet())
+        orca_throw(Formatter() << "urdf_str and urdf_url are not set !\nYou should at least provide one of them to load the robot model.");
+    
+    if(urdf_url_.isSet())
+    {
+        if(!this->loadModelFromFile(urdf_url_.get()))
+            return false;
+    }
+    else if(urdf_str_.isSet())
+    {
+        if(!this->loadModelFromString(urdf_str_.get()))
+            return false;
+    }
+    
+    this->setBaseFrame(base_frame_.get());
+
+    if(gravity_.isSet())
+        this->setGravity(gravity_.get());
+
+    if(home_joint_positions_.isSet())
+    {
+        if(home_joint_positions_.get().size() != getNrOfDegreesOfFreedom())
+            orca_throw(Formatter() << "home_joint_positions provided does not match ndof (" 
+                << home_joint_positions_.get().size() 
+                << " vs " << getNrOfDegreesOfFreedom() << ")"
+            );
+        
+        Eigen::VectorXd zero_vel = Eigen::VectorXd::Zero(getNrOfDegreesOfFreedom());
+
+        // Set the first state to the robot
+        this->setRobotState(home_joint_positions_.get(),zero_vel);
+    }
+    return true;
+}
+
 RobotModel::~RobotModel()
 {
 
-}
-
-const std::string& RobotModel::getName() const
-{
-    return name_;
 }
 
 const std::vector<std::string>& RobotModel::getLinkNames() const
@@ -100,12 +145,15 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
     // Extract the model name from the URDF
     // WARNING : in multi robot environnement + ROS
     // This will cause topic names collisions as they are based on robot names
-    if(name_.empty())
+    if(name_.get().empty())
     {
         // If no name is provided, let's find it on the URDF
         TiXmlDocument doc;
         doc.Parse(modelString.c_str());
-        if(!getRobotNameFromTinyXML(&doc,name_))
+        
+        std::string name_in_xml;
+        
+        if(!getRobotNameFromTinyXML(&doc,name_in_xml))
         {
             std::cerr << "modelString : \n" << modelString << '\n';
             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
@@ -114,18 +162,26 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         }
         else
         {
-            LOG_DEBUG << "Name extracted from URDF string : " << name_;
+            LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
         }
+        
+        // Set the new name
+        name_.set( name_in_xml );
     }
     if(impl_->loadModelFromString(modelString))
     {
         urdf_str_ = modelString;
-        LOG_INFO << "Robot model " << getName() << " successfully loaded";
+        LOG_INFO << "Robot model '" << getName() << "' (" << getNrOfDegreesOfFreedom() << " dof) successfully loaded";
         return true;
     }
     std::cerr << "modelString : \n" << modelString << "\n\n";
-    orca_throw(Formatter() << "Could not load robot model from string");
+    orca_throw(Formatter() << modelString << "\n\nCould not load robot model from above urdf string.\n\n");
     return false;
+}
+
+const std::string& RobotModel::getName() const
+{
+    return name_.get();
 }
 
 bool RobotModel::loadModelFromFile(const std::string &modelFile)
@@ -149,17 +205,17 @@ bool RobotModel::loadModelFromFile(const std::string &modelFile)
 
 const std::string& RobotModel::getUrdfUrl() const
 {
-    if(urdf_url_.empty() && !urdf_str_.empty())
+    if(urdf_url_.get().empty() && !urdf_str_.get().empty())
         LOG_WARNING << "Robot model has been loaded with a URDF string, so the url is empty";
     assertLoaded();
-    return urdf_url_;
+    return urdf_url_.get();
 }
 
 const std::string& RobotModel::getUrdfString() const
 {
-    if(urdf_str_.empty())
+    if(urdf_str_.get().empty())
         LOG_ERROR << "Robot is not loaded, URDF string is empty";
-    return urdf_str_;
+    return urdf_str_.get();
 }
 
 const Eigen::VectorXd& RobotModel::getMinJointPos()
@@ -179,7 +235,7 @@ void RobotModel::print() const
     auto fn = getFrameNames();
     auto ln = getLinkNames();
 
-    std::cout << "Robot model " << getName() << '\n';
+    std::cout << "Robot model '" << getName() << "'" << '\n';
     std::cout << "  Joints" << '\n';
     for(unsigned int i=0; i < jn.size() ; i++)
     {
@@ -195,6 +251,11 @@ void RobotModel::print() const
     {
         std::cout << "      Link " << i << " " << ln[i] << '\n';
     }
+    std::cout << "  Current State" << '\n';
+    std::cout << "     Joint Pos: " << impl_->getJointPos().transpose() << '\n';
+    std::cout << "     Joint Vel: " << impl_->getJointPos().transpose() << '\n';
+    std::cout << "     Base Vel: " << impl_->getBaseVelocity().transpose() << '\n';
+    std::cout << "     WorldToBase: \n" << impl_->getWorldToBaseTransform() << '\n';
 }
 
 void RobotModel::onRobotInitializedCallback(std::function<void(void)> cb)
@@ -402,3 +463,5 @@ const Eigen::VectorXd& RobotModel::generalizedBiasForces()
     assertInitialized();
     return impl_->generalizedBiasForces();
 }
+
+ORCA_REGISTER_CLASS(orca::robot::RobotModel)

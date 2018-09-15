@@ -5,8 +5,9 @@ using namespace orca::optim;
 
 CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 : CartesianServoController(name)
-, pid_(std::make_shared<PIDController>(6))
-{}
+{
+    this->addParameter("pid",&pid_);
+}
 
 const Eigen::Vector3d& CartesianAccelerationPID::getCurrentCartesianPosition() const
 {
@@ -43,6 +44,8 @@ const Vector6d& CartesianAccelerationPID::getDesiredCartesianAcceleration() cons
 
 void CartesianAccelerationPID::onResize()
 {
+    if(pid_.isSet())
+        pid_.get()->resize(6);
     cart_pos_curr_.setZero();
     cart_pos_des_.setZero();
     cart_acc_cmd_.setZero();
@@ -67,7 +70,7 @@ void CartesianAccelerationPID::print() const
     std::cout << cart_pos_err_.transpose() << '\n';
     std::cout << "  Velocity error : " << '\n';
     std::cout << cart_vel_err_.transpose() << '\n';
-    pid_->print();
+    pid_.get()->print();
     std::cout << "  Acceleration command : " << '\n';
     std::cout << cart_acc_cmd_.transpose() << '\n';
 }
@@ -82,13 +85,19 @@ void CartesianAccelerationPID::setDesired(const Eigen::Matrix4d& cartesian_posit
     desired_set_ = true;
 }
 
-std::shared_ptr<PIDController> CartesianAccelerationPID::pid()
+PIDController::Ptr CartesianAccelerationPID::pid()
 {
-    return pid_;
+    return pid_.get();
 }
 
 void CartesianAccelerationPID::onActivation()
 {
+    // If no frame has been set before, use the default Floating Base.
+    if(!getParameter("base_frame")->isSet())
+    {
+        setBaseFrame(robot()->getBaseFrame());
+    }
+    
     if(!desired_set_)
     {
         // Defaults the task to the current pose of the robot
@@ -119,10 +128,12 @@ void CartesianAccelerationPID::onCompute(double current_time, double dt)
     cart_vel_err_ = cart_vel_des_ - cart_vel_curr_;
 
     // Compute Cartesian Acceleration Command
-    cart_acc_cmd_ = cart_acc_des_ + pid_->computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
+    cart_acc_cmd_ = cart_acc_des_ + pid_.get()->computeCommand( cart_pos_err_ , cart_vel_err_ , dt);
 }
 
 const Vector6d& CartesianAccelerationPID::getCommand() const
 {
     return cart_acc_cmd_;
 }
+
+ORCA_REGISTER_CLASS(orca::common::CartesianAccelerationPID)

@@ -17,7 +17,7 @@ using namespace orca::math;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolver::SolverType solver_type)
+Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolverImplType solver_type)
 : qpsolver_(std::make_shared<QPSolver>(solver_type))
 , robot_(robot)
 {
@@ -210,7 +210,7 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> constraint)
 void Problem::resize()
 {
     if(ndof_ == 0)
-        orca_throw(Formatter() << "Cannot resize if ndof is 0");
+        orca_throw("Cannot resize if ndof is 0");
 
     int nvars = this->mapping_.generate(ndof_,wrenches_.size());
     int nconstr = computeNumberOfConstraintRows();

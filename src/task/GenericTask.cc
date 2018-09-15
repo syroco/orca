@@ -11,6 +11,7 @@ GenericTask::GenericTask(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
 {
     this->setRampDuration(0);
+    this->addParameter("weight",&weight_);
 }
 
 GenericTask::~GenericTask()
@@ -29,7 +30,7 @@ void GenericTask::print() const
 
 double GenericTask::getWeight() const
 {
-    return getCurrentRampValue() * weight_;
+    return getCurrentRampValue() * weight_.get();
 }
 
 void GenericTask::setWeight(double weight)
@@ -106,7 +107,7 @@ bool GenericTask::rampUp(double time_since_start)
     }
     else
     {
-        setRampValue( time_since_start *( weight_ / getRampDuration() ) );;
+        setRampValue( time_since_start *( weight_.get() / getRampDuration() ) );;
         return false;
     }
 }
@@ -123,7 +124,7 @@ void GenericTask::onCompute(double current_time, double dt)
 
     if(Esize_before != Esize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Matrix E() changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Matrix E() changed size during onUpdateAffineFunction, it was ("
                 << Esize_before
                 << ") but now its ("
                 << Esize_after
@@ -132,7 +133,7 @@ void GenericTask::onCompute(double current_time, double dt)
     }
     if(fsize_before != fsize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Vector f() changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Vector f() changed size during onUpdateAffineFunction, it was ("
                 << Esize_before
                 << ") but now its ("
                 << Esize_after

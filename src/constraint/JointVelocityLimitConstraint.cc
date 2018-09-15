@@ -4,7 +4,9 @@ using namespace orca::optim;
 
 JointVelocityLimitConstraint::JointVelocityLimitConstraint(const std::string& name)
 : JointLimitConstraint(name,ControlVariable::JointAcceleration)
-{}
+{
+    this->addParameter("horizon",&horizon_);
+}
 
 void JointVelocityLimitConstraint::setHorizon(double horizon)
 {
@@ -15,8 +17,10 @@ void JointVelocityLimitConstraint::onUpdateConstraintFunction(double current_tim
 {
     const Eigen::VectorXd& current_jnt_vel = this->robot()->getJointVel();
 
-    double horizon_dt = horizon_ * dt;
+    double horizon_dt = horizon_.get() * dt;
 
     constraintFunction().lowerBound().noalias() = ( minLimit() - current_jnt_vel ) / ( horizon_dt );
     constraintFunction().upperBound().noalias() = ( maxLimit() - current_jnt_vel ) / ( horizon_dt );
 }
+
+ORCA_REGISTER_CLASS(orca::constraint::JointVelocityLimitConstraint)

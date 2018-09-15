@@ -1,26 +1,26 @@
 #include "orca/optim/QPSolver.h"
 #include "orca/utils/Utils.h"
 #include "QPSolverImpl_qpOASES.impl"
-#include "QPSolverImpl_osqp.impl"
-#include "QPSolverImpl_eigQuadProg.impl"
+// #include "QPSolverImpl_osqp.impl"
+//#include "QPSolverImpl_eigQuadProg.impl"
 #include <iostream>
 using namespace orca::optim;
 using namespace orca::utils;
 using namespace orca::common;
 
-QPSolver::QPSolver(QPSolver::SolverType solver_type)
+QPSolver::QPSolver(QPSolverImplType solver_type)
 {
     switch(solver_type)
     {
-        case SolverType::qpOASES:
+        case QPSolverImplType::qpOASES:
             pimpl = make_unique<QPSolverImpl_qpOASES>();
             break;
-        case SolverType::osqp:
-            pimpl = make_unique<QPSolverImpl_osqp>();
-            break;
-        case SolverType::eigQuadProg:
-            pimpl = make_unique<QPSolverImpl_eigQuadProg>();
-            break;
+        // case SolverType::osqp:
+        //     pimpl = make_unique<QPSolverImpl_osqp>();
+        //     break;
+//         case QPSolverImplType::quadprog:
+//             pimpl = make_unique<QPSolverImpl_eigQuadProg>();
+//             break;
         default:
             orca_throw(Formatter() << "QPSolver " << solver_type << " not implemented");
     }

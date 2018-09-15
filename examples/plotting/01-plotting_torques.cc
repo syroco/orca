@@ -80,49 +80,26 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpOASES
     );
 
-    // Cartesian Task
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
-    controller.addTask(cart_task); // Add the task to the controller to initialize it
-    // Set the frame you want to control
-    cart_task->setControlFrame("link_7"); // We want to control the link_7
-
-    // Set the pose desired for the link_7
-    Eigen::Affine3d cart_pos_ref;
-    // Translation
-    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
-    // Rotation is done with a Matrix3x3
-    Eigen::Quaterniond quat;
-    // Example 1 : create a quaternion from Euler anglers ZYZ convention
-    quat = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ())
-         * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
-         * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
-    // Example 2 : create a quaternion from RPY convention
-    cart_pos_ref.linear() = quatFromRPY(0,0,0).toRotationMatrix();
-    // Example 3 : create a quaternion from Kuka Convention
-    cart_pos_ref.linear() = quatFromKukaConvention(0,0,0).toRotationMatrix();
-
-    // Set the desired cartesian velocity to zero
-    Vector6d cart_vel_ref;
-    cart_vel_ref.setZero();
-
-    // Set the desired cartesian velocity to zero
-    Vector6d cart_acc_ref;
-    cart_acc_ref.setZero();
-
-    // Now set the servoing PID
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    cart_acc_pid->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
-    // The desired values are set on the servo controller
-    // Because cart_task->setDesired expects a cartesian acceleration
-    // Which is computed automatically by the servo controller
-    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    cart_acc_pid->pid()->setDerivativeGain(D);
+    cart_acc_pid->setControlFrame("link_7");
+    Eigen::Affine3d cart_pos_ref;
+    cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
+    cart_pos_ref.linear() = orca::math::quatFromRPY(M_PI,0,0).toRotationMatrix();
+    Vector6d cart_vel_ref = Vector6d::Zero();
+    Vector6d cart_acc_ref = Vector6d::Zero();
+    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
+    cart_task->setServoController(cart_acc_pid);
 
     // Get the number of actuated joints
     const int ndof = robot_model->getNrOfDegreesOfFreedom();

@@ -45,6 +45,8 @@ namespace orca
         class CartesianServoController : public TaskBase
         {
         public:
+            using Ptr = std::shared_ptr<CartesianServoController>;
+            
             CartesianServoController(const std::string& name);
             virtual const math::Vector6d& getCommand() const = 0;
             void setBaseFrame(const std::string& base_ref_frame);
@@ -52,7 +54,27 @@ namespace orca
             const std::string& getBaseFrame() const;
             const std::string& getControlFrame() const;
         private:
-            std::string base_ref_frame_,control_frame_;
+            Parameter<std::string> base_ref_frame_;
+            Parameter<std::string> control_frame_;
         };
-    }
-}
+    } // namespace common
+} // namespace orca
+
+// namespace orca
+// {
+//     namespace common
+//     {
+//         template<>
+//         class Parameter<CartesianServoController::Ptr> 
+//         : public ParameterBase
+//         , public ParameterData<CartesianServoController::Ptr>
+//         {
+//         public:
+//             bool loadFromString(const std::string& s)
+//             {
+//                 std::cout << "loadFromString Parameter<CartesianServoController::Ptr> " << std::endl;
+//                 return true;
+//             }
+//         };
+//     } // namespace common
+// } // namespace orca

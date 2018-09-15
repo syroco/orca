@@ -79,6 +79,7 @@ public:
 
 protected:
     void onCompute(double current_time, double dt){}
+    void onResize(){}
 private:
     std::shared_ptr<LinearizedCoulombConstraint> friction_cone_;
     std::shared_ptr<ContactExistenceConditionConstraint> ex_condition_;
