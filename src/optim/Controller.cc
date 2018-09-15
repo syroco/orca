@@ -33,10 +33,6 @@ Controller::Controller(const std::string& name)
         joint_torque_command_.setZero(robot()->getNrOfDegreesOfFreedom());
         kkt_torques_.setZero(robot()->getNrOfDegreesOfFreedom());
 
-        if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
-        {
-            orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
-        }
         insertNewLevel();
         
         LOG_WARNING << "[" << getName() << "]" << " Adding " << tasks_.get().size() << " tasks "
@@ -63,10 +59,6 @@ Controller::Controller(const std::string& name
     joint_torque_command_.setZero(robot->getNrOfDegreesOfFreedom());
     kkt_torques_.setZero(robot->getNrOfDegreesOfFreedom());
 
-    if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
-    {
-        orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
-    }
     insertNewLevel();
 }
 
@@ -96,6 +88,8 @@ std::shared_ptr<robot::RobotModel> Controller::robot()
 void Controller::setRobotModel(std::shared_ptr<robot::RobotModel> robot)
 {
     robot_ = robot;
+    for(auto problem : problems_)
+        problem->setRobotModel(robot);
 }
 
 void Controller::setUpdateCallback(std::function<void(double,double)> update_cb)
@@ -453,12 +447,15 @@ std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globa
 void Controller::insertNewLevel()
 {
     LOG_INFO << "Inserting new dry Problem at level " << problems_.size();
-    auto problem = std::make_shared<Problem>(robot_.get(),solver_type_);
+    auto problem = std::make_shared<Problem>();
+    problem->setRobotModel(robot());
+    problem->setImplementationType(solver_type_);
     problems_.push_back(problem);
 
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
     auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
-
+    
+    // NOTE: The order matters : 1rst things first to be updated
     addConstraint(dynamics_equation);
     addTask(global_regularisation);
 

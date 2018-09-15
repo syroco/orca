@@ -3,10 +3,7 @@
 #include "orca/utils/Utils.h"
 #include "orca/common/TaskBase.h"
 #include "orca/task/GenericTask.h"
-#include "orca/task/RegularisationTask.h"
-#include "orca/task/WrenchTask.h"
 #include "orca/constraint/GenericConstraint.h"
-#include "orca/constraint/DynamicsEquationConstraint.h"
 #include "orca/robot/RobotModel.h"
 
 using namespace orca::common;
@@ -17,18 +14,26 @@ using namespace orca::math;
 using namespace orca::utils;
 using namespace orca::robot;
 
-Problem::Problem(std::shared_ptr<RobotModel> robot, QPSolverImplType solver_type)
-: qpsolver_(std::make_shared<QPSolver>(solver_type))
-, robot_(robot)
-{
-    this->ndof_ = robot->getNrOfDegreesOfFreedom();
-    // initialise the problem as we have  the ndof
-    resize();
-}
+Problem::Problem()
+{}
 
 Problem::~Problem()
-{
+{}
 
+bool Problem::setRobotModel(RobotModel::Ptr robot)
+{
+    if(!robot)
+    {
+        LOG_ERROR << "Provided robot is null";
+        return false;
+    }
+    robot_ = robot;
+    resize();
+    return true;
+}
+bool Problem::setImplementationType(QPSolverImplType solver_type)
+{
+    return qpsolver_->setImplementationType(solver_type);
 }
 
 void Problem::print() const
@@ -207,14 +212,27 @@ bool Problem::addConstraint(std::shared_ptr<GenericConstraint> constraint)
     }
 }
 
+unsigned int Problem::generateVariableMapping()
+{
+    return this->mapping_.generate(robot_->getNrOfDegreesOfFreedom(),wrenches_.size());
+}
+
 void Problem::resize()
 {
-    if(ndof_ == 0)
-        orca_throw("Cannot resize if ndof is 0");
+    // NOTE : We only need to call resize when
+    // * It receives the robot 
+    //      --> generate mapping between variables
+    //          --> resize its data 
+    //              --> resize all tasks that depends on the problem size (tasks resize their children)
+    // * It receives a task that has a wrench
+    //      --> re-generate mapping to take into account the new wrench (the whole optimisation vector gets +6 in size)
+    //          --> resize its data
+    //              --> resize all tasks that depends on the problem size (tasks resize their children)
 
-    int nvars = this->mapping_.generate(ndof_,wrenches_.size());
+    int nvars = generateVariableMapping();
     int nconstr = computeNumberOfConstraintRows();
-
+    
+    // Verify if size has changed
     if(nvars != this->number_of_variables_ || nconstr != this->number_of_constraints_rows_)
     {
         LOG_INFO << "Resizing problem to (" << Size(nvars,nconstr) << ") , previously was (" << Size(nvars,nconstr) << ")";
@@ -224,7 +242,8 @@ void Problem::resize()
         resizeSolver(this->number_of_variables_,this->number_of_constraints_rows_);
 
         // Only resize tasks that depends on the problem changing size
-        // TODO : account for joint changes
+        // We can resize because Task is friend class with problem
+        // Maybe it is possible to use callback to make it transparent
         for(auto t : tasks_)
             if(t->dependsOnProblem())
                 t->resize();

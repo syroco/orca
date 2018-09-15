@@ -47,7 +47,7 @@ namespace optim
 class QPSolverImpl
 {
 public:
-    virtual void resize(int nvar,int nconstr) = 0;
+    virtual void resize(unsigned int nvar,unsigned int nconstr) = 0;
     virtual void setPrintLevel(int level) = 0;
     virtual void setDefaultOptions() = 0;
     virtual common::ReturnCode solve(ProblemData& data ) = 0;

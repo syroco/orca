@@ -14,7 +14,7 @@ class QPSolverImpl_eigQuadProg : public QPSolverImpl
 
 public:
 
-    void resize(int nvar,int nconstr)
+    void resize(unsigned int nvar,unsigned int nconstr)
     {
 
     }
