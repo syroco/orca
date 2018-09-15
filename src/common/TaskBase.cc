@@ -251,15 +251,13 @@ ControlVariable TaskBase::getControlVariable() const
 
 std::shared_ptr<RobotModel> TaskBase::robot()
 {
-    if(dependsOnFloatingBase() || dependsOnFloatingBase())
-        assertRobotLoaded(robot_);
+    assertRobotLoaded(robot_);
     return robot_;
 }
 
 std::shared_ptr<const RobotModel> TaskBase::getRobot() const
 {
-    if(dependsOnFloatingBase() || dependsOnFloatingBase())
-        assertRobotLoaded(robot_);
+    assertRobotLoaded(robot_);
     return robot_;
 }
 
