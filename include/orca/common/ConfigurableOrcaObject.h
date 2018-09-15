@@ -49,30 +49,37 @@ namespace common
         using Ptr = std::shared_ptr<ConfigurableOrcaObject>;
         
         virtual ~ConfigurableOrcaObject() {}
-        
+        /**
+        * @brief Creates a config with the name provided.
+        */
         ConfigurableOrcaObject(const std::string& name);
-                /**
+        /**
         * @brief Configure the task from YAML/JSON string. It must contain all the required parameters.
         *
-        * @return true is all the required parameters are loaded properly
+        * @return true is all the required parameters are loaded properly.
         */
         bool configureFromString(const std::string& yaml_str);
         /**
         * @brief Configure the task from YAML/JSON file. It must contain all the required parameters.
         *
-        * @return true is all the required parameters are loaded properly
+        * @return true is all the required parameters are loaded properly.
         */
         bool configureFromFile(const std::string& yaml_url);
         /**
-        * @brief Returns true if all params added with @addParameter have been set
+        * @brief Returns true if all params added with @addParameter have been set.
         *
-        * @return true is all the required parameters are loaded properly
+        * @return true is all the required parameters are loaded properly.
         */
         bool isConfigured() const;
-        
+        /**
+        * @brief Add a parameter in the task. Required parameters need to be set before updating.
+        */
         void addParameter(const std::string& param_name,ParameterBase* param
                     , ParamPolicy policy = ParamPolicy::Required
                     , std::function<void()> on_loading_success = 0);
+        /**
+        * @brief Same as #addParameter, but via reference.
+        */
         template<class T>
         void addParameter(const std::string& param_name,T& param
                 , ParamPolicy policy = ParamPolicy::Required
@@ -80,9 +87,17 @@ namespace common
         {
             config_->addParameter(param_name,param,policy,on_loading_success);
         }
+        /**
+        * @brief Returns a parameter based on his name. nullptr if it does not exists.
+        */
         ParameterBase* getParameter(const std::string& param_name);
+        /**
+        * @brief Output config to std::cout.
+        */
         void printConfig() const;
-        
+        /**
+        * @brief Get the reference to the config
+        */
         Config::Ptr config();
     private:
         Config::Ptr config_;
