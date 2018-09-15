@@ -52,6 +52,11 @@ void PIDController::setProportionalGain(const Eigen::VectorXd& P_gain)
     p_gain_ = P_gain;
 }
 
+void PIDController::setProportionalGain(const std::vector<double>& P_gain)
+{
+    setProportionalGain( Eigen::VectorXd::Map(P_gain.data(),P_gain.size()) );
+}
+
 const Eigen::VectorXd& PIDController::P() const
 {
     return p_gain_.get();
@@ -62,9 +67,19 @@ void PIDController::setIntegralGain(const Eigen::VectorXd& I_gain)
     i_gain_ = I_gain;
 }
 
+void PIDController::setIntegralGain(const std::vector<double>& I_gain)
+{
+    setIntegralGain( Eigen::VectorXd::Map(I_gain.data(),I_gain.size()) );
+}
+
 void PIDController::setWindupLimit(const Eigen::VectorXd& windup_lim)
 {
     windup_limit_ = windup_lim;
+}
+
+void PIDController::setWindupLimit(const std::vector<double>& windup_lim)
+{
+    setWindupLimit( Eigen::VectorXd::Map(windup_lim.data(),windup_lim.size()) );
 }
 
 const Eigen::VectorXd& PIDController::windupLimit()
@@ -80,6 +95,11 @@ const Eigen::VectorXd& PIDController::I() const
 void PIDController::setDerivativeGain(const Eigen::VectorXd& D_gain)
 {
     d_gain_ = D_gain;
+}
+
+void PIDController::setDerivativeGain(const std::vector<double>& D_gain)
+{
+    setDerivativeGain( Eigen::VectorXd::Map(D_gain.data(),D_gain.size()) );
 }
 
 const Eigen::VectorXd& PIDController::D() const
