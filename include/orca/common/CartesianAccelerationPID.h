@@ -151,6 +151,8 @@ namespace orca
             void onActivation();
             void onCompute(double current_time, double dt);
         private:
+            Parameter< PIDController::Ptr > pid_ = std::make_shared<PIDController>("pid");
+        private:
             Eigen::Matrix4d cart_pos_curr_,cart_pos_des_;
             Eigen::Matrix3d cart_rot_curr_;
             Eigen::Vector3d cart_position_curr_;
@@ -161,7 +163,6 @@ namespace orca
                     ,cart_pos_err_
                     ,cart_vel_err_
                     ,cart_vel_curr_;
-            Parameter< PIDController::Ptr > pid_;
             bool desired_set_ = false;
         };
     } // namespace common

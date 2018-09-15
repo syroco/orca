@@ -21,6 +21,7 @@ using namespace orca::utils;
 TaskBase::TaskBase(const std::string& name,ControlVariable control_var) 
 : ConfigurableOrcaObject(name)
 , control_var_(control_var)
+, printable_name_(name)
 {}
 
 TaskBase::~TaskBase()
@@ -61,18 +62,18 @@ void TaskBase::setParentName(const std::string& parent_name)
     if(parent_name_.empty())
         printable_name_ = getName();
     else
-        printable_name_ = std::string("  ") + parent_name_ + std::string("::") + getName();
+        printable_name_ = parent_name_ + std::string("::") + getName();
 }
 
 
-void TaskBase::addChild(std::shared_ptr<TaskBase> e)
+void TaskBase::addChild(TaskBase::Ptr e)
 {
     if(!exists(e,children_))
     {
         if(e->dependsOnProblem())
             e->setProblem(getProblem());
-        if(e->dependsOnRobotJoints() || e->dependsOnFloatingBase())
-            e->setRobotModel(robot());
+
+        e->setRobotModel(robot());
         e->setParentName(this->getName());
         children_.push_back(e);
         return;
@@ -174,7 +175,7 @@ bool TaskBase::setRobotModel(RobotModel::Ptr robot)
     for(auto e : children_)
         e->setRobotModel(robot_);
 
-    if(hasProblem())
+    if(!dependsOnProblem() || (dependsOnProblem() && hasProblem()))
     {
         resize();
     }

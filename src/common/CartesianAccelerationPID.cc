@@ -5,7 +5,6 @@ using namespace orca::optim;
 
 CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
 : CartesianServoController(name)
-, pid_(std::make_shared<PIDController>())
 {
     this->addParameter("pid",&pid_);
 }

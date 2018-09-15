@@ -81,5 +81,12 @@ namespace task
     typedef RegularisationTask<optim::ControlVariable::JointTorque>               JointTorqueRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::ExternalWrench>            WrenchRegularisationTask;
     typedef RegularisationTask<optim::ControlVariable::X>                         GlobalRegularisationTask;
-}
-}
+} // namespace task
+} // namespace orca
+
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::X>,0)
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::GeneralisedAcceleration>,1)
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::JointAcceleration>,2)
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::GeneralisedTorque>,3)
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::JointTorque>,4)
+ORCA_REGISTER_CLASS(orca::task::RegularisationTask<orca::optim::ControlVariable::ExternalWrench>,5)

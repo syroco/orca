@@ -71,7 +71,7 @@ namespace orca
 } // namespace orca
 
 
-#define ORCA_REGISTER_CLASS(CLASSNAME) \
+#define ORCA_REGISTER_CLASS(CLASSNAME,...) \
 namespace { \
-    bool ok = ::orca::common::Factory::Instance()->registerClass(#CLASSNAME,[](const std::string& name) { return std::make_shared<CLASSNAME>(name); }); \
+    bool ok##__VA_ARGS__ = ::orca::common::Factory::Instance()->registerClass(#CLASSNAME,[](const std::string& name) { return std::make_shared<CLASSNAME>(name); }); \
 };

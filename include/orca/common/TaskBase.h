@@ -111,7 +111,7 @@ namespace common
         /**
         * @brief Add a child/slave task that will be updated BEFORE the parent task.
         */
-        void addChild(std::shared_ptr<TaskBase> e);
+        void addChild(TaskBase::Ptr e);
         /**
         * @brief Returns true if the task owned by a parent task.
         */
@@ -143,7 +143,7 @@ namespace common
         mutable orca::common::MutexRecursive mutex;
     protected:
         virtual void resize();
-        std::shared_ptr<robot::RobotModel> robot();
+        robot::RobotModel::Ptr robot();
         std::shared_ptr<Wrench> wrench();
 
         virtual void onResize() = 0;
