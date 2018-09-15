@@ -134,6 +134,7 @@ public:
     */
     mutable common::MutexRecursive mutex;
     
+    ResolutionStrategy getResolutionStrategy() const;
 private:
     bool isProblemDry(std::shared_ptr<const optim::Problem> problem);
     std::shared_ptr<Problem> getProblemAtLevel(int level);
@@ -141,8 +142,8 @@ private:
     void updateTasks(double current_time, double dt);
     void updateConstraints(double current_time, double dt);
 private:
-    common::Parameter<std::string> resolution_strategy_str_;
-    common::Parameter<std::string> solver_type_str_;
+    common::Parameter<ResolutionStrategy> resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
+    common::Parameter<QPSolverImplType> solver_type_ = QPSolverImplType::qpOASES;
     common::Parameter<bool> remove_gravity_torques_ = false;
     common::Parameter<bool> remove_coriolis_torques_ = true;
     common::Parameter<robot::RobotModel::Ptr> robot_;
@@ -158,9 +159,6 @@ private:
     Eigen::VectorXd joint_acceleration_command_;
 
     bool solution_found_ = false;
-    
-    ResolutionStrategy resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
-    QPSolverImplType solver_type_ = QPSolverImplType::qpOASES;
 };
 } // namespace optim
 } //namespace orca

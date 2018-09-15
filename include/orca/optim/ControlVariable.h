@@ -56,24 +56,31 @@ namespace optim
         , None
     };
 
-    inline ::std::ostream& operator<<(::std::ostream& os, const ControlVariable& cv)
+    static std::string ControlVariableToString(const ControlVariable& cv)
     {
         switch (cv)
         {
-            case ControlVariable::X :                           os << "X"; break;
-            case ControlVariable::GeneralisedAcceleration :     os << "GeneralisedAcceleration"; break;
-            case ControlVariable::FloatingBaseAcceleration :    os << "FloatingBaseAcceleration"; break;
-            case ControlVariable::JointAcceleration :           os << "JointAcceleration"; break;
-            case ControlVariable::GeneralisedTorque :           os << "GeneralisedTorque"; break;
-            case ControlVariable::FloatingBaseWrench :          os << "FloatingBaseWrench"; break;
-            case ControlVariable::JointTorque :                 os << "JointTorque"; break;
-            case ControlVariable::ExternalWrench :              os << "ExternalWrench"; break;
-            case ControlVariable::ExternalWrenches :            os << "ExternalWrenches"; break;
-            case ControlVariable::Composite :                   os << "Composite"; break;
-            case ControlVariable::None :                        os << "None"; break;
-            default: break;
+            case ControlVariable::X :                           return  "X"; 
+            case ControlVariable::GeneralisedAcceleration :     return  "GeneralisedAcceleration"; 
+            case ControlVariable::FloatingBaseAcceleration :    return  "FloatingBaseAcceleration"; 
+            case ControlVariable::JointAcceleration :           return  "JointAcceleration"; 
+            case ControlVariable::GeneralisedTorque :           return  "GeneralisedTorque"; 
+            case ControlVariable::FloatingBaseWrench :          return  "FloatingBaseWrench"; 
+            case ControlVariable::JointTorque :                 return  "JointTorque"; 
+            case ControlVariable::ExternalWrench :              return  "ExternalWrench"; 
+            case ControlVariable::ExternalWrenches :            return  "ExternalWrenches"; 
+            case ControlVariable::Composite :                   return  "Composite"; 
+            case ControlVariable::None :                        return  "None"; 
+            default: return "ERROR";
         }
-        return os;
     }
-}
-}
+
+    inline ::std::ostream& operator<<(::std::ostream& os, const ControlVariable& cv)
+    {
+        return os << ControlVariableToString(cv);
+    }
+
+} // namespace optim
+} // namespace orca
+
+

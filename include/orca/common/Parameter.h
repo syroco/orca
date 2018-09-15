@@ -1,6 +1,6 @@
 #pragma once
-#include <orca/common/ParameterBase.hh>
-#include <orca/common/ParameterData.hh>
+#include <orca/common/ParameterBase.h>
+#include <orca/common/ParameterData.h>
 // TODO : Try to remove this from headers
 #include <yaml-cpp/yaml.h>
 
@@ -41,7 +41,7 @@ namespace YAML {
 
 } // namespace YAML
 
-// Hack to remove shared_ptr YAML support error
+// Special case for shared_ptr
 namespace YAML {
   template < typename T>
   struct convert< std::shared_ptr<T> >
@@ -54,6 +54,46 @@ namespace YAML {
 
     static bool decode(const Node& node, std::shared_ptr<T>& e)
     {
+      return true;
+    }
+  };
+}
+
+#include <orca/optim/QPSolverImplType.h>
+namespace YAML {
+  template<>
+  struct convert< orca::optim::QPSolverImplType >
+  {
+    static Node encode(const orca::optim::QPSolverImplType& s)
+    {
+      auto node = YAML::Node();
+      node.push_back(orca::optim::QPSolverImplTypeToString(s));
+      return node;
+    }
+
+    static bool decode(const Node& node, orca::optim::QPSolverImplType& e)
+    {
+      e = orca::optim::QPSolverImplTypeFromString(node[0].as<std::string>());
+      return true;
+    }
+  };
+}
+
+#include <orca/optim/ResolutionStrategy.h>
+namespace YAML {
+  template<>
+  struct convert< orca::optim::ResolutionStrategy >
+  {
+    static Node encode(const orca::optim::ResolutionStrategy& s)
+    {
+      auto node = YAML::Node();
+      node.push_back(orca::optim::ResolutionStrategyToString(s));
+      return node;
+    }
+
+    static bool decode(const Node& node, orca::optim::ResolutionStrategy& e)
+    {
+      e = orca::optim::ResolutionStrategyFromString(node[0].as<std::string>());
       return true;
     }
   };
@@ -214,8 +254,7 @@ public:
 } // namespace orca
 
 template<class T>
-inline ::std::ostream& operator<<(::std::ostream& os, const orca::common::Parameter<T>& p)
+::std::ostream& operator<<(::std::ostream& os, const orca::common::Parameter<T>& p)
 {
-    os << p.get();
-    return os;
+    return os << p.get();
 }

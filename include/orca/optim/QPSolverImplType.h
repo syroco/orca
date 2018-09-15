@@ -48,26 +48,28 @@ namespace optim
         , eigQuadProg
     };
     
-    inline std::string QPSolverImplTypetoString(QPSolverImplType rs)
+    inline std::string QPSolverImplTypeToString(QPSolverImplType rs)
     {
         if(rs == QPSolverImplType::qpOASES) return "qpOASES";
         if(rs == QPSolverImplType::osqp) return "osqp";
         if(rs == QPSolverImplType::eigQuadProg) return "eigQuadProg";
         return "Not supported";
     }
-    inline QPSolverImplType QPSolverImplTypefromString(const std::string& rs)
+    inline QPSolverImplType QPSolverImplTypeFromString(const std::string& rs)
     {
         if(rs == "qpOASES") return QPSolverImplType::qpOASES;
         if(rs == "osqp") return QPSolverImplType::osqp;
         if(rs == "eigQuadProg") return QPSolverImplType::eigQuadProg;
+        
+        std::cerr << "QPSolverImplType '" << rs << "' not supported, choosing default qpOASES" << '\n';
         return QPSolverImplType::qpOASES;
+    }
+    
+    inline std::ostream& operator<<(std::ostream& os, const QPSolverImplType& st)
+    {
+        return os << QPSolverImplTypeToString(st);
     }
 } // namespace optim
 } // namespace orca
 
-template<class T>
-inline T& operator<<(T& os, const orca::optim::QPSolverImplType& st)
-{
-    os << orca::optim::QPSolverImplTypetoString(st);
-    return os;
-}
+
