@@ -60,7 +60,7 @@ protected:
     virtual void onActivation();
 private:
     Eigen::VectorXd jnt_pos_des_,jnt_vel_des_,jnt_acc_des_;
-    common::Parameter<common::PIDController::Ptr > pid_;
+    common::Parameter<common::PIDController::Ptr> pid_ = std::make_shared<common::PIDController>("pid");
 };
 
 }

@@ -26,10 +26,11 @@ namespace orca
                     return nullptr;
                 }
                 
-                std::cout << "[Factory] Instanciating " << instance_name << " class of type " << class_name << '\n';
                 if(!utils::key_exists(m_,class_name))
                 {
+                    std::cout << "[Factory] Class name  '" << class_name << "' is not present in the factory." <<  '\n';
                     printAvailableClasses();
+                    std::cout << "[Factory] Did you forget to add ORCA_REGISTER_CLASS(" << class_name << ") at the end to the class cpp file ?" <<  '\n';
                     return nullptr;
                 }
                 auto c = m_[class_name](instance_name);
@@ -38,7 +39,7 @@ namespace orca
                     printAvailableClasses();
                     return nullptr;
                 }
-                std::cout << "[Factory] " << instance_name << " of type " << class_name << " successfully created" << '\n';
+                std::cout << "[Factory] '" << instance_name << "' of type " << class_name << " successfully created" << '\n';
                 return c;
             }
             bool registerClass(const std::string& class_name,std::function<std::shared_ptr<ConfigurableOrcaObject>(const std::string&)> f)

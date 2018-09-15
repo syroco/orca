@@ -109,7 +109,7 @@ namespace common
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
         /**
-        * @brief Add a child/slave task that will be updated BEFORE the parent task
+        * @brief Add a child/slave task that will be updated BEFORE the parent task.
         */
         void addChild(std::shared_ptr<TaskBase> e);
         /**
@@ -124,6 +124,10 @@ namespace common
         * @brief Returns the parent name if it exists, empty otherwise.
         */
         const std::string& getParentName() const;
+        /**
+        * @brief Returns the name that include parent name if present.
+        */
+        const std::string& getPrintableName() const;
         
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
@@ -155,7 +159,6 @@ namespace common
     private:
         common::Parameter<double> ramp_duration_ = 0;
     private:
-        const std::string& getPrintableName() const;
         void setParentName(const std::string& parent_name);
         void checkIfUpdatable() const;
         bool is_activated_ = true;

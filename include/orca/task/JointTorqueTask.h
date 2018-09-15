@@ -61,7 +61,7 @@ protected:
 private:
     bool desired_set_ = false;
     Eigen::VectorXd jnt_trq_des_,current_jnt_trq_;
-    common::Parameter<common::PIDController::Ptr> pid_;
+    common::Parameter<common::PIDController::Ptr> pid_ = std::make_shared<common::PIDController>("pid");
 };
 
 }

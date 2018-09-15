@@ -84,9 +84,6 @@ class ParameterBase
 public:
     using Ptr = std::shared_ptr<ParameterBase>;
 
-    ParameterBase(bool is_list = false)
-    : is_list_(is_list)
-    {}
     bool loadFromString(const std::string& s)
     {
         try 
@@ -109,7 +106,6 @@ public:
     void setName(const std::string& name) { name_ = name; }
     void setRequired(bool is_required) { is_required_ = is_required; }
     bool isRequired() const { return is_required_; }
-    bool isList() const { return is_list_; }
     void onSuccess(std::function<void(void)> f)
     {
         on_success_ = f;
@@ -119,7 +115,6 @@ protected:
 private:
     std::string name_;
     bool is_required_ = false;
-    bool is_list_ = false;
     std::function<void(void)> on_success_;
 };
 

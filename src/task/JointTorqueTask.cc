@@ -11,7 +11,6 @@ using namespace orca::utils;
 
 JointTorqueTask::JointTorqueTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointTorque)
-, pid_(std::make_shared<PIDController>())
 {
     this->addParameter("pid",&pid_);
 }

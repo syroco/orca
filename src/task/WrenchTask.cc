@@ -7,7 +7,7 @@ using namespace orca::common;
 
 WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
-, pid_(std::make_shared<PIDController>())
+, pid_(std::make_shared<PIDController>("pid"))
 {
     this->addParameter("wrench",&wrench_);
     this->addParameter("desired_wrench",&wrench_des_);

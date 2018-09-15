@@ -151,14 +151,6 @@ bool Config::loadFromString(const std::string& yaml_str)
             LOG_WARNING << ss.str();
             //return false;
         }
-        else if(parameters_[param_name]->isList())
-        {
-            std::cout << "GROUP " << param_name << '\n';
-            for(auto n : c.second)
-            {
-                std::cout << "For sub param " << n.first.as<std::string>() << '\n';
-            }
-        }
         else
         {
             auto param = parameters_[param_name];
