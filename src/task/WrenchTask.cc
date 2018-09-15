@@ -8,6 +8,8 @@ using namespace orca::common;
 WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
 {
+    // NOTE : ExternalWrench objects creates a wrench required parameter
+    wrench_des_ = Vector6d::Zero();
     this->addParameter("desired_wrench",&wrench_des_);
     this->addParameter("pid",&pid_);
 }
@@ -48,7 +50,7 @@ PIDController::Ptr WrenchTask::pid()
 }
 void WrenchTask::onActivation()
 {
-    wrench_des_.get().setZero();
+    wrench_des_ = Vector6d::Zero();
 }
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
