@@ -26,7 +26,7 @@ using namespace orca::all; \n \
 using namespace std; \n \
 int main() \n \
 { \n \
-    auto c = make_shared<CartesianTask>(\"CartTask-EE\"); \n \
+    auto c = make_shared<CartesianTask>(\"CartTask_EE\"); \n \
     auto r = make_shared<RobotModel>(\"myRobot\"); \n \
     return 0; \n \
 } \n \

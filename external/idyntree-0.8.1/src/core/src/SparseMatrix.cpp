@@ -328,12 +328,12 @@ namespace iDynTree {
         return 0;
     }
 
-    template <iDynTree::MatrixStorageOrdering ordering>
-    double& SparseMatrix<ordering>::operator()(unsigned int, unsigned int)
-    {
-        assert(false);
-        return 0;
-    }
+    // template <iDynTree::MatrixStorageOrdering ordering>
+    // double& SparseMatrix<ordering>::operator()(unsigned int, unsigned int)
+    // {
+    //     assert(false);
+    //     return 0;
+    // }
 
     template <iDynTree::MatrixStorageOrdering ordering>
     void SparseMatrix<ordering>::resize(unsigned, unsigned, const iDynTree::VectorDynSize&)

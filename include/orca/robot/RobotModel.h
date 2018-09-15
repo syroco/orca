@@ -38,6 +38,7 @@
 
 #include "orca/utils/Utils.h"
 #include "orca/math/Utils.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
@@ -104,9 +105,10 @@ struct RobotAcceleration
 * @brief The robot model class allow to make kinematics and dynamics computations
 * 
 */
-class RobotModel
+class RobotModel : public common::ConfigurableOrcaObject
 {
 public:
+    using Ptr = std::shared_ptr<RobotModel>;
     /**
     * @brief The default constructor
     * 
@@ -114,12 +116,6 @@ public:
     */
     RobotModel(const std::string& name="");
     virtual ~RobotModel();
-    /**
-    * @brief Returns the name of the model, either set in the constructor, or automatically extracted from the urdf
-    * 
-    * @return const std::string&
-    */
-    const std::string& getName() const;
     /**
     * @brief Load the model from an absolute urdf file path
     * 
@@ -178,6 +174,11 @@ public:
     */
     void setRobotState(const Eigen::VectorXd& jointPos
                 , const Eigen::VectorXd& jointVel);
+    /**
+    * @brief Returns the name of the robot, either provided via constructor
+    * or extracted from the urdf is no name is provided
+    */
+    const std::string& getName() const;
     /**
     * @brief Print information about the model to cout
     * 
@@ -274,20 +275,27 @@ public:
     bool isInitialized() const;
     void onRobotInitializedCallback(std::function<void(void)> cb);
 protected:
-    enum RobotModelType { iDynTree, KDL };
-    RobotModelType robot_kinematics_type_ = iDynTree;
+    
+    enum RobotModelImplType { iDynTree, KDL };
+    RobotModelImplType robot_kinematics_type_ = iDynTree;
 
     std::function<void(void)> robot_initialized_cb_;
     bool is_initialized_ = false;
 
-    std::string name_;
-    std::string urdf_url_;
-    std::string urdf_str_;
-
+    common::Parameter<std::string> urdf_url_;
+    common::Parameter<std::string> urdf_str_;
+    common::Parameter<std::string> base_frame_;
+    common::Parameter<Eigen::Vector3d> gravity_;
+    common::Parameter<Eigen::VectorXd> home_joint_positions_;
+    common::Parameter<std::string> name_;
+    
+    bool loadFromParameters();
 private:
-    template<RobotModelType type = iDynTree> struct RobotModelImpl;
+    
+    template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
+    
 };
 
-}
-}
+} // namespace robot
+} // namespace orca

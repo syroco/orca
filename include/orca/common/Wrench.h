@@ -37,29 +37,20 @@
 
 #pragma once
 
-#include "orca/robot/RobotModel.h"
+#include "orca/common/TaskBase.h"
 
 namespace orca
 {
 namespace common
 {
 
-class Wrench
+    
+class Wrench : public TaskBase
 {
 public:
+    using Ptr = std::shared_ptr<Wrench>;
+    
     Wrench(const std::string& name);
-
-    void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
-
-    virtual ~Wrench();
-
-    const std::string& getName() const;
-
-    bool isActivated() const;
-
-    void activate();
-
-    void deactivate();
 
     void setBaseFrame(const std::string& base_ref_frame);
 
@@ -77,22 +68,21 @@ public:
 
     const Eigen::MatrixXd& getJacobian() const;
 
-    virtual void print() const;
+    void print() const;
 
-    virtual void update(double current_time, double dt);
 protected:
-    virtual void resize();
+    void onCompute(double current_time, double dt);
+    void onActivation();
+    void onResize();
+    void onDeactivated();
 private:
-    std::string base_ref_frame_,control_frame_;
+    Parameter<std::string> base_ref_frame_;
+    Parameter<std::string> control_frame_;
+private:
     Eigen::MatrixXd jacobian_transpose_;
     Eigen::MatrixXd jacobian_;
-    Eigen::MatrixXd jac_zero_;
     Eigen::Matrix<double,6,1> current_wrench_;
-    Eigen::Matrix<double,6,1> wrench_zero_;
-    std::shared_ptr<robot::RobotModel> robot_;
-    bool is_activated_ = true;
-    const std::string name_;
 };
 
-}
-}
+} // namespace common
+} // namespace orca

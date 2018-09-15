@@ -68,26 +68,36 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpOASES
     );
 
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-    cart_task->setControlFrame("link_7"); //
+    // Create the servo controller that the cartesian task needs
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
+    // Now set the servoing PID
+    Vector6d P;
+    P << 1000, 1000, 1000, 10, 10, 10;
+    cart_acc_pid->pid()->setProportionalGain(P);
+    Vector6d D;
+    D << 100, 100, 100, 1, 1, 1;
+    cart_acc_pid->pid()->setDerivativeGain(D);
+
+    cart_acc_pid->setControlFrame("link_7");
+    
     Eigen::Affine3d cart_pos_ref;
     cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
     cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
+
+    // Set the desired cartesian velocity and acceleration to zero
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
-
-    Vector6d P;
-    P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
-    Vector6d D;
-    D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
-
-    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-
+    
+    // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
+    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    // Set the servo controller to the cartesian task
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
+    cart_task->setServoController(cart_acc_pid);
+    
+    // ndof
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
@@ -123,10 +133,14 @@ int main(int argc, char const *argv[])
     Eigen::VectorXd acc_new(ndof);
 
     controller.update(current_time, dt);
-
+    current_time += dt;
+    
+    
+    controller.print();
+    
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
-    std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    //std::cout << "Initial State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
     std::cout << "Desired State:\n" << cart_pos_ref.matrix() << '\n';
     std::cout << "====================================" << '\n';
     std::cout << "\n\n\n" << '\n';
@@ -136,16 +150,16 @@ int main(int argc, char const *argv[])
     for (; current_time < 10.0; current_time +=dt)
     {
 
-
+        
         if(print_counter == 100)
         {
-            std::cout << "Task position at t = " << current_time << "\t---\t" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
+            std::cout << "Task position at t = " << current_time << "\t---\t" << cart_acc_pid->getCurrentCartesianPose().block(0,3,3,1).transpose() << '\n';
             print_counter = 0;
         }
         ++print_counter;
 
         controller.update(current_time, dt);
-
+        
         if(controller.solutionFound())
         {
             trq_cmd = controller.getJointTorqueCommand();
@@ -167,8 +181,8 @@ int main(int argc, char const *argv[])
     std::cout << "Simulation finished." << '\n';
     std::cout << "\n\n\n" << '\n';
     std::cout << "====================================" << '\n';
-    std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
-    std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1) - cart_pos_ref.translation() << '\n';
+    //std::cout << "Final State:\n" << cart_task->servoController()->getCurrentCartesianPose() << '\n';
+    //std::cout << "Position error:\n" << cart_task->servoController()->getCurrentCartesianPose().block(0,3,3,1) - cart_pos_ref.translation() << '\n';
 
 
 

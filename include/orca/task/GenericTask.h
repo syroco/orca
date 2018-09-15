@@ -51,6 +51,8 @@ class GenericTask : public common::TaskBase
 {
 
 public:
+    using Ptr = std::shared_ptr<GenericTask>;
+    
     GenericTask(const std::string& name,optim::ControlVariable control_var);
 
     virtual ~GenericTask();
@@ -86,7 +88,7 @@ private:
     virtual void onCompute(double current_time, double dt);
     virtual void computeQuadraticCost();
     math::WeightedEuclidianNormFunction euclidian_norm_;
-    double weight_ = 1.0;
+    common::Parameter<double> weight_ = 1.0;
 };
 
 }

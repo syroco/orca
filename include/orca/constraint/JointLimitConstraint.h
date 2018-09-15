@@ -57,7 +57,8 @@ protected:
     virtual void onUpdateConstraintFunction(double current_time, double dt);
     virtual void onResize();
 private:
-    Eigen::VectorXd min_,max_;
+    common::Parameter<Eigen::VectorXd> min_;
+    common::Parameter<Eigen::VectorXd> max_;
 };
 
 } // namespace constraint

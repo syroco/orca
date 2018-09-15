@@ -10,8 +10,8 @@ Contact::Contact(const std::string& name)
 , friction_cone_(std::make_shared<LinearizedCoulombConstraint>(name + "_coulomb"))
 , ex_condition_(std::make_shared<ContactExistenceConditionConstraint>(name + "_existence_condition"))
 {
-    this->link(friction_cone_);
-    this->link(ex_condition_);
+    this->addChild(friction_cone_);
+    this->addChild(ex_condition_);
     //TODO : salini p43 - Section 2.1.4.2 - When contact is desactivatied, add S*X = 0;
 }
 
@@ -82,3 +82,6 @@ void Contact::setCurrentWrenchValue(const Eigen::Matrix<double,6,1>& current_wre
 {
     this->wrench()->setCurrentValue(current_wrench_from_ft_sensor);
 }
+
+
+ORCA_REGISTER_CLASS(orca::constraint::Contact)

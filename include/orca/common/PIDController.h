@@ -39,16 +39,19 @@
 
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
+#include "orca/common/ConfigurableOrcaObject.h"
 
 namespace orca
 {
 namespace common
 {
-    class PIDController
+    class PIDController: public ConfigurableOrcaObject
     {
     public:
-        PIDController(unsigned int dim = 0);
-        void resize(unsigned int dim);
+        using Ptr = std::shared_ptr<PIDController>;
+        
+        PIDController(const std::string& name = "pid");
+        void resize(int dim);
         void setProportionalGain(const Eigen::VectorXd& P_gain);
         const Eigen::VectorXd& P() const;
         void setIntegralGain(const Eigen::VectorXd& I_gain);
@@ -62,12 +65,14 @@ namespace common
                                           , const Eigen::VectorXd& DError
                                           , double dt);
         const Eigen::VectorXd& computeCommand(const Eigen::VectorXd& Error, double dt);
-        const void print() const;
+        void print() const;
     private:
-        Eigen::VectorXd p_gain_;
-        Eigen::VectorXd i_gain_;
-        Eigen::VectorXd d_gain_;
-        Eigen::VectorXd windup_limit_;
+        Parameter<int> dimension_ = 0;
+        Parameter<Eigen::VectorXd> p_gain_;
+        Parameter<Eigen::VectorXd> i_gain_;
+        Parameter<Eigen::VectorXd> d_gain_;
+        Parameter<Eigen::VectorXd> windup_limit_;
+    private:
         Eigen::VectorXd i_error_;
         Eigen::VectorXd d_error_;
         Eigen::VectorXd cmd_;

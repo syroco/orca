@@ -43,20 +43,31 @@ namespace optim
 {
     enum class ResolutionStrategy
     {
-          OneLevelWeighted
+        OneLevelWeighted
         , MultiLevelWeighted
         , Generalized
     };
+    
+    inline std::string ResolutionStrategytoString(ResolutionStrategy rs)
+    {
+        if(rs == ResolutionStrategy::OneLevelWeighted) return "OneLevelWeighted";
+        if(rs == ResolutionStrategy::MultiLevelWeighted) return "MultiLevelWeighted";
+        if(rs == ResolutionStrategy::Generalized) return "Generalized";
+        return "Not supported";
+    }
+    inline ResolutionStrategy ResolutionStrategyfromString(const std::string& rs)
+    {
+        if(rs == "OneLevelWeighted") return ResolutionStrategy::OneLevelWeighted;
+        if(rs == "MultiLevelWeighted") return ResolutionStrategy::MultiLevelWeighted;
+        if(rs == "Generalized") return ResolutionStrategy::Generalized;
+        return ResolutionStrategy::OneLevelWeighted;
+    }
 } // namespace optim
 } // namespace orca
 
-inline ::std::ostream& operator<<(::std::ostream& os, const orca::optim::ResolutionStrategy& rs)
+template<class T>
+inline T& operator<<(T& os, const orca::optim::ResolutionStrategy& rs)
 {
-    switch (rs)
-    {
-        case orca::optim::ResolutionStrategy::OneLevelWeighted :     os << "OneLevelWeighted"; break;
-        case orca::optim::ResolutionStrategy::MultiLevelWeighted :   os << "MultiLevelWeighted"; break;
-        case orca::optim::ResolutionStrategy::Generalized :          os << "Generalized"; break;
-    }
+    os << orca::optim::ResolutionStrategytoString(rs);
     return os;
 }

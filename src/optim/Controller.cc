@@ -4,28 +4,68 @@
 #include "orca/constraint/Contact.h"
 #include "orca/task/RegularisationTask.h"
 #include "orca/constraint/DynamicsEquationConstraint.h"
+#include "orca/common/ParameterSharedPtr.h"
 
 using namespace orca;
 using namespace orca::optim;
 using namespace orca::utils;
 using namespace orca::common;
+using namespace orca::robot;
+
+Controller::Controller(const std::string& name)
+: ConfigurableOrcaObject(name)
+{
+    this->addParameter("tasks",&tasks_);
+    this->addParameter("constraints",&constraints_);
+    this->addParameter("robot_model",&robot_);
+    this->addParameter("resolution_strategy",&resolution_strategy_str_);
+    this->addParameter("qpsolver_implementation",&solver_type_str_);
+    this->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_, ParamPolicy::Optional);
+    this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_, ParamPolicy::Optional);
+    this->config()->onSuccess([&](){
+
+        LOG_WARNING << "[" << getName() << "]" << " Config sucessfully loaded ";
+        
+        resolution_strategy_ = ResolutionStrategyfromString(resolution_strategy_str_.get());
+        solver_type_ = QPSolverImplTypefromString(solver_type_str_.get());
+
+        joint_acceleration_command_.setZero(robot()->getNrOfDegreesOfFreedom());
+        joint_torque_command_.setZero(robot()->getNrOfDegreesOfFreedom());
+        kkt_torques_.setZero(robot()->getNrOfDegreesOfFreedom());
+
+        if(resolution_strategy_ != ResolutionStrategy::OneLevelWeighted)
+        {
+            orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
+        }
+        insertNewLevel();
+        
+        LOG_WARNING << "[" << getName() << "]" << " Adding " << tasks_.get().size() << " tasks "
+            << " and " << constraints_.get().size() << " constraints";
+        
+        for(auto task : tasks_.get())
+            this->addTask(task);
+        for(auto constraint: constraints_.get())
+            this->addConstraint(constraint);
+    });
+}
 
 Controller::Controller(const std::string& name
     , std::shared_ptr<robot::RobotModel> robot
     ,ResolutionStrategy resolution_strategy
-    ,QPSolver::SolverType solver_type)
-: name_(name)
-, robot_(robot)
-, resolution_strategy_(resolution_strategy)
-, solver_type_(solver_type)
+    ,QPSolverImplType solver_type)
+: Controller(name)
 {
-    joint_acceleration_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    joint_torque_command_.setZero(robot_->getNrOfDegreesOfFreedom());
-    kkt_torques_.setZero(robot_->getNrOfDegreesOfFreedom());
+    resolution_strategy_ = resolution_strategy;
+    solver_type_ = solver_type;
+    robot_ = robot;
+    
+    joint_acceleration_command_.setZero(robot->getNrOfDegreesOfFreedom());
+    joint_torque_command_.setZero(robot->getNrOfDegreesOfFreedom());
+    kkt_torques_.setZero(robot->getNrOfDegreesOfFreedom());
 
     if(resolution_strategy != ResolutionStrategy::OneLevelWeighted)
     {
-        orca_throw(Formatter() << "Only ResolutionStrategy::OneLevelWeighted is supported for now");
+        orca_throw("Only ResolutionStrategy::OneLevelWeighted is supported for now");
     }
     insertNewLevel();
 }
@@ -46,16 +86,11 @@ void Controller::setPrintLevel(int level)
     }
 }
 
-const std::string& Controller::getName()
-{
-    return name_;
-}
-
 std::shared_ptr<robot::RobotModel> Controller::robot()
 {
-    if(!robot_)
+    if(!robot_.get())
         orca_throw(Formatter() << "Robot is not set");
-    return robot_;
+    return robot_.get();
 }
 
 void Controller::setRobotModel(std::shared_ptr<robot::RobotModel> robot)
@@ -134,14 +169,50 @@ common::ReturnCode Controller::getReturnCode() const
     }
 }
 
+bool Controller::addTaskFromString(const std::string& task_description)
+{
+    try
+    {
+        Parameter<task::GenericTask::Ptr> param;
+        param.loadFromString(task_description);
+        return this->addTask(param.get());
+    } 
+    catch(std::exception& e)
+    {
+        LOG_WARNING << "Could not add task from string : " << e.what();
+    }
+    return false;
+}
+
+bool Controller::addConstraintFromString(const std::string& cstr_description)
+{
+    try
+    {
+        Parameter<constraint::GenericConstraint::Ptr> param;
+        if(!param.loadFromString(cstr_description))
+            return false;
+        return this->addConstraint(param.get());
+    } 
+    catch(std::exception& e)
+    {
+        LOG_WARNING << "Could not add constraint from string : " << e.what();
+    }
+    return false;
+}
+
 bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
 {
+    if(!task)
+    {
+        return false;
+    }
     if(resolution_strategy_ == ResolutionStrategy::OneLevelWeighted)
     {
         if(!problems_.front()->taskExists(task))
         {
-            task->setRobotModel(robot_);
-            task->setProblem(problems_.front());
+            task->setRobotModel(robot());
+            if(task->dependsOnProblem())
+                task->setProblem(problems_.front());
             return problems_.front()->addTask(task);
         }
         else
@@ -179,8 +250,9 @@ bool Controller::addConstraint(std::shared_ptr<constraint::GenericConstraint> cs
     {
         if(!problems_.front()->constraintExists(cstr))
         {
-            cstr->setRobotModel(robot_);
-            cstr->setProblem(problems_.front());
+            cstr->setRobotModel(robot_.get());
+            if(cstr->dependsOnProblem())
+                cstr->setProblem(problems_.front());
             return problems_.front()->addConstraint(cstr);
         }
         else
@@ -231,11 +303,11 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
 
             joint_torque_command_ = problem->getSolution(ControlVariable::JointTorque);
 
-            if(remove_gravity_torques || remove_gravity_torques_)
-                joint_torque_command_ -= robot_->getJointGravityTorques();
+            if(remove_gravity_torques || remove_gravity_torques_.get())
+                joint_torque_command_ -= robot()->getJointGravityTorques();
 
-            if(remove_coriolis_torques || remove_coriolis_torques_)
-                joint_torque_command_ -= robot_->getJointCoriolisTorques();
+            if(remove_coriolis_torques || remove_coriolis_torques_.get())
+                joint_torque_command_ -= robot()->getJointCoriolisTorques();
 
             return joint_torque_command_;
         }
@@ -346,11 +418,11 @@ bool Controller::tasksAndConstraintsDeactivated()
 
 void Controller::removeGravityTorquesFromSolution(bool do_remove)
 {
-    remove_gravity_torques_ = do_remove;
+    remove_gravity_torques_.get() = do_remove;
 }
 void Controller::removeCoriolisTorquesFromSolution(bool do_remove)
 {
-    remove_coriolis_torques_ = do_remove;
+    remove_coriolis_torques_.get() = do_remove;
 }
 
 std::shared_ptr<Problem> Controller::getProblemAtLevel(int level)
@@ -381,7 +453,7 @@ std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globa
 void Controller::insertNewLevel()
 {
     LOG_INFO << "Inserting new dry Problem at level " << problems_.size();
-    auto problem = std::make_shared<Problem>(robot_,solver_type_);
+    auto problem = std::make_shared<Problem>(robot_.get(),solver_type_);
     problems_.push_back(problem);
 
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");

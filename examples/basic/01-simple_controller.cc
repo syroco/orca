@@ -87,22 +87,19 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolver::qpOASES
+        ,QPSolverImplType::qpOASES
     );
     // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
 
-    // Cartesian Task
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-    // Set the frame you want to control. Here we want to control the link_7.
-    cart_task->setControlFrame("link_7"); //
-
+    
+    // Create the servo controller that the cartesian task needs
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
+    
     // Set the pose desired for the link_7
     Eigen::Affine3d cart_pos_ref;
 
     // Setting the translational components.
     cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
-
-
 
     // Rotation is done with a Matrix3x3 and it can be initialized in a few ways. Note that each of these methods produce equivalent Rotation matrices in this case.
 
@@ -122,7 +119,6 @@ int main(int argc, char const *argv[])
     // Example 4 : use an Identity quaternion
     cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
 
-
     // Set the desired cartesian velocity and acceleration to zero
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
@@ -130,15 +126,20 @@ int main(int argc, char const *argv[])
     // Now set the servoing PID
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    cart_task->servoController()->pid()->setProportionalGain(P);
+    cart_acc_pid->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    cart_task->servoController()->pid()->setDerivativeGain(D);
+    cart_acc_pid->pid()->setDerivativeGain(D);
 
-
+    cart_acc_pid->setControlFrame("link_7");
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
-    cart_task->servoController()->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-
+    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    
+    // Cartesian Task
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
+    // Set the servo controller to the cartesian task
+    cart_task->setServoController(cart_acc_pid);
+    
     // Get the number of actuated joints
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
@@ -148,7 +149,8 @@ int main(int argc, char const *argv[])
     jntTrqMax.setConstant(200.0);
     jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
 
-    // Joint position limits are automatically extracted from the URDF model. Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
+    // Joint position limits are automatically extracted from the URDF model.
+    // Note that you can set them if you want. by simply doing jnt_pos_cstr->setLimits(jntPosMin,jntPosMax).
     auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     // Joint velocity limits are usually given by the robot manufacturer
@@ -158,7 +160,7 @@ int main(int argc, char const *argv[])
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
 
-    double dt = 0.001;
+    double dt = 0.5;
     double current_time = 0;
 
     controller.activateTasksAndConstraints();
@@ -177,11 +179,17 @@ int main(int argc, char const *argv[])
             // eigState.jointVel = myRealRobot.getJointVelocities();
 
         // Now update the internal kinematic model with data from the REAL robot
+        std::cout << "Setting robot state to : \n" 
+            << "Joint Pos : " << eigState.jointPos.transpose() << '\n'
+            << "Joint Vel : " << eigState.jointVel.transpose() << '\n';
+            
         robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
         // Step the controller + solve the internal optimal problem
+        std::cout << "Updating controller..." ;
         controller.update(current_time, dt);
-
+        std::cout << "OK" << '\n';
+        
         // Do what you want with the solution
         if(controller.solutionFound())
         {
@@ -214,9 +222,9 @@ int main(int argc, char const *argv[])
     const Eigen::VectorXd& full_solution = controller.getSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
     const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-    LOG_INFO << "Full solution : " << full_solution.transpose();
-    LOG_INFO << "Joint Acceleration command : " << trq_acc.transpose();
-    LOG_INFO << "Joint Torque command       : " << trq_cmd.transpose();
+    std::cout << "Full solution : " << full_solution.transpose() << '\n';
+    std::cout << "Joint Acceleration command : " << trq_acc.transpose() << '\n';
+    std::cout << "Joint Torque command       : " << trq_cmd.transpose() << '\n';
 
     // At some point you want to close the controller nicely
     controller.deactivateTasksAndConstraints();

@@ -3,6 +3,7 @@ using namespace orca::constraint;
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::utils;
+using namespace orca::common;
 
 GenericConstraint::GenericConstraint(const std::string& name,ControlVariable control_var)
 : TaskBase(name,control_var)
@@ -105,7 +106,7 @@ void GenericConstraint::onCompute(double current_time, double dt)
 
     if(Lsize_before != Lsize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Lower bound changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Lower bound changed size during onUpdateAffineFunction, it was ("
                 << Lsize_before
                 << ") but now its ("
                 << Lsize_after
@@ -114,7 +115,7 @@ void GenericConstraint::onCompute(double current_time, double dt)
     }
     if(Usize_before != Usize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Upper bound changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Upper bound changed size during onUpdateAffineFunction, it was ("
                 << Usize_before
                 << ") but now its ("
                 << Usize_after
@@ -123,7 +124,7 @@ void GenericConstraint::onCompute(double current_time, double dt)
     }
     if(Csize_before != Csize_after)
     {
-        orca_throw(Formatter() << "[" << TaskBase::getName() << "] Constraint matrix changed size during onUpdateAffineFunction, it was ("
+        orca_throw(Formatter() << "[" << getName() << "] Constraint matrix changed size during onUpdateAffineFunction, it was ("
                 << Csize_before
                 << ") but now its ("
                 << Csize_after

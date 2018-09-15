@@ -40,6 +40,7 @@
 #include "orca/utils/Utils.h"
 #include "orca/optim/ProblemData.h"
 #include "orca/optim/QPSolverImpl.h"
+#include "orca/optim/QPSolverImplType.h"
 #include "orca/common/ReturnCode.h"
 
 namespace orca
@@ -47,11 +48,12 @@ namespace orca
 namespace optim
 {
 
+    
+    
 class QPSolver
 {
 public:
-    enum SolverType { qpOASES, osqp, eigQuadProg };
-    QPSolver(SolverType type);
+    QPSolver(QPSolverImplType type);
     virtual ~QPSolver();
     void setPrintLevel(int level);
     void resize(int nvar, int nconstr);
@@ -64,14 +66,3 @@ private:
 
 } // namespace optim
 } // namespace orca
-
-inline ::std::ostream& operator<<(::std::ostream& os, const orca::optim::QPSolver::SolverType& st)
-{
-    switch (st)
-    {
-        case orca::optim::QPSolver::qpOASES :   os << "qpOASES"; break;
-        case orca::optim::QPSolver::osqp :      os << "osqp"; break;
-        default:     os << "Not supported"; break;
-    }
-    return os;
-}

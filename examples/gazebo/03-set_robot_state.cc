@@ -70,6 +70,8 @@ int main(int argc, char** argv)
     // Update the robot on at every iteration
     gz_model.executeAfterWorldUpdate([&](uint32_t n_iter,double current_time,double dt)
     {
+        std::cout << "Gazebo iteration " << n_iter << " current time: " << current_time << " dt: " << dt << '\n';
+    
         robot_model->setRobotState(gz_model.getWorldToBaseTransform().matrix()
                             ,gz_model.getJointPositions()
                             ,gz_model.getBaseVelocity()

@@ -123,10 +123,10 @@ With the controller created we can now start adding tasks. In this introductory 
 
 .. code-block:: c++
 
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    auto cart_task = std::make_shared<CartesianTask>("CartTask_EE");
     controller.addTask(cart_task);
 
-A ``shared_ptr`` to a ``CartesianTask`` is created with a unique name, ``CartTask-EE``. The task is then added to the controller to initialize it.
+A ``shared_ptr`` to a ``CartesianTask`` is created with a unique name, ``CartTask_EE``. The task is then added to the controller to initialize it.
 
 For this task, we want to control ``link_7``,
 
