@@ -1,10 +1,10 @@
 FROM alpine
 RUN apk add --no-cache cmake g++ make curl
-RUN curl -sL http://bitbucket.org/eigen/eigen/get/3.2.0.tar.gz > /tmp/eigen.tar.gz && \
-    cd \tmp && \
-    mkdir eigen && tar -xzvf eigen.tar.gz -C eigen --strip-components=1 && \
-    cd eigen && \
-    mkdir build && cd build && cmake .. && make && make install
+# RUN curl -sL http://bitbucket.org/eigen/eigen/get/3.2.0.tar.gz > /tmp/eigen.tar.gz && \
+#     cd \tmp && \
+#     mkdir eigen && tar -xzvf eigen.tar.gz -C eigen --strip-components=1 && \
+#     cd eigen && \
+#     mkdir build && cd build && cmake .. && make && make install
 RUN mkdir -p orca/build
 COPY ./ orca/
 WORKDIR orca/build

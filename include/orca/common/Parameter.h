@@ -16,8 +16,8 @@ namespace YAML {
 
       // Save data given as a vector
       if (_Rows == 1 || _Cols == 1) {
-        for (int row=0; row<matrix.rows(); row++)
-          for (int col=0; col<matrix.cols(); col++)
+        for (auto row=0; row<matrix.rows(); row++)
+          for (auto col=0; col<matrix.cols(); col++)
             node.push_back(matrix(row,col));
         return node;
       }
@@ -30,8 +30,8 @@ namespace YAML {
       // Read data given as a vector
       if (_Rows == 1 || _Cols == 1) {
         (_Rows == 1 ? matrix.resize(_Rows, node.size()) : matrix.resize(node.size(), _Cols));
-        for (int id=0; id<node.size(); id++)
-          (node[0].size() == 0 ? matrix(id) = node[(int)id].as<_Scalar>() :  matrix(id) = node[(int)id][0].as<_Scalar>());
+        for (auto id=0; id<node.size(); id++)
+          (node[0].size() == 0 ? matrix(id) = node[id].as<_Scalar>() :  matrix(id) = node[id][0].as<_Scalar>());
         return true;
       }
 
