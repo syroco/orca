@@ -158,7 +158,7 @@ int main(int argc, char const *argv[])
     jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
 
 
-    double dt = 0.001;
+    double dt = 0.5;
     double current_time = 0;
 
     controller.activateTasksAndConstraints();
@@ -177,11 +177,17 @@ int main(int argc, char const *argv[])
             // eigState.jointVel = myRealRobot.getJointVelocities();
 
         // Now update the internal kinematic model with data from the REAL robot
+        std::cout << "Setting robot state to : \n" 
+            << "Joint Pos : " << eigState.jointPos.transpose() << '\n'
+            << "Joint Vel : " << eigState.jointVel.transpose() << '\n';
+            
         robot_model->setRobotState(eigState.jointPos,eigState.jointVel);
 
         // Step the controller + solve the internal optimal problem
+        std::cout << "Updating controller..." ;
         controller.update(current_time, dt);
-
+        std::cout << "OK" << '\n';
+        
         // Do what you want with the solution
         if(controller.solutionFound())
         {
@@ -214,9 +220,9 @@ int main(int argc, char const *argv[])
     const Eigen::VectorXd& full_solution = controller.getSolution();
     const Eigen::VectorXd& trq_cmd = controller.getJointTorqueCommand();
     const Eigen::VectorXd& trq_acc = controller.getJointAccelerationCommand();
-    LOG_INFO << "Full solution : " << full_solution.transpose();
-    LOG_INFO << "Joint Acceleration command : " << trq_acc.transpose();
-    LOG_INFO << "Joint Torque command       : " << trq_cmd.transpose();
+    std::cout << "Full solution : " << full_solution.transpose() << '\n';
+    std::cout << "Joint Acceleration command : " << trq_acc.transpose() << '\n';
+    std::cout << "Joint Torque command       : " << trq_cmd.transpose() << '\n';
 
     // At some point you want to close the controller nicely
     controller.deactivateTasksAndConstraints();

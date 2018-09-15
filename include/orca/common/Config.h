@@ -1,5 +1,6 @@
 #pragma once
 #include <orca/utils/Utils.h>
+#include <orca/common/OrcaObject.h>
 #include <orca/common/Parameter.h>
 
 namespace orca
@@ -10,7 +11,7 @@ namespace orca
         * @brief Represents a set of parameters that can be loaded from a YAML file
         * 
         */
-        class Config
+        class Config : public OrcaObject
         {
         public:
             using Ptr  = std::shared_ptr<Config>;
@@ -18,10 +19,6 @@ namespace orca
             
             Config(const std::string& config_name);
 
-            /**
-            * @brief Returns the name of the config. Usually the name of the task owning the config.
-            */
-            const std::string& getName() const;
             /**
             * @brief Returns true if all params added with @addParameter have been set
             *
@@ -67,7 +64,6 @@ namespace orca
             void onSuccess(std::function<void()> f);
         private:
             std::string fileToString(const std::string& yaml_url);
-            std::string name_;
             ParamMap parameters_;
             std::function<void()> on_success_;
         };

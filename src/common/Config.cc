@@ -4,16 +4,9 @@ using namespace orca::common;
 using namespace orca::utils;
 
 Config::Config(const std::string& config_name)
-: name_(config_name)
-{
-    LOG_DEBUG << "[" << getName() << "] " << "Starting new config";
-}
+: OrcaObject(config_name)
+{}
 
-
-const std::string& Config::getName() const
-{
-    return name_;
-}
 
 void Config::addParameter(const std::string& param_name,ParameterBase* param
         , ParamPolicy policy /*= ParamPolicy::Required*/
