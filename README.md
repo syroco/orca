@@ -15,9 +15,7 @@
 
 ### Installation using a catkin workspace
 
-#### Gazebo (Optional)
-
-Examples are built with Gazebo 9. They should be backwards compatible.
+#### Gazebo (optional)
 
 ```bash
 curl -ssL http://get.gazebosim.org | sh
