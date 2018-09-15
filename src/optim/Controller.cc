@@ -211,7 +211,8 @@ bool Controller::addTask(std::shared_ptr<task::GenericTask> task)
         if(!problems_.front()->taskExists(task))
         {
             task->setRobotModel(robot());
-            task->setProblem(problems_.front());
+            if(task->dependsOnProblem())
+                task->setProblem(problems_.front());
             return problems_.front()->addTask(task);
         }
         else
@@ -250,7 +251,8 @@ bool Controller::addConstraint(std::shared_ptr<constraint::GenericConstraint> cs
         if(!problems_.front()->constraintExists(cstr))
         {
             cstr->setRobotModel(robot_.get());
-            cstr->setProblem(problems_.front());
+            if(cstr->dependsOnProblem())
+                cstr->setProblem(problems_.front());
             return problems_.front()->addConstraint(cstr);
         }
         else

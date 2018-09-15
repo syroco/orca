@@ -270,7 +270,8 @@ public:
             p.setRequired(true);
             YAML::Emitter out; 
             out << n.second;
-            p.loadFromString(out.c_str());
+            if(p.loadFromString(out.c_str()))
+                l.push_back( p.get() );
         }
         ParameterData< std::list<T > >::set(l);
         return true;

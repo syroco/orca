@@ -487,7 +487,9 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 {
     if(!dependsOnProblem())
     {
-        LOG_WARNING << "[" << getPrintableName() << "] " << "Calling setProblem, but do not depend on it. No effect.";
+        LOG_WARNING << "[" << getPrintableName() << "] " 
+            << "Calling setProblem, but task do not depend on it " 
+            << "(control variable" << getControlVariable() << ")";
         return true;
     }
     
@@ -508,7 +510,10 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
     this->problem_ = problem;
 
     for(auto e : children_)
-        e->setProblem(problem_);
+    {
+        if(e->dependsOnProblem())
+            e->setProblem(problem_);
+    }
 
     if(hasRobot())
     {
@@ -529,6 +534,12 @@ std::shared_ptr<const Problem> TaskBase::getProblem() const
 
 void TaskBase::checkIfUpdatable() const
 {
+    if(this->isConfigured())
+    {
+        this->printConfig();
+        orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Task is not configured.");
+    }
+    
     if(!hasRobot())
     {
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Robot is not loaded");
@@ -539,7 +550,7 @@ void TaskBase::checkIfUpdatable() const
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Robot is not initialised (first state not set)");
     }
 
-    if(!hasProblem())
+    if(dependsOnProblem() && !hasProblem())
     {
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Problem is not set");
     }
