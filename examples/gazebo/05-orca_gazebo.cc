@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
     );
 
     
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask_EE-servo_controller");
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
     cart_acc_pid->pid()->setProportionalGain(P);
@@ -79,12 +79,13 @@ int main(int argc, char const *argv[])
     D << 100, 100, 100, 1, 1, 1;
     cart_acc_pid->pid()->setDerivativeGain(D);
     cart_acc_pid->setControlFrame("link_7");
-    Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
-    cart_pos_ref.linear() = orca::math::quatFromRPY(M_PI,0,0).toRotationMatrix();
-    Vector6d cart_vel_ref = Vector6d::Zero();
-    Vector6d cart_acc_ref = Vector6d::Zero();
-    cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    // Lets comment the following lines to force the robot to initialise at current pose
+    // Eigen::Affine3d cart_pos_ref;
+    // cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
+    // cart_pos_ref.linear() = orca::math::quatFromRPY(M_PI,0,0).toRotationMatrix();
+    // Vector6d cart_vel_ref = Vector6d::Zero();
+    // Vector6d cart_acc_ref = Vector6d::Zero();
+    // cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
