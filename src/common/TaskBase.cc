@@ -70,10 +70,12 @@ void TaskBase::addChild(TaskBase::Ptr e)
 {
     if(!exists(e,children_))
     {
-        if(e->dependsOnProblem())
+        if(e->dependsOnProblem() && hasProblem())
             e->setProblem(getProblem());
-
-        e->setRobotModel(robot());
+        
+        if(hasRobot())
+            e->setRobotModel(robot());
+        
         e->setParentName(this->getName());
         children_.push_back(e);
         return;

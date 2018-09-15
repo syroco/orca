@@ -45,6 +45,8 @@ namespace task
     template<optim::ControlVariable C> class RegularisationTask : public GenericTask
     {
     public:
+        using Ptr = std::shared_ptr<RegularisationTask<C> >;
+        
         const double DefaultWeight = 1.e-4;
 
         RegularisationTask(const std::string& name)
