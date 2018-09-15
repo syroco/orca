@@ -1,6 +1,6 @@
 #pragma once
-#include <orca/utils/Utils.h>
-#include <exception>
+#include <orca/common/ParameterBase.hh>
+#include <orca/common/ParameterData.hh>
 // TODO : Try to remove this from headers
 #include <yaml-cpp/yaml.h>
 
@@ -64,113 +64,6 @@ namespace orca
 {
 namespace common
 {
-
-/**
-* @brief The ParamPolicy defines if an error should be thrown when trying to do anything with the task
-* before all #Required parameters are set at least once.
-*/
-enum class ParamPolicy
-{
-    Required = 0
-    , Optional
-};
-
-/**
-* @brief ParameterBase is the public interface to any parameter
-* 
-*/
-class ParameterBase
-{
-public:
-    using Ptr = std::shared_ptr<ParameterBase>;
-    
-    virtual ~ParameterBase() {}
-    
-    bool loadFromString(const std::string& s)
-    {
-        try 
-        {
-            if(onLoadFromString(s))
-            {
-                if(on_success_)
-                    on_success_();
-                return true;
-            }
-        } catch(std::exception& e) {
-            utils::orca_throw(e.what());
-        }
-
-        return false;
-    }
-    virtual void print() const = 0;
-    virtual bool isSet() const = 0;
-    const std::string& getName() const { return name_; }
-    void setName(const std::string& name) { name_ = name; }
-    void setRequired(bool is_required) { is_required_ = is_required; }
-    bool isRequired() const { return is_required_; }
-    void onSuccess(std::function<void(void)> f)
-    {
-        on_success_ = f;
-    }
-protected:
-    virtual bool onLoadFromString(const std::string& s) = 0;
-private:
-    std::string name_;
-    bool is_required_ = false;
-    std::function<void(void)> on_success_;
-};
-
-template<class T>
-/**
-* @brief This class contains the data and throws exceptions if trying to access it but not set.
-* 
-*/
-class ParameterData
-{
-public:
-    ParameterData(){}
-    virtual ~ParameterData() {}
-    
-    ParameterData(const T& val)
-    : val_(val)
-    , is_set_(true)
-    {}
-
-    template<class T2>
-    ParameterData(const ParameterData<T2>& v)
-    : ParameterData(v.get())
-    {}
-         
-    T& get()
-    {
-        if(!is_set_)
-            utils::orca_throw("Trying to get() but parameter is not set");
-        return val_;
-    }
-    const T& get() const
-    {
-        if(!is_set_)
-            utils::orca_throw("Trying to get() but parameter is not set");
-        return val_;
-    }
-
-    void set(const T& val)
-    {
-        val_ = val;
-        if(!is_set_)
-            is_set_ = true;
-    }
-    
-    bool isSet() const
-    {
-        return is_set_;
-    }
-private:
-    bool is_set_ = false;
-    T val_;
-};
-
-
 
 /**
 * @brief This class holds the conversion from a string (YAML string) to the data type
@@ -261,14 +154,12 @@ public:
     }
     bool onLoadFromString(const std::string& s)
     {
-        std::cout << getName() << " Analysing list" << '\n';
         YAML::Node node = YAML::Load(s);
         std::list<T > l;
         for(auto n : node)
         {
             auto task_base_name = n.first.as<std::string>();
-            std::cout << " -  " << task_base_name << '\n';
-            Parameter<T > p;
+            Parameter<T> p;
             p.setName(task_base_name);
             p.setRequired(true);
             YAML::Emitter out; 

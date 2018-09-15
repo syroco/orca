@@ -24,37 +24,39 @@ template<class T>
 class Parameter<std::shared_ptr<T> > : public ParameterBase, public ParameterData< std::shared_ptr<T> >
 {
 public:    
-    Parameter()
-    {}
+    Parameter() {}
     Parameter(const std::shared_ptr<T >& t)
     {
-        ParameterData< std::shared_ptr<T > >::set(t);
+        this->set(t);
     }
     bool onLoadFromString(const std::string& s)
     {
         YAML::Node node = YAML::Load(s);
         auto type_name = findType(node);
-        if(type_name.empty())
-        {
-            utils::orca_throw(utils::Formatter() << "Could not find \"type\" in the yaml file for param " 
-            << getName() << " of type " << typeid(T).name() << "::Ptr"
-            << "\nConfig provided : \n" << s );
-        }
         
-        std::cout << "Param " << getName() << " is of type " << type_name;
+        if(type_name.empty())
+            utils::orca_throw(utils::Formatter() << "Could not find \"type\" key in the yaml file for param " 
+                << getName() << " of type " << typeid(T).name() << "::Ptr"
+                << "\nConfig provided : \n" << s );
+        
+        LOG_DEBUG << "Param " << getName() << " is of type " << type_name;
+        // If already set, then we just need to configure it
+        if(this->isSet())
+        {
+            LOG_DEBUG << "Param " << getName() << " is already set, just configuring " << type_name;
+            return this->get()->configureFromString(s);
+        }
+        // If not set, we have to create it from the factory
         auto task_base = Factory::Instance()->createPtr(getName(),type_name);
         
         if(!task_base)
-        {
             utils::orca_throw(utils::Formatter() << "Param " << getName() << " Could not create a class of type " << type_name << "" );
-        }
         
-        std::cout << "Param " << getName() << " created class of type " << type_name << ", now configuring it if it has params itself."<< '\n';
+        LOG_DEBUG << "Param " << getName() << " created class of type " << type_name << ", now configuring it if it has params itself.";
         
         if(!task_base->configureFromString(s))
-        {
             return false;
-        }
+            
         this->set( std::dynamic_pointer_cast<T>( task_base ));
         return true;
     }
