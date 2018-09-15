@@ -298,12 +298,18 @@ add_custom_target(  ${PROJECT_NAME}-compile-commands ALL
 #################### ORCA Install #########################
 # Exporting private targets because of https://gitlab.kitware.com/cmake/cmake/issues/17357
 install(TARGETS orca
-        ${PROJECT_NAME}_priv_qpOASES
-        ${PROJECT_NAME}_priv_tinyxml
     EXPORT orcaTargets
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
+
+if(NOT yaml-cpp_FOUND)
+    install(TARGETS yaml-cpp
+        EXPORT orcaTargets
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    )
+endif()
 
 install(DIRECTORY include/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
