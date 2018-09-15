@@ -59,7 +59,8 @@ void QPSolver::resize(unsigned int nvar,unsigned int nconstr)
 {
     nvar_ = nvar;
     nconstr_ = nconstr;
-    pimpl_->resize(nvar,nconstr);
+    if(nvar > 0 && nconstr > 0)
+        pimpl_->resize(nvar,nconstr);
 }
 
 ReturnCode QPSolver::getReturnCode() const

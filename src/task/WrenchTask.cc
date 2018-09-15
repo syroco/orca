@@ -14,6 +14,11 @@ WrenchTask::WrenchTask(const std::string& name)
     this->addParameter("pid",&pid_);
 }
 
+void WrenchTask::setDesired(const std::array<double,6>& wrench_at_control_frame)
+{
+    setDesired(Vector6d::Map(wrench_at_control_frame.data(),6));
+}
+
 void WrenchTask::setDesired(const Vector6d& wrench_des)
 {
     wrench_des_ = wrench_des;
