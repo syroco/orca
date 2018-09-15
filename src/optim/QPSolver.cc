@@ -16,7 +16,7 @@ QPSolver::QPSolver()
 
 bool QPSolver::setImplementationType(QPSolverImplType solver_type)
 {
-    if(solver_type_ == solver_type)
+    if(bool(pimpl_) && solver_type_ == solver_type)
         return true;
 
     // We need resize if we previously had a pimpl
