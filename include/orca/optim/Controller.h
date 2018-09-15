@@ -161,7 +161,7 @@ namespace optim
         bool solution_found_ = false;
         
         ResolutionStrategy resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
-        QPSolverImplType solver_type_ = QPSolverImplType::qpoases;
+        QPSolverImplType solver_type_ = QPSolverImplType::qpOASES;
     };
 } // namespace optim
 } //namespace orca

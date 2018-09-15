@@ -114,7 +114,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
@@ -141,7 +141,7 @@ int main(int argc, char const *argv[])
     joint_pos_task->setWeight(1.e-6);
 
 
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask_EE-servo_controller");
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
     cart_acc_pid->pid()->setProportionalGain(P);
@@ -150,7 +150,7 @@ int main(int argc, char const *argv[])
     cart_acc_pid->pid()->setDerivativeGain(D);
     cart_acc_pid->setControlFrame("link_7");
     
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
 
 

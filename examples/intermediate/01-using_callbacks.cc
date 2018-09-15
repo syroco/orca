@@ -120,10 +120,10 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
 
-    auto cart_task = std::make_shared<CartesianTask>("CartTask-EE");
+    auto cart_task = std::make_shared<CartesianTask>("CartTask_EE");
     controller.addTask(cart_task);
     cart_task->setControlFrame("link_7"); //
     Eigen::Affine3d cart_pos_ref;

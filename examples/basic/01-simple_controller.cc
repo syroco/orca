@@ -87,7 +87,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
     // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
 
@@ -136,7 +136,7 @@ int main(int argc, char const *argv[])
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     
     // Cartesian Task
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     // Set the servo controller to the cartesian task
     cart_task->setServoController(cart_acc_pid);
     

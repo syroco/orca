@@ -67,11 +67,11 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
 
     
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask_EE-servo_controller");
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
     cart_acc_pid->pid()->setProportionalGain(P);
@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
     Vector6d cart_acc_ref = Vector6d::Zero();
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
     
     

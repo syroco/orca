@@ -43,24 +43,24 @@ namespace optim
 {
     enum class QPSolverImplType
     {
-        qpoases
+        qpOASES
         , osqp
-        , quadprog
+        , eigQuadProg
     };
     
     inline std::string QPSolverImplTypetoString(QPSolverImplType rs)
     {
-        if(rs == QPSolverImplType::qpoases) return "qpoases";
+        if(rs == QPSolverImplType::qpOASES) return "qpOASES";
         if(rs == QPSolverImplType::osqp) return "osqp";
-        if(rs == QPSolverImplType::quadprog) return "quadprog";
+        if(rs == QPSolverImplType::eigQuadProg) return "eigQuadProg";
         return "Not supported";
     }
     inline QPSolverImplType QPSolverImplTypefromString(const std::string& rs)
     {
-        if(rs == "qpoases") return QPSolverImplType::qpoases;
+        if(rs == "qpOASES") return QPSolverImplType::qpOASES;
         if(rs == "osqp") return QPSolverImplType::osqp;
-        if(rs == "quadprog") return QPSolverImplType::quadprog;
-        return QPSolverImplType::qpoases;
+        if(rs == "eigQuadProg") return QPSolverImplType::eigQuadProg;
+        return QPSolverImplType::qpOASES;
     }
 } // namespace optim
 } // namespace orca

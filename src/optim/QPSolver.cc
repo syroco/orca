@@ -12,7 +12,7 @@ QPSolver::QPSolver(QPSolverImplType solver_type)
 {
     switch(solver_type)
     {
-        case QPSolverImplType::qpoases:
+        case QPSolverImplType::qpOASES:
             pimpl = make_unique<QPSolverImpl_qpOASES>();
             break;
         // case SolverType::osqp:

@@ -80,7 +80,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted // MultiLevelWeighted, Generalized
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
 
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
     Vector6d cart_acc_ref = Vector6d::Zero();
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
 
     // Get the number of actuated joints

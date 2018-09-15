@@ -68,7 +68,7 @@ int main(int argc, char const *argv[])
         "controller"
         ,robot_model
         ,orca::optim::ResolutionStrategy::OneLevelWeighted
-        ,QPSolverImplType::qpoases
+        ,QPSolverImplType::qpOASES
     );
 
     // Create the servo controller that the cartesian task needs
@@ -94,7 +94,7 @@ int main(int argc, char const *argv[])
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     // Set the servo controller to the cartesian task
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
     
     // ndof
