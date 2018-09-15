@@ -87,7 +87,7 @@ public:
             traj_finished_ = true;
             return;
         }
-        p =                         sp_ + alpha_ * ( 10*pow(tau,3.0) - 15*pow(tau,4.0)  + 6*pow(tau,5.0)   );
+        p = sp_ + alpha_ * ( 10*pow(tau,3.0) - 15*pow(tau,4.0)  + 6*pow(tau,5.0)   );
         v = Eigen::Vector3d::Zero() + alpha_ * ( 30*pow(tau,2.0) - 60*pow(tau,3.0)  + 30*pow(tau,4.0)  );
         a = Eigen::Vector3d::Zero() + alpha_ * ( 60*pow(tau,1.0) - 180*pow(tau,2.0) + 120*pow(tau,3.0) );
     }
@@ -141,15 +141,17 @@ int main(int argc, char const *argv[])
     joint_pos_task->setWeight(1.e-6);
 
 
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-    cart_task->setControlFrame("link_7");
-
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
-    //cart_task->servoController()->pid()->setProportionalGain(P);
+    cart_acc_pid->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
-    //cart_task->servoController()->pid()->setDerivativeGain(D);
+    cart_acc_pid->pid()->setDerivativeGain(D);
+    cart_acc_pid->setControlFrame("link_7");
+    
+    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
+    cart_task->setServoController(cart_acc_pid);
 
 
 
@@ -187,7 +189,7 @@ int main(int argc, char const *argv[])
     });
 
     cart_task->onActivatedCallback([&](){
-        //desired_cartesian_pose = cart_task->servoController()->getCurrentCartesianPose();
+        desired_cartesian_pose = cart_acc_pid->getCurrentCartesianPose();
         Eigen::Quaterniond quat = orca::math::quatFromRPY(M_PI,0,0); // make it point to the table
         desired_cartesian_pose.linear() = quat.toRotationMatrix();
 
@@ -206,7 +208,7 @@ int main(int argc, char const *argv[])
             desired_cartesian_vel.head(3) = v;
             desired_cartesian_acc.head(3) = a;
 
-            //cart_task->servoController()->setDesired(desired_cartesian_pose.matrix(),desired_cartesian_vel,desired_cartesian_acc);
+            cart_acc_pid->setDesired(desired_cartesian_pose.matrix(),desired_cartesian_vel,desired_cartesian_acc);
         }
     });
 

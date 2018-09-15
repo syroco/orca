@@ -235,7 +235,7 @@ void RobotModel::print() const
     auto fn = getFrameNames();
     auto ln = getLinkNames();
 
-    std::cout << "Robot model " << getName() << '\n';
+    std::cout << "Robot model '" << getName() << "'" << '\n';
     std::cout << "  Joints" << '\n';
     for(unsigned int i=0; i < jn.size() ; i++)
     {
@@ -251,6 +251,11 @@ void RobotModel::print() const
     {
         std::cout << "      Link " << i << " " << ln[i] << '\n';
     }
+    std::cout << "  Current State" << '\n';
+    std::cout << "     Joint Pos: " << impl_->getJointPos().transpose() << '\n';
+    std::cout << "     Joint Vel: " << impl_->getJointPos().transpose() << '\n';
+    std::cout << "     Base Vel: " << impl_->getBaseVelocity().transpose() << '\n';
+    std::cout << "     WorldToBase: \n" << impl_->getWorldToBaseTransform() << '\n';
 }
 
 void RobotModel::onRobotInitializedCallback(std::function<void(void)> cb)

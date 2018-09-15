@@ -91,9 +91,10 @@ int main(int argc, char const *argv[])
     );
     // Other ResolutionStrategy options: MultiLevelWeighted, Generalized
 
-    // Cartesian Task
-    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
-
+    
+    // Create the servo controller that the cartesian task needs
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
+    
     // Set the pose desired for the link_7
     Eigen::Affine3d cart_pos_ref;
 
@@ -118,12 +119,10 @@ int main(int argc, char const *argv[])
     // Example 4 : use an Identity quaternion
     cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
 
-
     // Set the desired cartesian velocity and acceleration to zero
     Vector6d cart_vel_ref = Vector6d::Zero();
     Vector6d cart_acc_ref = Vector6d::Zero();
 
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
     // Now set the servoing PID
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
@@ -135,6 +134,9 @@ int main(int argc, char const *argv[])
     cart_acc_pid->setControlFrame("link_7");
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
+    
+    // Cartesian Task
+    auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
     // Set the servo controller to the cartesian task
     cart_task->setServoController(cart_acc_pid);
     

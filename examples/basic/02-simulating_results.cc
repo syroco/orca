@@ -71,28 +71,29 @@ int main(int argc, char const *argv[])
         ,QPSolverImplType::qpoases
     );
 
-    Eigen::Affine3d cart_pos_ref;
-    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
-    cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
-    Vector6d cart_vel_ref = Vector6d::Zero();
-    Vector6d cart_acc_ref = Vector6d::Zero();
-
-    // Create the servo controller that the cart task need
-    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("CartTask-EE-servo_controller");
-    // Set the frame we want to control
-    cart_acc_pid->setControlFrame("link_7");
-    // Now set where you want to go
+    // Create the servo controller that the cartesian task needs
+    auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
+    // Now set the servoing PID
     Vector6d P;
     P << 1000, 1000, 1000, 10, 10, 10;
     cart_acc_pid->pid()->setProportionalGain(P);
     Vector6d D;
     D << 100, 100, 100, 1, 1, 1;
     cart_acc_pid->pid()->setDerivativeGain(D);
+
+    cart_acc_pid->setControlFrame("link_7");
+    
+    Eigen::Affine3d cart_pos_ref;
+    cart_pos_ref.translation() = Eigen::Vector3d(1.,0.75,0.5); // x,y,z in meters
+    cart_pos_ref.linear() = Eigen::Quaterniond::Identity().toRotationMatrix();
+
+    // Set the desired cartesian velocity and acceleration to zero
+    Vector6d cart_vel_ref = Vector6d::Zero();
+    Vector6d cart_acc_ref = Vector6d::Zero();
+    
     // The desired values are set on the servo controller. Because cart_task->setDesired expects a cartesian acceleration. Which is computed automatically by the servo controller
     cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
     // Set the servo controller to the cartesian task
-
-    // Create a cartesian task
     auto cart_task = controller.addTask<CartesianTask>("CartTask-EE");
     cart_task->setServoController(cart_acc_pid);
     
