@@ -12,7 +12,6 @@ WrenchTask::WrenchTask(const std::string& name)
     this->addParameter("wrench",&wrench_);
     this->addParameter("desired_wrench",&wrench_des_);
     this->addParameter("pid",&pid_);
-    wrench_des_.get().setZero();
 }
 
 void WrenchTask::setDesired(const Vector6d& wrench_des)

@@ -158,7 +158,6 @@ bool Config::loadFromString(const std::string& yaml_str)
             {
                 std::cout << "For sub param " << n.first.as<std::string>() << '\n';
             }
-            
         }
         else
         {
@@ -173,30 +172,56 @@ bool Config::loadFromString(const std::string& yaml_str)
             }
         }
     }
+    
+    // Check if all the required parameters are present in the config file
+    bool all_present = true;
+    for(auto p : parameters_)
+    {
+        if(p.second->isRequired())
+        {
+            if(!config[p.first])
+            {
+                if(p.second->isSet())
+                {
+                    LOG_WARNING << "[" << getName() << "] " << "Required parameter '" << p.first 
+                        << "' is set but not present in config file.\n"
+                        << "Declare the parameter to remove this warning.";
+                    p.second->print();
+                }
+                else
+                {
+                    LOG_WARNING << "[" << getName() << "] " << "Required parameter '" << p.first << "' is not present in config file";
+                    all_present = false;
+                }
+            }
+        }
+    }
+    
+    // All required parameters should be in the config file
+    if(!all_present)
+    {
+        LOG_ERROR << "[" << getName() << "] " << "Configuring failed";
+        return false;
+    }
+    
+    // Check if all required parameters are set (can be from file or calling specific methods)
     bool all_set = areAllRequiredParametersSet();
     if(!all_set)
     {
-        print();
-        std::stringstream ss;
-
         for(auto p : parameters_)
         {
             LOG_WARNING_IF(p.second->isRequired() && ! p.second->isSet()) << "[" << getName() << "] "
-                    << "Required parameter \"" << p.second->getName() 
-                    << "\" is not set";
+                    << "Required parameter '" << p.second->getName() 
+                    << "' is not set yet. It has to be set before any update.";
         }
-        LOG_WARNING << "[" << getName() << "] " << "Configuring failed";
     }
     
-    LOG_INFO_IF(all_set) << "[" << getName() << "] " << "Sucessfully configured";
-    
-    if(all_set)
-    {
-        if(on_success_)
-            on_success_();
-    }
-    
-    return all_set;
+    LOG_INFO << "[" << getName() << "] " << "Sucessfully configured";
+
+    if(on_success_)
+        on_success_();
+
+    return true;
 }
 
 bool Config::areAllRequiredParametersSet() const

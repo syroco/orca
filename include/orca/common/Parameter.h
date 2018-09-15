@@ -197,14 +197,16 @@ public:
         }
         catch(std::exception& e)
         {
-            utils::orca_throw(utils::Formatter() << " - " << getName() << ": " << "Could not convert \"" << s << "\" to the type asked\n" << e.what());
+            utils::orca_throw(utils::Formatter() << "parameter '" << getName() << "': " 
+                << "Could not convert \"" << s 
+                << "\" to the type asked\n" << e.what());
         }
         return true;
     }
 
     void print() const
     {
-        std::cout << " - " << getName() << ": " << ParameterData<T>::get() << '\n';
+        std::cout << "Parameter '" << getName() << "': " << ParameterData<T>::get() << '\n';
     }
     
     bool isSet() const
@@ -281,7 +283,11 @@ public:
 
     void print() const
     {
-        std::cout << getName() << " list of shared_ptr" << '\n';
+        std::cout << "Parameter '" << getName() << "' : list of " << typeid(T).name() << '\n';
+        for(auto p : this->get())
+        {
+            p->print();
+        }
     }
     
     bool isSet() const

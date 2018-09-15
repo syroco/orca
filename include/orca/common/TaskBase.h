@@ -78,7 +78,7 @@ namespace common
         virtual ~TaskBase();
         bool isActivated() const;
         bool isComputing() const;
-        void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
+        bool setRobotModel(robot::RobotModel::Ptr robot);
 
         optim::ControlVariable getControlVariable() const;
 
@@ -108,7 +108,6 @@ namespace common
         std::shared_ptr<const common::Wrench> getWrench() const;
         std::shared_ptr<const robot::RobotModel> getRobot() const;
 
-        
         /**
         * @brief Add a child/slave task that will be updated BEFORE the parent task
         */
@@ -121,7 +120,11 @@ namespace common
         * @brief Returns true if the task has children
         */
         bool hasChildren() const;
-
+        /**
+        * @brief Returns the parent name if it exists, empty otherwise.
+        */
+        const std::string& getParentName() const;
+        
         void onResizedCallback(std::function<void(void)> cb);
         void onActivationCallback(std::function<void(void)> cb);
         void onActivatedCallback(std::function<void(void)> cb);
@@ -150,13 +153,15 @@ namespace common
         virtual void onDeactivation() {};
         virtual void onDeactivated() {};
     private:
+        common::Parameter<double> ramp_duration_ = 0;
+    private:
+        const std::string& getPrintableName() const;
         void setParentName(const std::string& parent_name);
         void checkIfUpdatable() const;
         bool is_activated_ = true;
         State state_ = Init;
         double start_time_ = 0;
         double stop_time_ = 0;
-        double ramp_duration_ = 0;
         double ramp_value_ = 0;
         bool activation_requested_ = false;
         bool deactivation_requested_ = false;
@@ -164,8 +169,9 @@ namespace common
         std::shared_ptr<const optim::Problem> problem_;
         std::shared_ptr<robot::RobotModel> robot_;
         std::shared_ptr<Wrench> wrench_;
+        
         optim::ControlVariable control_var_;
-        std::list<std::shared_ptr<TaskBase> > children_;
+        std::list< TaskBase::Ptr > children_;
 
         std::function<void(void)> on_resized_cb_;
         std::function<void(void)> on_activation_cb_;
@@ -178,6 +184,7 @@ namespace common
         //void getHierarchicalLevel(unsigned int level);
         //unsigned int hierarchical_level = 0;
         std::string parent_name_;
+        std::string printable_name_;
         double current_time_ = -1;
         double current_dt_ = 0;
     };

@@ -88,7 +88,7 @@ private:
     virtual void onCompute(double current_time, double dt);
     virtual void computeQuadraticCost();
     math::WeightedEuclidianNormFunction euclidian_norm_;
-    double weight_ = 1.0;
+    common::Parameter<double> weight_ = 1.0;
 };
 
 }
