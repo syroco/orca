@@ -181,15 +181,19 @@ public:
 
         std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << "Actuated joints" << '\n';
         for(auto n : actuated_joint_names_)
-        {
             std::cout << "   - " << n << '\n';
+        
+        links_.clear();
+        std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << "Links" << '\n';
+        for(auto link : model->GetLinks())
+        {
+            std::cout << "   - " << link->GetName() << '\n';
+            links_.push_back(link);
         }
 
         model_ = model;
         name_ = model->GetName();
-
         ndof_ = actuated_joint_names_.size();
-
         current_joint_positions_.setZero(ndof_);
         joint_gravity_torques_.setZero(ndof_);
         current_joint_velocities_.setZero(ndof_);
@@ -200,6 +204,56 @@ public:
         return true;
     }
 
+    ::gazebo::sensors::ForceTorqueSensorPtr attachForceTorqueSensorToJoint(const std::string& joint_name,double update_rate = 100)
+    {
+        assertModelLoaded();
+        
+    #if GAZEBO_MAJOR_VERSION > 8
+        auto joint = model_->GetJoint(joint_name);
+        if(!joint)
+            throw std::runtime_error("Joint " + joint_name + " does not exists");
+        std::stringstream ss;
+        ss << "<sdf version='1.4'>";
+        ss << "  <sensor name='force_torque' type='force_torque'>";
+        ss << "    <update_rate>" << update_rate << "</update_rate>";
+        ss << "    <always_on>true</always_on>";
+        ss << "  </sensor>";
+        ss << "</sdf>";
+        
+        std::string forceTorqueSensorString = ss.str();
+        
+        auto mgr = ::gazebo::sensors::SensorManager::Instance();
+        sdf::ElementPtr sdf(new sdf::Element);
+        sdf::initFile("sensor.sdf", sdf);
+        sdf::readString(forceTorqueSensorString, sdf);
+        // Create the force torque sensor
+        std::string sensorName = mgr->CreateSensor(sdf, "default",
+            getName() + "::" + joint_name, joint->GetId());
+
+        // Make sure the returned sensor name is correct
+        auto excepted_name = std::string("default::" + getName() + "::" + joint_name + "::force_torque");
+        if(sensorName != excepted_name)
+            throw std::runtime_error("Returned sensor name is " + sensorName + " when it should be " + excepted_name);
+
+        // Update the sensor manager so that it can process new sensors.
+        mgr->Update();
+
+        // Get a pointer to the force torque sensor
+        auto sensor = std::dynamic_pointer_cast<::gazebo::sensors::ForceTorqueSensor>(
+                mgr->GetSensor(sensorName));
+
+        // Make sure the above dynamic cast worked.
+        if(!sensor) throw std::runtime_error("Could not create force_torque sensor for joint " + joint_name);
+
+        if(!sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+        
+        std::cout << "[GazeboModel \'" << getName() << "\'] " << "Force torque sensor '" << sensorName << "' successfully created" << '\n';
+        return sensor;
+#else
+        return nullptr;
+#endif
+    }
+    
     const Eigen::Vector3d& getGravity() const
     {
         assertModelLoaded();
@@ -412,6 +466,7 @@ private:
     ::gazebo::physics::WorldPtr world_;
     ::gazebo::physics::ModelPtr model_;
     ::gazebo::physics::Joint_V joints_;
+    ::gazebo::physics::Link_V links_;
     std::vector<std::string> actuated_joint_names_;
     Eigen::Matrix<double,6,1> current_base_vel_;
     Eigen::Affine3d current_world_to_base_;
