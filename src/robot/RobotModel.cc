@@ -58,7 +58,7 @@ RobotModel::RobotModel(const std::string& robot_name)
 : ConfigurableOrcaObject(robot_name)
 , name_(robot_name)
 {
-    this->config()->onSuccess([&](){ loadFromParameters(); });
+    this->onConfigureSuccess([&](){ loadFromParameters(); });
     this->addParameter("name",&name_,ParamPolicy::Optional);
     this->addParameter("base_frame",&base_frame_,ParamPolicy::Required);
     this->addParameter("urdf_url",&urdf_url_,ParamPolicy::Optional);

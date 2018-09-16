@@ -65,8 +65,8 @@ void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 
 void WrenchTask::onResize()
 {
-    const int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6
-    euclidianNorm().resize(6,fulldim);
+    //const int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6
+    euclidianNorm().resize(6,6);
     E().setIdentity();
 }
 

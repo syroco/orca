@@ -73,8 +73,9 @@ protected:
     virtual void onResize();
 private:
     common::Parameter<Vector6d> wrench_des_;
-    Vector6d wrench_tmp_;
     common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
+private:
+    Vector6d wrench_tmp_;
 };
 
 } // namespace task

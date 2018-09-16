@@ -22,7 +22,7 @@ Controller::Controller(const std::string& name)
     this->addParameter("qpsolver_implementation",&solver_type_);
     this->addParameter("remove_gravity_torques_from_solution",&remove_gravity_torques_, ParamPolicy::Optional);
     this->addParameter("remove_coriolis_torques_from_solution",&remove_coriolis_torques_, ParamPolicy::Optional);
-    this->config()->onSuccess([&](){
+    this->onConfigureSuccess([&](){
 
         LOG_WARNING << "[" << getName() << "]" << " Config sucessfully loaded ";
         

@@ -316,9 +316,6 @@ bool TaskBase::activate()
 
         this->activation_requested_ = true;
 
-        if(hasWrench())
-            wrench_->activate();
-
         for(auto t : children_)
             t->activate();
 
@@ -372,8 +369,6 @@ void TaskBase::update(double current_time, double dt)
         case Activated:
         case Deactivating:
         {
-            if(hasWrench())
-                wrench_->update(current_time,dt);
 
             if(state_ == Activating)
             {
@@ -499,9 +494,6 @@ bool TaskBase::deactivate()
 
         this->deactivation_requested_ = true;
 
-        if(hasWrench())
-            wrench_->deactivate();
-
         for(auto t : children_)
             t->deactivate();
 
@@ -572,7 +564,7 @@ void TaskBase::checkIfUpdatable() const
 {
     if(this->isConfigured())
     {
-        this->printConfig();
+        this->printParameters();
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Task is not configured.");
     }
     

@@ -42,7 +42,6 @@
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/Problem.h"
 #include "orca/common/Mutex.h"
-#include "orca/common/Config.h"
 
 
 namespace orca
