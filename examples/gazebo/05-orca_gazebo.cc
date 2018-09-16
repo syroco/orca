@@ -56,6 +56,10 @@ int main(int argc, char const *argv[])
     }
     std::string urdf_url(argv[1]);
 
+    GazeboServer gz_server(argc,argv);
+    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
+    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
+    
     orca::utils::Logger::parseArgv(argc, argv);
 
     auto robot_model = std::make_shared<RobotModel>();
@@ -63,6 +67,7 @@ int main(int argc, char const *argv[])
     robot_model->setBaseFrame("base_link");
     robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
 
+    
     orca::optim::Controller controller(
         "controller"
         ,robot_model
@@ -72,25 +77,14 @@ int main(int argc, char const *argv[])
 
     
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
-    Vector6d P;
-    P << 1000, 1000, 1000, 10, 10, 10;
-    cart_acc_pid->pid()->setProportionalGain(P);
-    Vector6d D;
-    D << 100, 100, 100, 1, 1, 1;
-    cart_acc_pid->pid()->setDerivativeGain(D);
+    cart_acc_pid->pid()->setProportionalGain({1000, 1000, 1000, 10, 10, 10});
+    cart_acc_pid->pid()->setDerivativeGain({100, 100, 100, 1, 1, 1});
     cart_acc_pid->setControlFrame("link_7");
-    // Lets comment the following lines to force the robot to initialise at current pose
-    // Eigen::Affine3d cart_pos_ref;
-    // cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
-    // cart_pos_ref.linear() = orca::math::quatFromRPY(M_PI,0,0).toRotationMatrix();
-    // Vector6d cart_vel_ref = Vector6d::Zero();
-    // Vector6d cart_acc_ref = Vector6d::Zero();
-    // cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-    
+
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
     
-    
+    auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("joint_6");
 
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
@@ -102,13 +96,7 @@ int main(int argc, char const *argv[])
     auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
-    Eigen::VectorXd jntVelMax(ndof);
-    jntVelMax.setConstant(2.0);
-    jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
-
-    GazeboServer gz_server(argc,argv);
-    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
-    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
+    jnt_vel_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-2.0),Eigen::VectorXd::Constant(ndof,2.0));
 
 
     // Lets decide that the robot is gravity compensated
