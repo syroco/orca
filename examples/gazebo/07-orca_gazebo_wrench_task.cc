@@ -66,7 +66,8 @@ int main(int argc, char const *argv[])
     robot_model->loadModelFromFile(urdf_url);
     robot_model->setBaseFrame("base_link");
     robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
-
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
+    
     orca::optim::Controller controller(
         "controller"
         ,robot_model
@@ -74,15 +75,19 @@ int main(int argc, char const *argv[])
         ,QPSolverImplType::qpOASES
     );
 
+    // Joint postural task
+    auto joint_pos_task = controller.addTask<JointAccelerationTask>("JointPosTask");
+    joint_pos_task->pid()->setProportionalGain(Eigen::VectorXd::Constant(ndof,100));
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof,1));
+    joint_pos_task->pid()->setWindupLimit(Eigen::VectorXd::Constant(ndof,10));
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof,10));
+    joint_pos_task->setWeight(1.e-4);
     
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
-
     cart_acc_pid->pid()->setProportionalGain( { 100, 100, 100, 10, 10, 10 });
     cart_acc_pid->pid()->setDerivativeGain( { 10, 10, 10, 1, 1, 1 });
-    
     cart_acc_pid->setControlFrame("link_7");
 
-    
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
     cart_task->setWeight(0.1);
@@ -91,12 +96,14 @@ int main(int argc, char const *argv[])
     desired_wrench << 0., 0., -10., 0., 0., 0.;
     
     auto wrench_task = controller.addTask<WrenchTask>("WrenchTask_Demo");
-    wrench_task->setControlFrame("link_7");
+    wrench_task->setControlFrame("ati_link");
     wrench_task->pid()->setProportionalGain({0, 0, 10, 0, 0, 0});
+    // wrench_task->pid()->setDerivativeGain({0, 0, 0.1, 0, 0, 0});
     wrench_task->setDesiredWrench(desired_wrench);
     wrench_task->setWeight(1.0);
+    wrench_task->setRampDuration(60.0);
     
-    auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("joint_6");
+    auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("ati_joint");
 
     auto c = ft_sensor_j6->ConnectUpdate([&](::gazebo::msgs::WrenchStamped w)
     {
@@ -114,8 +121,6 @@ int main(int argc, char const *argv[])
     
     
     auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
-    
-    const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
     jnt_trq_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-200.),Eigen::VectorXd::Constant(ndof,200.));
@@ -125,7 +130,8 @@ int main(int argc, char const *argv[])
     auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
     jnt_vel_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-2.0),Eigen::VectorXd::Constant(ndof,2.0));
 
-
+    // Change the weight of the global reg
+    controller.globalRegularization()->setWeight(1.e-6);
     // Lets decide that the robot is gravity compensated
     // So we need to remove G(q) from the solution
     controller.removeGravityTorquesFromSolution(true);
@@ -137,14 +143,16 @@ int main(int argc, char const *argv[])
                             ,gz_model.getJointVelocities()
                             ,gz_model.getGravity()
                         );
-        // Compensate the gravity at least
+        // Compensate the gravity at least (should match controller.removeGravityTorquesFromSolution(true); )
         gz_model.setJointGravityTorques(robot_model->getJointGravityTorques());
         // All tasks need the robot to be initialized during the activation phase
         if(n_iter == 1)
             controller.activateTasksAndConstraints();
         
         controller.update(current_time, dt);
-
+        
+        // wrench_task->print();
+        
         if(controller.solutionFound())
         {
             gz_model.setJointTorqueCommand( controller.getJointTorqueCommand() );
