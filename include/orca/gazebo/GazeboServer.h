@@ -161,8 +161,10 @@ public:
         world_ = world;
         world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
         world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
-        ::gazebo::sensors::SensorManager::Instance()->Init();
-        ::gazebo::sensors::SensorManager::Instance()->RunThreads();
+        #if GAZEBO_MAJOR_VERSION > 8
+            ::gazebo::sensors::SensorManager::Instance()->Init();
+            ::gazebo::sensors::SensorManager::Instance()->RunThreads();
+        #endif
         return world_;
     }
 
