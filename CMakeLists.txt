@@ -127,11 +127,10 @@ set(__ADD_UNINSTALL_TARGET_INCLUDED TRUE CACHE BOOL "")
 set(IDYNTREE_USES_YARP FALSE CACHE BOOL "")
 set(IDYNTREE_USES_ICUB_MAIN FALSE CACHE BOOL "")
 if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
-    message(WARNING "Detected idyntree master version.
-    using this one instead of the stable branch. Dev Only !")
+    message(WARNING "Detected idyntree git version. Dev only !")
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
 else()
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-d07c7c1 EXCLUDE_FROM_ALL)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-fe5a3d7 EXCLUDE_FROM_ALL)
 endif()
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
