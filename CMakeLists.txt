@@ -109,6 +109,7 @@ ExternalProject_Add(
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7
     CONFIGURE_COMMAND  ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/configure --prefix ${CMAKE_INSTALL_PREFIX} --enable-static --without-python
     BUILD_COMMAND ${MAKE}
+    BUILD_IN_SOURCE 0
 )
 
 set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/include CACHE PATH "")
