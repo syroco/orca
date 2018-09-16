@@ -16,7 +16,7 @@ private:
     qpOASES::Options options_;
     bool qpoases_initialized_ = false;
 public:
-    void resize(int nvar,int nconstr)
+    void resize(unsigned int nvar,unsigned int nconstr)
     {
         if(!qpoases_)
         {

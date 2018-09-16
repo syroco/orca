@@ -27,7 +27,7 @@ public:
         c_free(osqp_data_.A);
         c_free(osqp_data_.P);
     }
-    void resize(int nvar,int nconstr)
+    void resize(unsigned int nvar,unsigned int nconstr)
     {
         if(nvar <= 0 || nconstr <= 0)
             return;

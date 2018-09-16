@@ -72,12 +72,10 @@ int main(int argc, char const *argv[])
 
     
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
-    Vector6d P;
-    P << 1000, 1000, 1000, 10, 10, 10;
-    cart_acc_pid->pid()->setProportionalGain(P);
-    Vector6d D;
-    D << 100, 100, 100, 1, 1, 1;
-    cart_acc_pid->pid()->setDerivativeGain(D);
+
+    cart_acc_pid->pid()->setProportionalGain( { 0, 0, 0, 10, 10, 10 });
+    cart_acc_pid->pid()->setDerivativeGain( { 100, 100, 100, 1, 1, 1 });
+    
     cart_acc_pid->setControlFrame("link_7");
     // Lets comment the following lines to force the robot to initialise at current pose
     // Eigen::Affine3d cart_pos_ref;
@@ -89,9 +87,21 @@ int main(int argc, char const *argv[])
     
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
+    cart_task->setWeight(1e-5);
     
+    Vector6d desired_wrench;
+    desired_wrench << 0., 0., -10., 0., 0., 0.;
     
-
+    auto wrench_task = controller.addTask<WrenchTask>("WrenchTask_Demo");
+    wrench_task->setControlFrame("link_7");
+    wrench_task->pid()->setProportionalGain({10, 10, 10, 10, 10, 10});
+    wrench_task->setDesiredWrench(desired_wrench);
+    wrench_task->setWeight(1.0);
+    
+    // TODO : Connect curent wrench to gazebo
+    Vector6d current_wrench = Vector6d::Zero();
+    wrench_task->setCurrentWrenchValue( current_wrench );
+    
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
@@ -128,6 +138,13 @@ int main(int argc, char const *argv[])
         if(n_iter == 1)
             controller.activateTasksAndConstraints();
 
+        // TODO : update current wrench from gazebo
+        Vector6d current_wrench = Vector6d::Zero();
+        wrench_task->setCurrentWrenchValue( current_wrench );
+        
+        std::cout << n_iter << " Desired Wrench: " << desired_wrench.transpose() << '\n';
+        std::cout << n_iter << " Current Wrench: " << wrench_task->getWrench()->getCurrentValue().transpose() << '\n';
+        
         controller.update(current_time, dt);
 
         if(controller.solutionFound())

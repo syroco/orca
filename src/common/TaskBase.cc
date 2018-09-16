@@ -179,24 +179,28 @@ TaskBase::State TaskBase::getState() const
 
 bool TaskBase::setRobotModel(RobotModel::Ptr robot)
 {
+    if(!robot)
+        orca_throw(Formatter() << "[" << getPrintableName() << "] "<< "Robot is null");
     // Check if we already have a robot
     if(robot_)
     {
-        LOG_WARNING << "[" << getPrintableName() << "] " << "Replacing existing robot";
+        if(robot_ == robot)
+        {
+            LOG_WARNING << "[" << getPrintableName() << "] " << "Same robot provided, doing nothing.";
+            return true;
+        }
+        LOG_WARNING << "[" << getPrintableName() << "] " << "Replacing existing robot with new one.";
     }
+
+    // bool ndof_changed = (robot_->getNrOfDegreesOfFreedom() != robot->getNrOfDegreesOfFreedom());
+    
     // Copy the new robot model
     robot_ = robot;
-
-    // Create the wrench if you depend on ExternalWrench
-    if(getControlVariable() == ControlVariable::ExternalWrench)
-    {
-        wrench_ = std::make_shared<Wrench>(getName() + "_wrench");
-        wrench_->setRobotModel(robot_);
-    }
-
+    
     for(auto e : children_)
         e->setRobotModel(robot_);
 
+    // Trigger a resize if needed || if we can
     if(!dependsOnProblem() || (dependsOnProblem() && hasProblem()))
     {
         resize();
@@ -250,8 +254,8 @@ void TaskBase::resize()
     // NOTE: the need to resize the task is handled in the the user callback
     // i.e verify if new_size != current_size, which is specific to said task
 
-    for(auto e : children_)
-        e->resize();
+    // NOTE: Resize should be called by the task itself ONLY
+    // It is only necessary when changing the robot and/or the problem
 
     this->onResize();
 
@@ -312,9 +316,6 @@ bool TaskBase::activate()
 
         this->activation_requested_ = true;
 
-        if(hasWrench())
-            wrench_->activate();
-
         for(auto t : children_)
             t->activate();
 
@@ -368,8 +369,6 @@ void TaskBase::update(double current_time, double dt)
         case Activated:
         case Deactivating:
         {
-            if(hasWrench())
-                wrench_->update(current_time,dt);
 
             if(state_ == Activating)
             {
@@ -495,9 +494,6 @@ bool TaskBase::deactivate()
 
         this->deactivation_requested_ = true;
 
-        if(hasWrench())
-            wrench_->deactivate();
-
         for(auto t : children_)
             t->deactivate();
 
@@ -514,36 +510,39 @@ bool TaskBase::deactivate()
 
 bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 {
+    if(!problem)
+        orca_throw(Formatter() << "[" << getPrintableName() << "] "<< "Problem is null");
+
+    // TODO : figure out if necessary when running
+    // The resize function can be quite heavy
+    // if(state_ != Init) {
+    //     orca_throw(Formatter() << "[" << getPrintableName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
+    // }
+    // Check if we already have a robot
+    if(problem_)
+    {
+        if(problem_ == problem)
+        {
+            LOG_WARNING << "[" << getPrintableName() << "] " << "Same problem provided, doing nothing.";
+            return true;
+        }
+        LOG_WARNING << "[" << getPrintableName() << "] " << "Replacing existing problem with new one.";
+    }
+
+    this->problem_ = problem;
+
+    for(auto e : children_)
+        e->setProblem(problem);
+
     if(!dependsOnProblem())
     {
         LOG_WARNING << "[" << getPrintableName() << "] " 
             << "Calling setProblem, but task do not depend on it " 
-            << "(control variable" << getControlVariable() << ")";
+            << "(control variable: " << getControlVariable() << ")"
+            << "\nTherefore, not triggering resize.";
         return true;
     }
-    
-    if(!problem)
-    {
-        orca_throw(Formatter() << "[" << getPrintableName() << "] "<< "Problem is null");
-    }
-
-    if(state_ != Init) {
-        orca_throw(Formatter() << "[" << getPrintableName() << "] Calling setRobotModel is only valid when state is Init, but now it's " << state_);
-    }
-
-    if(hasProblem())
-    {
-        LOG_WARNING << "[" << getPrintableName() << "] " << "Problem is already set";
-        return false;
-    }
-    this->problem_ = problem;
-
-    for(auto e : children_)
-    {
-        if(!e->hasProblem())
-            e->setProblem(getProblem());
-    }
-
+    // The robot is necessary to resize
     if(hasRobot())
     {
         // Resize if we have all the parameters
@@ -565,7 +564,7 @@ void TaskBase::checkIfUpdatable() const
 {
     if(this->isConfigured())
     {
-        this->printConfig();
+        this->printParameters();
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Task is not configured.");
     }
     

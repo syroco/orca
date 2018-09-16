@@ -47,21 +47,24 @@ namespace orca
 {
 namespace optim
 {
-
-    
     
 class QPSolver
 {
 public:
-    QPSolver(QPSolverImplType type);
+    using Ptr = std::shared_ptr<QPSolver>;
+    QPSolver();
     virtual ~QPSolver();
+    bool setImplementationType(QPSolverImplType solver_type);
     void setPrintLevel(int level);
-    void resize(int nvar, int nconstr);
+    void resize(unsigned int nvar,unsigned int nconstr);
     bool solve(orca::optim::ProblemData& data);
     common::ReturnCode getReturnCode() const;
 private:
-    std::unique_ptr<QPSolverImpl> pimpl;
+    std::unique_ptr<QPSolverImpl> pimpl_;
     common::ReturnCode ret_ = common::ReturnCode::RET_INIT_FAILED;
+    int nvar_ = 0;
+    int nconstr_ = 0;
+    QPSolverImplType solver_type_ = QPSolverImplType::qpOASES;
 };
 
 } // namespace optim

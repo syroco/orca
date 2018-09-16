@@ -48,26 +48,26 @@ namespace optim
         , Generalized
     };
     
-    inline std::string ResolutionStrategytoString(ResolutionStrategy rs)
+    inline std::string ResolutionStrategyToString(ResolutionStrategy rs)
     {
         if(rs == ResolutionStrategy::OneLevelWeighted) return "OneLevelWeighted";
         if(rs == ResolutionStrategy::MultiLevelWeighted) return "MultiLevelWeighted";
         if(rs == ResolutionStrategy::Generalized) return "Generalized";
         return "Not supported";
     }
-    inline ResolutionStrategy ResolutionStrategyfromString(const std::string& rs)
+    inline ResolutionStrategy ResolutionStrategyFromString(const std::string& rs)
     {
         if(rs == "OneLevelWeighted") return ResolutionStrategy::OneLevelWeighted;
         if(rs == "MultiLevelWeighted") return ResolutionStrategy::MultiLevelWeighted;
         if(rs == "Generalized") return ResolutionStrategy::Generalized;
         return ResolutionStrategy::OneLevelWeighted;
     }
+    inline ::std::ostream& operator<<(::std::ostream& os, const ResolutionStrategy& rs)
+    {
+        os << ResolutionStrategyToString(rs);
+        return os;
+    }
 } // namespace optim
 } // namespace orca
 
-template<class T>
-inline T& operator<<(T& os, const orca::optim::ResolutionStrategy& rs)
-{
-    os << orca::optim::ResolutionStrategytoString(rs);
-    return os;
-}
+

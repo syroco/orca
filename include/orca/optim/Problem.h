@@ -35,16 +35,13 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-#include "orca/math/Utils.h"
 #include "orca/common/ReturnCode.h"
 #include "orca/utils/Utils.h"
-#include "orca/utils/Logger.h"
 #include "orca/optim/ControlVariable.h"
 #include "orca/optim/ControlVariableMapping.h"
 #include "orca/optim/ProblemData.h"
 #include "orca/optim/QPSolver.h"
-#include <map>
-#include <list>
+#include "orca/robot/RobotModel.h"
 
 namespace orca
 {
@@ -57,12 +54,10 @@ namespace orca
     {
         class GenericTask;
         class WrenchTask;
-        template<optim::ControlVariable C> class RegularisationTask;
     }
     namespace constraint
     {
         class GenericConstraint;
-        class DynamicsEquationConstraint;
     }
     namespace robot
     {
@@ -80,9 +75,12 @@ class Problem
 public:
     using Ptr = std::shared_ptr<Problem>;
     
-    Problem(std::shared_ptr<robot::RobotModel> robot,QPSolverImplType solver_type);
+    Problem();
 
     virtual ~Problem();
+
+    bool setRobotModel(std::shared_ptr<robot::RobotModel> robot);
+    bool setImplementationType(QPSolverImplType solver_type);
 
     void build();
     bool solve();
@@ -110,20 +108,22 @@ protected:
     std::list< std::shared_ptr< task::GenericTask > > tasks_;
     std::list< std::shared_ptr< constraint::GenericConstraint > > constraints_;
 
+protected:
     ControlVariableMapping mapping_;
 
-    std::shared_ptr<QPSolver> qpsolver_;
+    std::shared_ptr<robot::RobotModel> robot_;
+    QPSolver::Ptr qpsolver_ = std::make_shared<QPSolver>();
+    
     ProblemData data_;
     unsigned int number_of_variables_ = 0;
     unsigned int number_of_constraints_rows_ = 0;
-    unsigned int ndof_ = 0;
 private:
     void resize();
     bool addWrench(std::shared_ptr< const common::Wrench > wrench);
     unsigned int computeNumberOfConstraintRows() const;
+    unsigned int generateVariableMapping();
     void resizeProblemData(int nvar, int nconstr);
     void resizeSolver(int nvar,int nconstr);
-    std::shared_ptr<robot::RobotModel> robot_;
 };
 
 } // namespace optim

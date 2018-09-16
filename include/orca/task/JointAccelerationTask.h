@@ -63,5 +63,5 @@ private:
     common::Parameter<common::PIDController::Ptr> pid_ = std::make_shared<common::PIDController>("pid");
 };
 
-}
-}
+} // namespace task
+} // namespace orca

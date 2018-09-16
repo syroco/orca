@@ -1,6 +1,7 @@
 #include "orca/task/WrenchTask.h"
 #include "orca/optim/ControlVariable.h"
 
+using namespace orca::math;
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::common;
@@ -8,11 +9,17 @@ using namespace orca::common;
 WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
 {
+    // NOTE : ExternalWrench objects creates a wrench required parameter
     this->addParameter("desired_wrench",&wrench_des_);
     this->addParameter("pid",&pid_);
 }
 
-void WrenchTask::setDesired(const Vector6d& wrench_des)
+void WrenchTask::setDesiredWrench(const std::array<double,6>& wrench_at_control_frame)
+{
+    setDesiredWrench(Vector6d::Map(wrench_at_control_frame.data(),6));
+}
+
+void WrenchTask::setDesiredWrench(const Vector6d& wrench_des)
 {
     wrench_des_ = wrench_des;
 }
@@ -48,7 +55,8 @@ PIDController::Ptr WrenchTask::pid()
 }
 void WrenchTask::onActivation()
 {
-    wrench_des_.get().setZero();
+    if(!wrench_des_.isSet())
+        wrench_des_ = Vector6d::Zero();
 }
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
@@ -58,9 +66,9 @@ void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 
 void WrenchTask::onResize()
 {
-    const int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6
-    euclidianNorm().resize(6,fulldim);
+    euclidianNorm().resize(6,6);
     E().setIdentity();
+    pid_.get()->resize(6);
 }
 
 ORCA_REGISTER_CLASS(orca::task::WrenchTask)

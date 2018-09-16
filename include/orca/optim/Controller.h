@@ -52,116 +52,113 @@ namespace orca
 {
 namespace optim
 {
-    class Controller : public common::ConfigurableOrcaObject
+class Controller : public common::ConfigurableOrcaObject
+{
+public:
+    Controller(const std::string& name);
+    Controller(const std::string& name
+        , std::shared_ptr<robot::RobotModel> robot
+        ,ResolutionStrategy resolution_strategy
+        ,QPSolverImplType solver_type);
+    
+    void print() const;
+
+    void setPrintLevel(int level);
+
+    std::shared_ptr<robot::RobotModel> robot();
+
+    void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
+
+    bool update(double current_time, double dt);
+
+    common::ReturnCode getReturnCode() const;
+
+    bool addTask(std::shared_ptr<task::GenericTask> task);
+
+    bool addTaskFromString(const std::string& task_description);
+    
+    bool addConstraintFromString(const std::string& task_description);
+    
+    template<class T>
+    std::shared_ptr<T> addTask(const std::string& name)
     {
-    public:
-        Controller(const std::string& name);
-        Controller(const std::string& name
-            , std::shared_ptr<robot::RobotModel> robot
-            ,ResolutionStrategy resolution_strategy
-            ,QPSolverImplType solver_type);
-        
-        void print() const;
+        auto t = std::make_shared<T>(name);
+        if(this->addTask(t))
+            return t;
+        return nullptr;
+    }
 
-        void setPrintLevel(int level);
+    std::shared_ptr<task::GenericTask> getTask(const std::string& name, int level = 0);
+    std::shared_ptr<task::GenericTask> getTask(unsigned int index, int level = 0);
 
-        std::shared_ptr<robot::RobotModel> robot();
+    bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
 
-        void setRobotModel(std::shared_ptr<robot::RobotModel> robot);
+    template<class C>
+    std::shared_ptr<C> addConstraint(const std::string& name)
+    {
+        auto c = std::make_shared<C>(name);
+        if(this->addConstraint(c))
+            return c;
+        return nullptr;
+    }
 
-        bool update(double current_time, double dt);
+    bool solutionFound() const;
 
-        common::ReturnCode getReturnCode() const;
+    const Eigen::VectorXd& getSolution();
 
-        bool addTask(std::shared_ptr<task::GenericTask> task);
+    const Eigen::VectorXd& getJointTorqueCommand(bool remove_gravity_torques = false
+                                            , bool remove_coriolis_torques = false);
 
-        bool addTaskFromString(const std::string& task_description);
-        
-        bool addConstraintFromString(const std::string& task_description);
-        
-        template<class T>
-        std::shared_ptr<T> addTask(const std::string& name)
-        {
-            auto t = std::make_shared<T>(name);
-            if(this->addTask(t))
-                return t;
-            return nullptr;
-        }
+    const Eigen::VectorXd& computeKKTTorques();
 
-        std::shared_ptr<task::GenericTask> getTask(const std::string& name, int level = 0);
-        std::shared_ptr<task::GenericTask> getTask(unsigned int index, int level = 0);
+    const Eigen::VectorXd& getJointAccelerationCommand();
 
-        bool addConstraint(std::shared_ptr<constraint::GenericConstraint> cstr);
+    void activateTasksAndConstraints();
+    void activateTasks();
+    void activateConstraints();
 
-        template<class C>
-        std::shared_ptr<C> addConstraint(const std::string& name)
-        {
-            auto c = std::make_shared<C>(name);
-            if(this->addConstraint(c))
-                return c;
-            return nullptr;
-        }
+    void deactivateTasksAndConstraints();
+    void deactivateTasks();
+    void deactivateConstraints();
 
-        bool solutionFound() const;
+    bool tasksAndConstraintsDeactivated();
 
-        const Eigen::VectorXd& getSolution();
+    std::shared_ptr<task::RegularisationTask<ControlVariable::X> > globalRegularization(int level = 0);
+    void setUpdateCallback(std::function<void(double,double)> update_cb);
 
-        const Eigen::VectorXd& getJointTorqueCommand(bool remove_gravity_torques = false
-                                                , bool remove_coriolis_torques = false);
+    void removeGravityTorquesFromSolution(bool do_remove);
+    void removeCoriolisTorquesFromSolution(bool do_remove);
+    /**
+    * @brief The recursive mutex to protect the #update function
+    *
+    */
+    mutable common::MutexRecursive mutex;
+    
+    ResolutionStrategy getResolutionStrategy() const;
+private:
+    bool isProblemDry(std::shared_ptr<const optim::Problem> problem);
+    std::shared_ptr<Problem> getProblemAtLevel(int level);
+    void insertNewLevel();
+    void updateTasks(double current_time, double dt);
+    void updateConstraints(double current_time, double dt);
+private:
+    common::Parameter<ResolutionStrategy> resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
+    common::Parameter<QPSolverImplType> solver_type_ = QPSolverImplType::qpOASES;
+    common::Parameter<bool> remove_gravity_torques_ = false;
+    common::Parameter<bool> remove_coriolis_torques_ = true;
+    common::Parameter<robot::RobotModel::Ptr> robot_;
+    common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
+    common::Parameter<std::list< constraint::GenericConstraint::Ptr > >constraints_;
+private:
+    std::function<void(double,double)> update_cb_;
 
-        const Eigen::VectorXd& computeKKTTorques();
+    std::list< Problem::Ptr > problems_;
 
-        const Eigen::VectorXd& getJointAccelerationCommand();
+    Eigen::VectorXd joint_torque_command_;
+    Eigen::VectorXd kkt_torques_;
+    Eigen::VectorXd joint_acceleration_command_;
 
-        void activateTasksAndConstraints();
-        void activateTasks();
-        void activateConstraints();
-
-        void deactivateTasksAndConstraints();
-        void deactivateTasks();
-        void deactivateConstraints();
-
-        bool tasksAndConstraintsDeactivated();
-
-        std::shared_ptr<task::RegularisationTask<ControlVariable::X> > globalRegularization(int level = 0);
-        void setUpdateCallback(std::function<void(double,double)> update_cb);
-
-        void removeGravityTorquesFromSolution(bool do_remove);
-        void removeCoriolisTorquesFromSolution(bool do_remove);
-        /**
-        * @brief The recursive mutex to protect the #update function
-        *
-        */
-        mutable common::MutexRecursive mutex;
-    private:
-        bool isProblemDry(std::shared_ptr<const optim::Problem> problem);
-        std::shared_ptr<Problem> getProblemAtLevel(int level);
-        void insertNewLevel();
-
-        void updateTasks(double current_time, double dt);
-
-        void updateConstraints(double current_time, double dt);
-    private:
-        common::Parameter<std::string> resolution_strategy_str_;
-        common::Parameter<std::string> solver_type_str_;
-        common::Parameter<bool> remove_gravity_torques_ = false;
-        common::Parameter<bool> remove_coriolis_torques_ = true;
-        common::Parameter<robot::RobotModel::Ptr> robot_;
-        common::Parameter<std::list< task::GenericTask::Ptr > > tasks_;
-        common::Parameter<std::list< constraint::GenericConstraint::Ptr > >constraints_;
-
-        std::function<void(double,double)> update_cb_;
-
-        std::list< Problem::Ptr > problems_;
-
-        Eigen::VectorXd joint_torque_command_;
-        Eigen::VectorXd kkt_torques_;
-        Eigen::VectorXd joint_acceleration_command_;
-
-        bool solution_found_ = false;
-        
-        ResolutionStrategy resolution_strategy_ = ResolutionStrategy::OneLevelWeighted;
-        QPSolverImplType solver_type_ = QPSolverImplType::qpOASES;
-    };
+    bool solution_found_ = false;
+};
 } // namespace optim
 } //namespace orca

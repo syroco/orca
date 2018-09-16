@@ -53,12 +53,16 @@ namespace common
         PIDController(const std::string& name = "pid");
         void resize(int dim);
         void setProportionalGain(const Eigen::VectorXd& P_gain);
+        void setProportionalGain(const std::vector<double>& P_gain);
         const Eigen::VectorXd& P() const;
         void setIntegralGain(const Eigen::VectorXd& I_gain);
+        void setIntegralGain(const std::vector<double>& I_gain);
         void setWindupLimit(const Eigen::VectorXd& windup_lim);
+        void setWindupLimit(const std::vector<double>& windup_lim);
         const Eigen::VectorXd& windupLimit();
         const Eigen::VectorXd& I() const;
         void setDerivativeGain(const Eigen::VectorXd& D_gain);
+        void setDerivativeGain(const std::vector<double>& D_gain);
 
         const Eigen::VectorXd& D() const;
         const Eigen::VectorXd& computeCommand(const Eigen::VectorXd& Error
