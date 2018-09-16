@@ -115,7 +115,8 @@ class Parameter : public ParameterBase, public ParameterData<T>
 public:
     Parameter()
     {}
-    Parameter(const T& t)
+    template<class T2>
+    Parameter(const T2& t)
     {
         ParameterData<T>::set(t);
     }

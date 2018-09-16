@@ -50,8 +50,8 @@ class WrenchTask : public GenericTask
 public:
     WrenchTask(const std::string& name);
 
-    void setDesired(const math::Vector6d& wrench_at_control_frame);
-    void setDesired(const std::array<double,6>& wrench_at_control_frame);
+    void setDesiredWrench(const math::Vector6d& wrench_at_control_frame);
+    void setDesiredWrench(const std::array<double,6>& wrench_at_control_frame);
 
     void setBaseFrame(const std::string& base_ref_frame);
 
@@ -70,7 +70,7 @@ protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
-    common::Parameter<math::Vector6d> wrench_des_;
+    common::Parameter<math::Vector6d> wrench_des_ = math::Vector6d::Zero();
     common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
 private:
     math::Vector6d wrench_tmp_;

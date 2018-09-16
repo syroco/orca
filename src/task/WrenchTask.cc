@@ -10,17 +10,16 @@ WrenchTask::WrenchTask(const std::string& name)
 : GenericTask(name,ControlVariable::ExternalWrench)
 {
     // NOTE : ExternalWrench objects creates a wrench required parameter
-    wrench_des_ = Vector6d::Zero();
     this->addParameter("desired_wrench",&wrench_des_);
     this->addParameter("pid",&pid_);
 }
 
-void WrenchTask::setDesired(const std::array<double,6>& wrench_at_control_frame)
+void WrenchTask::setDesiredWrench(const std::array<double,6>& wrench_at_control_frame)
 {
-    setDesired(Vector6d::Map(wrench_at_control_frame.data(),6));
+    setDesiredWrench(Vector6d::Map(wrench_at_control_frame.data(),6));
 }
 
-void WrenchTask::setDesired(const Vector6d& wrench_des)
+void WrenchTask::setDesiredWrench(const Vector6d& wrench_des)
 {
     wrench_des_ = wrench_des;
 }
@@ -56,7 +55,8 @@ PIDController::Ptr WrenchTask::pid()
 }
 void WrenchTask::onActivation()
 {
-    wrench_des_ = Vector6d::Zero();
+    if(!wrench_des_.isSet())
+        wrench_des_ = Vector6d::Zero();
 }
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
