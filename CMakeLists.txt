@@ -124,7 +124,15 @@ set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARY} CACHE STRING "")
 set(BUILD_SHARED_LIBS OFF)
 set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 set(__ADD_UNINSTALL_TARGET_INCLUDED TRUE CACHE BOOL "")
-add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-d07c7c1 EXCLUDE_FROM_ALL)
+set(IDYNTREE_USES_YARP FALSE CACHE BOOL "")
+set(IDYNTREE_USES_ICUB_MAIN FALSE CACHE BOOL "")
+if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
+    message(WARNING "Detected idyntree master version.
+    using this one instead of the stable branch. Dev Only !")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
+else()
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-d07c7c1 EXCLUDE_FROM_ALL)
+endif()
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
 #################### Yaml cpp #########################

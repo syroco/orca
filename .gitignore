@@ -8,6 +8,9 @@ docs/xml/
 # orca logs
 orca-log.*
 
+# In this filder you can place the git repo of idyntree, for dev purposes
+external/idyntree/
+
 # linter
 compile_commands.json
 
