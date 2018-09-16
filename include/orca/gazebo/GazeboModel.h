@@ -219,17 +219,16 @@ public:
         ss << "    <always_on>true</always_on>";
         ss << "  </sensor>";
         ss << "</sdf>";
-        
         std::string forceTorqueSensorString = ss.str();
-        
-        auto mgr = ::gazebo::sensors::SensorManager::Instance();
+        // Create the SDF file to configure the sensor
         sdf::ElementPtr sdf(new sdf::Element);
         sdf::initFile("sensor.sdf", sdf);
         sdf::readString(forceTorqueSensorString, sdf);
         // Create the force torque sensor
+        auto mgr = ::gazebo::sensors::SensorManager::Instance();
         std::string sensorName = mgr->CreateSensor(sdf, "default",
             getName() + "::" + joint_name, joint->GetId());
-
+        
         // Make sure the returned sensor name is correct
         auto excepted_name = std::string("default::" + getName() + "::" + joint_name + "::force_torque");
         if(sensorName != excepted_name)
@@ -248,9 +247,10 @@ public:
         if(!sensor->IsActive()) throw std::runtime_error("Sensor is not active");
         
         std::cout << "[GazeboModel \'" << getName() << "\'] " << "Force torque sensor '" << sensorName << "' successfully created" << '\n';
+        std::cout << "[GazeboModel \'" << getName() << "\'] " << "Model now has " << model_->GetSensorCount() << " sensors" << '\n';
         return sensor;
 #else
-        return nullptr;
+        throw std::runtime_error("Adding sensors is only supported for gz version > 8");
 #endif
     }
     
