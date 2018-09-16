@@ -11,7 +11,7 @@ PIDController::PIDController(const std::string& name)
     this->addParameter( "i_gain", &i_gain_ ,ParamPolicy::Optional);
     this->addParameter( "d_gain", &d_gain_ ,ParamPolicy::Optional);
     this->addParameter( "windup_limit", &windup_limit_ ,ParamPolicy::Optional);
-    this->onConfigureSuccess([&](){ dimension_.set(p_gain_.get().size()); });
+    this->onConfigureSuccess([&](){ resize(p_gain_.get().size()); });
 }
 
 void PIDController::resize(int dim)

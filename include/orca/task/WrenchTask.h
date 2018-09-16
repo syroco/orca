@@ -35,7 +35,7 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
+#include "orca/math/Utils.h"
 #include "orca/common/Wrench.h"
 #include "orca/common/PIDController.h"
 #include "orca/task/GenericTask.h"
@@ -45,14 +45,12 @@ namespace orca
 namespace task
 {
 
-using math::Vector6d;
-
 class WrenchTask : public GenericTask
 {
 public:
     WrenchTask(const std::string& name);
 
-    void setDesired(const Vector6d& wrench_at_control_frame);
+    void setDesired(const math::Vector6d& wrench_at_control_frame);
     void setDesired(const std::array<double,6>& wrench_at_control_frame);
 
     void setBaseFrame(const std::string& base_ref_frame);
@@ -63,7 +61,7 @@ public:
 
     const std::string& getControlFrame() const;
 
-    void setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor);
+    void setCurrentWrenchValue(const math::Vector6d& current_wrench_from_ft_sensor);
 
     common::PIDController::Ptr pid();
 
@@ -72,10 +70,10 @@ protected:
     virtual void onUpdateAffineFunction(double current_time, double dt);
     virtual void onResize();
 private:
-    common::Parameter<Vector6d> wrench_des_;
+    common::Parameter<math::Vector6d> wrench_des_;
     common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
 private:
-    Vector6d wrench_tmp_;
+    math::Vector6d wrench_tmp_;
 };
 
 } // namespace task

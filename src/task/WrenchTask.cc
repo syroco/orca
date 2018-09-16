@@ -1,6 +1,7 @@
 #include "orca/task/WrenchTask.h"
 #include "orca/optim/ControlVariable.h"
 
+using namespace orca::math;
 using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::common;
@@ -65,9 +66,9 @@ void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 
 void WrenchTask::onResize()
 {
-    //const int fulldim = this->robot()->getConfigurationSpaceDimension(); // ndof + 6
     euclidianNorm().resize(6,6);
     E().setIdentity();
+    pid_.get()->resize(6);
 }
 
 ORCA_REGISTER_CLASS(orca::task::WrenchTask)
