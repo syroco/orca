@@ -77,15 +77,15 @@ int main(int argc, char const *argv[])
     
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
 
-    cart_acc_pid->pid()->setProportionalGain( { 0, 0, 0, 10, 10, 10 });
-    cart_acc_pid->pid()->setDerivativeGain( { 100, 100, 100, 1, 1, 1 });
+    cart_acc_pid->pid()->setProportionalGain( { 100, 100, 100, 10, 10, 10 });
+    cart_acc_pid->pid()->setDerivativeGain( { 10, 10, 10, 1, 1, 1 });
     
     cart_acc_pid->setControlFrame("link_7");
 
     
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
-    cart_task->setWeight(1e-5);
+    cart_task->setWeight(0.1);
     
     Vector6d desired_wrench;
     desired_wrench << 0., 0., -10., 0., 0., 0.;
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[])
     
     auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("joint_6");
     auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
-    
+
     // TODO : Connect curent wrench to gazebo
     Vector6d current_wrench = Vector6d::Zero();
     wrench_task->setCurrentWrenchValue( current_wrench );
