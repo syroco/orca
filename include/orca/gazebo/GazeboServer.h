@@ -486,6 +486,8 @@ private:
                 tmp_sensor_count += model->GetSensorCount();
         #endif
         do{
+            // FIXME: Find out a way to be notified when a sensor is replaced
+            // Here we only check the number of sensors 
             if(tmp_sensor_count > n_sensors_)
             {
                 if (!::gazebo::sensors::load())
