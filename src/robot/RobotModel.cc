@@ -235,22 +235,22 @@ void RobotModel::print() const
     auto ln = getLinkNames();
 
     std::cout << "Robot model '" << getName() << "'" << '\n';
-    std::cout << "  Joints" << '\n';
+    std::cout << "  Joints (" << jn.size() << ")" << '\n';
     for(unsigned int i=0; i < jn.size() ; i++)
     {
-        std::cout << "      Joint " << i << " " << jn[i] << '\n';
+        std::cout << "     Joint " << i << ": '" << jn[i] << "'" << '\n';
     }
-    std::cout << "  Frames" << '\n';
+    std::cout << "  Frames (" << fn.size() << ")" << '\n';
     for(unsigned int i=0; i < fn.size() ; i++)
     {
-        std::cout << "      Frame " << i << " " << fn[i] << '\n';
+        std::cout << "     Frame " << i << ": '" << fn[i] << "'" << '\n';
     }
-    std::cout << "  Links" << '\n';
+    std::cout << "  Links (" << ln.size() << ")" << '\n';
     for(unsigned int i=0; i < ln.size() ; i++)
     {
-        std::cout << "      Link " << i << " " << ln[i] << '\n';
+        std::cout << "      Link " << i << ": '" << ln[i] << "'" << '\n';
     }
-    std::cout << "  Current State" << '\n';
+    std::cout << "  Current State " << (isInitialized() ? "(Robot has not received any state yet)" : "(Initialized)") << '\n';
     std::cout << "     Joint Pos: " << impl_->getJointPos().transpose() << '\n';
     std::cout << "     Joint Vel: " << impl_->getJointPos().transpose() << '\n';
     std::cout << "     Base Vel: " << impl_->getBaseVelocity().transpose() << '\n';
