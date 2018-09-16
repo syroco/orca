@@ -1,3 +1,7 @@
+add_executable(00-load_robot_model 00-load_robot_model.cc)
+target_link_libraries(00-load_robot_model orca)
+install(TARGETS 00-load_robot_model DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
+
 add_executable(01-simple_controller 01-simple_controller.cc)
 target_link_libraries(01-simple_controller orca)
 install(TARGETS 01-simple_controller DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)

@@ -75,7 +75,7 @@ else()
 endif()
 
 #################### TinyXML ###########################
-set(tinyxml_SOURCE_DIR external/idyntree-0.8.1/extern/tinyxml/src)
+set(tinyxml_SOURCE_DIR external/tinyxml/src)
 add_library(${PROJECT_NAME}_priv_tinyxml STATIC
     ${tinyxml_SOURCE_DIR}/tinyxml.cpp
     ${tinyxml_SOURCE_DIR}/tinyxmlerror.cpp
@@ -98,11 +98,40 @@ set(ENABLE_MKL_PARDISO OFF CACHE BOOL "")
 set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes to match eigen sparseviews")
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 
+#################### libxml2 #########################
+# find_package(LibXml2 QUIET)
+# if(NOT LibXml2_FOUND)
+#     message("libxml2 not found, using embbedded. Please install it standalone")
+include(ExternalProject)
+
+ExternalProject_Add(
+    libxml2
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7
+    CONFIGURE_COMMAND  ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/configure --prefix ${CMAKE_INSTALL_PREFIX} --enable-static --without-python
+    BUILD_COMMAND ${MAKE}
+    BUILD_IN_SOURCE 0
+)
+
+set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/include CACHE PATH "")
+set(LIBXML2_LIBRARY xml2 CACHE STRING "")
+set(LIBXML2_FOUND TRUE CACHE BOOL "")
+set(LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIR} CACHE PATH "")
+set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARY} CACHE STRING "")
+
+# endif()
+
 #################### iDynTree #########################
 set(BUILD_SHARED_LIBS OFF)
 set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 set(__ADD_UNINSTALL_TARGET_INCLUDED TRUE CACHE BOOL "")
-add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-0.8.1 EXCLUDE_FROM_ALL)
+set(IDYNTREE_USES_YARP FALSE CACHE BOOL "")
+set(IDYNTREE_USES_ICUB_MAIN FALSE CACHE BOOL "")
+if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
+    message(WARNING "Detected idyntree git version. Dev only !")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
+else()
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-fe5a3d7 EXCLUDE_FROM_ALL)
+endif()
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
 #################### Yaml cpp #########################
@@ -219,6 +248,7 @@ target_link_libraries(orca PRIVATE
     ${PROJECT_NAME}_priv_qpOASES
     osqpstatic
     ${PROJECT_NAME}_priv_tinyxml
+    ${LIBXML2_LIBRARY}
 )
 
 #################### ORCA Examples #########################
