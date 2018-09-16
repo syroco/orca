@@ -292,7 +292,7 @@ protected:
     bool loadFromParameters();
 private:
     
-    template<RobotModelImplType type = iDynTree> struct RobotModelImpl;
+    template<RobotModelImplType type = iDynTree> class RobotModelImpl;
     std::unique_ptr<RobotModelImpl<> > impl_;
     
 };

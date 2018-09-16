@@ -174,7 +174,6 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         LOG_INFO << "Robot model '" << getName() << "' (" << getNrOfDegreesOfFreedom() << " dof) successfully loaded";
         return true;
     }
-    std::cerr << "modelString : \n" << modelString << "\n\n";
     orca_throw(Formatter() << modelString << "\n\nCould not load robot model from above urdf string.\n\n");
     return false;
 }

@@ -169,12 +169,10 @@ public:
         iDynTree::ModelLoader mdlLoader;
         if(!mdlLoader.loadModelFromString(modelString))
         {
-            LOG_ERROR << "Could not load model from urdf string :\n" << modelString;
             return false;
         }
         if(! kinDynComp_.loadRobotModel(mdlLoader.model()) )
         {
-            LOG_ERROR << "Could not load model from urdf string :\n" << modelString;
             return false;
         }
 
