@@ -92,16 +92,28 @@ int main(int argc, char const *argv[])
     
     auto wrench_task = controller.addTask<WrenchTask>("WrenchTask_Demo");
     wrench_task->setControlFrame("link_7");
-    wrench_task->pid()->setProportionalGain({10, 10, 10, 10, 10, 10});
+    wrench_task->pid()->setProportionalGain({0, 0, 10, 0, 0, 0});
     wrench_task->setDesiredWrench(desired_wrench);
     wrench_task->setWeight(1.0);
     
     auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("joint_6");
-    auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
 
-    // TODO : Connect curent wrench to gazebo
-    Vector6d current_wrench = Vector6d::Zero();
-    wrench_task->setCurrentWrenchValue( current_wrench );
+    auto c = ft_sensor_j6->ConnectUpdate([&](::gazebo::msgs::WrenchStamped w)
+    {
+        Vector6d current_wrench;
+        current_wrench[0] = w.wrench().force().x();
+        current_wrench[1] = w.wrench().force().y();
+        current_wrench[2] = w.wrench().force().z();
+        current_wrench[3] = w.wrench().torque().x();
+        current_wrench[4] = w.wrench().torque().y();
+        current_wrench[5] = w.wrench().torque().z();
+        wrench_task->setCurrentWrenchValue( current_wrench );
+        std::cout << " Desired Wrench: " << desired_wrench.transpose() << '\n';
+        std::cout << " Current Wrench: " << current_wrench.transpose() << '\n';
+    });
+    
+    
+    auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
     
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
@@ -130,13 +142,6 @@ int main(int argc, char const *argv[])
         // All tasks need the robot to be initialized during the activation phase
         if(n_iter == 1)
             controller.activateTasksAndConstraints();
-
-        // TODO : update current wrench from gazebo
-        Vector6d current_wrench = Vector6d::Zero();
-        wrench_task->setCurrentWrenchValue( current_wrench );
-        
-        std::cout << n_iter << " Desired Wrench: " << desired_wrench.transpose() << '\n';
-        std::cout << n_iter << " Current Wrench: " << wrench_task->getWrench()->getCurrentValue().transpose() << '\n';
         
         controller.update(current_time, dt);
 
