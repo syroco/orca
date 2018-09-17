@@ -151,9 +151,10 @@ endif()
 find_package(catkin QUIET)
 
 #################### Matplotlib #########################
-find_package(PythonLibs QUIET)
-find_package(NumPy QUIET)
-if(PYTHONLIBS_FOUND AND NUMPY_FOUND)
+set(ORCA_BUILD_PLOT_EXAMPLE OFF CACHE BOOL "")
+if(ORCA_BUILD_PLOT_EXAMPLE)
+    find_package(PythonLibs REQUIRED)
+    find_package(NumPy REQUIRED)
     set(matplotlibcpp_include_dirs ${PROJECT_SOURCE_DIR}/external/matplotlibcpp/include)
 endif()
 
