@@ -204,7 +204,7 @@ public:
         return true;
     }
 
-    ::gazebo::sensors::ForceTorqueSensorPtr attachForceTorqueSensorToJoint(const std::string& joint_name,double update_rate = 100)
+    ::gazebo::sensors::ForceTorqueSensorPtr attachForceTorqueSensorToJoint(const std::string& joint_name,double update_rate = 0)
     {
         assertModelLoaded();
         
@@ -217,19 +217,19 @@ public:
         ss << "  <sensor name='force_torque' type='force_torque'>";
         ss << "    <update_rate>" << update_rate << "</update_rate>";
         ss << "    <always_on>true</always_on>";
+        ss << "    <visualize>true</visualize>";
         ss << "  </sensor>";
         ss << "</sdf>";
-        
         std::string forceTorqueSensorString = ss.str();
-        
-        auto mgr = ::gazebo::sensors::SensorManager::Instance();
+        // Create the SDF file to configure the sensor
         sdf::ElementPtr sdf(new sdf::Element);
         sdf::initFile("sensor.sdf", sdf);
         sdf::readString(forceTorqueSensorString, sdf);
         // Create the force torque sensor
+        auto mgr = ::gazebo::sensors::SensorManager::Instance();
         std::string sensorName = mgr->CreateSensor(sdf, "default",
             getName() + "::" + joint_name, joint->GetId());
-
+        
         // Make sure the returned sensor name is correct
         auto excepted_name = std::string("default::" + getName() + "::" + joint_name + "::force_torque");
         if(sensorName != excepted_name)
@@ -250,7 +250,57 @@ public:
         std::cout << "[GazeboModel \'" << getName() << "\'] " << "Force torque sensor '" << sensorName << "' successfully created" << '\n';
         return sensor;
 #else
-        return nullptr;
+        throw std::runtime_error("Adding sensors is only supported for gz version > 8");
+#endif
+    }
+
+    ::gazebo::sensors::ContactSensorPtr attachContactSensorToLink(const std::string& link_name,double update_rate = 0)
+    {
+        assertModelLoaded();
+        
+    #if GAZEBO_MAJOR_VERSION > 8
+        auto link = model_->GetLink(link_name);
+        if(!link)
+            throw std::runtime_error("Link " + link_name + " does not exists");
+        std::stringstream ss;
+        ss << "<sdf version='1.4'>";
+        ss << "  <sensor name='contact' type='contact'>";
+        ss << "    <update_rate>" << update_rate << "</update_rate>";
+        ss << "    <always_on>true</always_on>";
+        ss << "    <visualize>true</visualize>";
+        ss << "  </sensor>";
+        ss << "</sdf>";
+        std::string contactSensorStr = ss.str();
+        // Create the SDF file to configure the sensor
+        sdf::ElementPtr sdf(new sdf::Element);
+        sdf::initFile("sensor.sdf", sdf);
+        sdf::readString(contactSensorStr, sdf);
+        // Create the force torque sensor
+        auto mgr = ::gazebo::sensors::SensorManager::Instance();
+        std::string sensorName = mgr->CreateSensor(sdf, "default",
+            getName() + "::" + link_name, link->GetId());
+        
+        // Make sure the returned sensor name is correct
+        auto excepted_name = std::string("default::" + getName() + "::" + link_name + "::contact");
+        if(sensorName != excepted_name)
+            throw std::runtime_error("Returned sensor name is " + sensorName + " when it should be " + excepted_name);
+
+        // Update the sensor manager so that it can process new sensors.
+        mgr->Update();
+
+        // Get a pointer to the force torque sensor
+        auto sensor = std::dynamic_pointer_cast<::gazebo::sensors::ContactSensor>(
+                mgr->GetSensor(sensorName));
+
+        // Make sure the above dynamic cast worked.
+        if(!sensor) throw std::runtime_error("Could not create contact sensor for link " + link_name);
+
+        if(!sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+        
+        std::cout << "[GazeboModel \'" << getName() << "\'] " << "Contact sensor '" << sensorName << "' successfully created" << '\n';
+        return sensor;
+#else
+        throw std::runtime_error("Adding sensors is only supported for gz version > 8");
 #endif
     }
     

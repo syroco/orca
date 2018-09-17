@@ -58,11 +58,16 @@ int main(int argc, char const *argv[])
 
     orca::utils::Logger::parseArgv(argc, argv);
 
+    GazeboServer gz_server(argc,argv);
+    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
+    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
+    
     auto robot_model = std::make_shared<RobotModel>();
     robot_model->loadModelFromFile(urdf_url);
     robot_model->setBaseFrame("base_link");
     robot_model->setGravity(Eigen::Vector3d(0,0,-9.81));
-
+    const int ndof = robot_model->getNrOfDegreesOfFreedom();
+    
     orca::optim::Controller controller(
         "controller"
         ,robot_model
@@ -70,57 +75,63 @@ int main(int argc, char const *argv[])
         ,QPSolverImplType::qpOASES
     );
 
+    // Joint postural task
+    auto joint_pos_task = controller.addTask<JointAccelerationTask>("JointPosTask");
+    joint_pos_task->pid()->setProportionalGain(Eigen::VectorXd::Constant(ndof,100));
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof,1));
+    joint_pos_task->pid()->setWindupLimit(Eigen::VectorXd::Constant(ndof,10));
+    joint_pos_task->pid()->setDerivativeGain(Eigen::VectorXd::Constant(ndof,10));
+    joint_pos_task->setWeight(1.e-4);
     
     auto cart_acc_pid = std::make_shared<CartesianAccelerationPID>("servo_controller");
-
-    cart_acc_pid->pid()->setProportionalGain( { 0, 0, 0, 10, 10, 10 });
-    cart_acc_pid->pid()->setDerivativeGain( { 100, 100, 100, 1, 1, 1 });
-    
+    cart_acc_pid->pid()->setProportionalGain( { 100, 100, 100, 10, 10, 10 });
+    cart_acc_pid->pid()->setDerivativeGain( { 10, 10, 10, 1, 1, 1 });
     cart_acc_pid->setControlFrame("link_7");
-    // Lets comment the following lines to force the robot to initialise at current pose
-    // Eigen::Affine3d cart_pos_ref;
-    // cart_pos_ref.translation() = Eigen::Vector3d(0.3,-0.5,0.41); // x,y,z in meters
-    // cart_pos_ref.linear() = orca::math::quatFromRPY(M_PI,0,0).toRotationMatrix();
-    // Vector6d cart_vel_ref = Vector6d::Zero();
-    // Vector6d cart_acc_ref = Vector6d::Zero();
-    // cart_acc_pid->setDesired(cart_pos_ref.matrix(),cart_vel_ref,cart_acc_ref);
-    
+
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
-    cart_task->setWeight(1e-5);
+    cart_task->setWeight(0.1);
     
     Vector6d desired_wrench;
     desired_wrench << 0., 0., -10., 0., 0., 0.;
     
     auto wrench_task = controller.addTask<WrenchTask>("WrenchTask_Demo");
-    wrench_task->setControlFrame("link_7");
-    wrench_task->pid()->setProportionalGain({10, 10, 10, 10, 10, 10});
+    wrench_task->setControlFrame("ati_link");
+    wrench_task->pid()->setProportionalGain({0, 0, 10, 0, 0, 0});
+    // wrench_task->pid()->setDerivativeGain({0, 0, 0.1, 0, 0, 0});
     wrench_task->setDesiredWrench(desired_wrench);
     wrench_task->setWeight(1.0);
+    wrench_task->setRampDuration(60.0);
     
-    // TODO : Connect curent wrench to gazebo
-    Vector6d current_wrench = Vector6d::Zero();
-    wrench_task->setCurrentWrenchValue( current_wrench );
+    auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("ati_joint");
+
+    auto c = ft_sensor_j6->ConnectUpdate([&](::gazebo::msgs::WrenchStamped w)
+    {
+        Vector6d current_wrench;
+        current_wrench[0] = w.wrench().force().x();
+        current_wrench[1] = w.wrench().force().y();
+        current_wrench[2] = w.wrench().force().z();
+        current_wrench[3] = w.wrench().torque().x();
+        current_wrench[4] = w.wrench().torque().y();
+        current_wrench[5] = w.wrench().torque().z();
+        wrench_task->setCurrentWrenchValue( current_wrench );
+        std::cout << " Desired Wrench: " << desired_wrench.transpose() << '\n';
+        std::cout << " Current Wrench: " << current_wrench.transpose() << '\n';
+    });
     
-    const int ndof = robot_model->getNrOfDegreesOfFreedom();
+    
+    auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
-    Eigen::VectorXd jntTrqMax(ndof);
-    jntTrqMax.setConstant(200.0);
-    jnt_trq_cstr->setLimits(-jntTrqMax,jntTrqMax);
+    jnt_trq_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-200.),Eigen::VectorXd::Constant(ndof,200.));
 
     auto jnt_pos_cstr = controller.addConstraint<JointPositionLimitConstraint>("JointPositionLimit");
 
     auto jnt_vel_cstr = controller.addConstraint<JointVelocityLimitConstraint>("JointVelocityLimit");
-    Eigen::VectorXd jntVelMax(ndof);
-    jntVelMax.setConstant(2.0);
-    jnt_vel_cstr->setLimits(-jntVelMax,jntVelMax);
+    jnt_vel_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-2.0),Eigen::VectorXd::Constant(ndof,2.0));
 
-    GazeboServer gz_server(argc,argv);
-    auto gz_model = GazeboModel(gz_server.insertModelFromURDFFile(urdf_url));
-    gz_model.setModelConfiguration( { "joint_0", "joint_3","joint_5"} , {1.0,-M_PI/2.,M_PI/2.});
-
-
+    // Change the weight of the global reg
+    controller.globalRegularization()->setWeight(1.e-6);
     // Lets decide that the robot is gravity compensated
     // So we need to remove G(q) from the solution
     controller.removeGravityTorquesFromSolution(true);
@@ -132,21 +143,16 @@ int main(int argc, char const *argv[])
                             ,gz_model.getJointVelocities()
                             ,gz_model.getGravity()
                         );
-        // Compensate the gravity at least
+        // Compensate the gravity at least (should match controller.removeGravityTorquesFromSolution(true); )
         gz_model.setJointGravityTorques(robot_model->getJointGravityTorques());
         // All tasks need the robot to be initialized during the activation phase
         if(n_iter == 1)
             controller.activateTasksAndConstraints();
-
-        // TODO : update current wrench from gazebo
-        Vector6d current_wrench = Vector6d::Zero();
-        wrench_task->setCurrentWrenchValue( current_wrench );
-        
-        std::cout << n_iter << " Desired Wrench: " << desired_wrench.transpose() << '\n';
-        std::cout << n_iter << " Current Wrench: " << wrench_task->getWrench()->getCurrentValue().transpose() << '\n';
         
         controller.update(current_time, dt);
-
+        
+        // wrench_task->print();
+        
         if(controller.solutionFound())
         {
             gz_model.setJointTorqueCommand( controller.getJointTorqueCommand() );

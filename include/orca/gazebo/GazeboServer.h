@@ -147,8 +147,7 @@ public:
             std::cerr << "[GazeboServer] Could not setup server" << '\n';
             return false;
         }
-        this->loadWorld(world_name);
-        return static_cast<bool>(world_);
+        return bool(this->loadWorld(world_name));
     }
 
     ::gazebo::physics::WorldPtr loadWorld(const std::string& world_name)
@@ -157,11 +156,15 @@ public:
         if(!world)
         {
             std::cerr << "[GazeboServer] Could not load world with world file " << world_name << '\n';
-            return 0;
+            return nullptr;
         }
         world_ = world;
         world_begin_ =  ::gazebo::event::Events::ConnectWorldUpdateBegin(std::bind(&GazeboServer::worldUpdateBegin,this));
         world_end_ = ::gazebo::event::Events::ConnectWorldUpdateEnd(std::bind(&GazeboServer::worldUpdateEnd,this));
+        #if GAZEBO_MAJOR_VERSION > 8
+            ::gazebo::sensors::SensorManager::Instance()->Init();
+            ::gazebo::sensors::SensorManager::Instance()->RunThreads();
+        #endif
         return world_;
     }
 
@@ -477,19 +480,18 @@ private:
 
     void worldUpdateBegin()
     {
-        int tmp_sensor_count = 0;
         #if GAZEBO_MAJOR_VERSION > 8
-            for(auto model : world_->Models())
-                tmp_sensor_count += model->GetSensorCount();
+            ::gazebo::sensors::SensorManager::Instance()->Update();
         #else
+            int tmp_sensor_count = 0;
             for(auto model : world_->GetModels())
                 tmp_sensor_count += model->GetSensorCount();
-        #endif
-        do{
+
             // FIXME: Find out a way to be notified when a sensor is replaced
             // Here we only check the number of sensors 
             if(tmp_sensor_count > n_sensors_)
             {
+                std::cerr << "[GazeboServer] Loading " << tmp_sensor_count - n_sensors_ << " sensors\n";
                 if (!::gazebo::sensors::load())
                 {
                     std::cerr << "[GazeboServer] Unable to load sensors\n";
@@ -503,16 +505,14 @@ private:
                 ::gazebo::sensors::run_once(true);
                 ::gazebo::sensors::run_threads();
                 n_sensors_ = tmp_sensor_count;
-            }else{
+            } else {
                 // NOTE: same number, we do nothing, less it means we removed a model
                 n_sensors_ = tmp_sensor_count;
             }
-        }while(false);
-
-        if(n_sensors_ > 0)
-        {
-            ::gazebo::sensors::run_once();
-        }
+            
+            if(n_sensors_ > 0)
+                ::gazebo::sensors::run_once();
+        #endif
     }
 
     void worldUpdateEnd()

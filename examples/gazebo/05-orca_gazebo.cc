@@ -84,8 +84,6 @@ int main(int argc, char const *argv[])
     auto cart_task = controller.addTask<CartesianTask>("CartTask_EE");
     cart_task->setServoController(cart_acc_pid);
     
-    auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("joint_6");
-
     const int ndof = robot_model->getNrOfDegreesOfFreedom();
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
