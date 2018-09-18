@@ -398,7 +398,7 @@ private:
         std::atomic<bool> do_exit(false);
         auto th = std::thread([&]()
         {
-            int i=40;
+            int i=100;
             while(--i)
             {
                 if(do_exit)
