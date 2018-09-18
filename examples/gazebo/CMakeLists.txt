@@ -14,6 +14,10 @@ if(gazebo_FOUND)
             add_definitions(-fext-numeric-literals)
         endif()
 
+        add_executable(00-load_gazebo_model 00-load_gazebo_model.cc)
+        target_link_libraries(00-load_gazebo_model ${GAZEBO_LIBRARIES} pthread orca tinyxml Eigen3::Eigen)
+        install(TARGETS 00-load_gazebo_model DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
+
         add_executable(01-single_robot 01-single_robot.cc)
         target_link_libraries(01-single_robot ${GAZEBO_LIBRARIES} pthread orca tinyxml Eigen3::Eigen)
         install(TARGETS 01-single_robot DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/examples)
