@@ -336,7 +336,7 @@ private:
         if(!doc)
         {
             std::cerr << "[GazeboServer] Document provided is null" << '\n';
-            return 0;
+            return nullptr;
         }
         TiXmlElement* robotElement = doc->FirstChildElement("robot");
         if(!robotElement)
@@ -347,7 +347,7 @@ private:
             doc->Accept( &printer );
             std::cerr << printer.CStr() << '\n';
             std::cerr << "[GazeboServer] Could not get the <robot> tag in the URDF " << '\n';
-            return 0;
+            return nullptr;
         }
 
 
@@ -355,13 +355,13 @@ private:
         {
             // Extract model name from URDF
             if(!getRobotNameFromTinyXML(robotElement,model_name))
-                return 0;
+                return nullptr;
         }
         else
         {
             // Set the robot name to user specified name
             if(!setRobotNameToTinyXML(robotElement,model_name))
-                return 0;
+                return nullptr;
         }
 
         std::cout << "[GazeboServer] Trying to insert model \'" << model_name << "\'" << std::endl;
@@ -436,7 +436,10 @@ private:
             std::cout << "[GazeboServer] Model not yet loaded" << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        return 0;
+        do_exit = true;
+        if(th.joinable())
+            th.join();
+        return nullptr;
     }
 
     bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& model_name)
