@@ -318,6 +318,11 @@ public:
     {
         return kinDynComp_.model().getJointName(idx);
     }
+    
+    unsigned int getJointIndex(const std::string& jointName) const
+    {
+        return kinDynComp_.model().getJointIndex(jointName);
+    }
 
     unsigned int getNrOfJoints() const
     {

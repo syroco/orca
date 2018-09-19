@@ -351,6 +351,12 @@ std::string RobotModel::getJointName(unsigned int idx) const
     return impl_->getJointName(idx);
 }
 
+unsigned int RobotModel::getJointIndex(const std::string& jointName) const
+{
+    assertLoaded();
+    return impl_->getJointIndex(jointName);
+}
+
 unsigned int RobotModel::getNrOfJoints() const
 {
     assertLoaded();
