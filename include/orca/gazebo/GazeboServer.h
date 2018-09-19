@@ -167,7 +167,155 @@ public:
         #endif
         return world_;
     }
+    
+    bool enablePhysicsEngine(bool enable)
+    {
+        assertWorldLoaded();
+    #if GAZEBO_MAJOR_VERSION > 8
+        world_->SetPhysicsEnabled(enable);
+    #else
+        world_->EnablePhysicsEngine(enable);
+    #endif
+        return true;
+    }
+    
+    bool fileExists(const std::string& file_path)
+    {
+        return std::ifstream(file_path).good();
+    }
+    
+    std::string fileToString(const std::string& file_path)
+    {
+        std::string out;
+        std::ifstream ifs(file_path);
+        out.assign((std::istreambuf_iterator<char>(ifs)),
+                (std::istreambuf_iterator<char>()));
+        return out;
+    }
+    
+    bool spawnModel(const std::string& instanceName,
+            const std::string& modelName)
+    {
+    //     assertWorldLoaded();
+    // 
+    //     //check if file exists
+    //     const string path = ::gazebo::common::SystemPaths::Instance()->FindFileURI(
+    //             modelName);
+    //     if (path.empty()) {
+    //         std::cout << "\x1B[32m[[--- Model " << modelName
+    //                 << " couldn't be found ---]]\033[0m" << std::endl;
+    //         return false;
+    //     }
+    // 
+    //     std::string model_str;
+    //     std::string model_path;
+    // 
+    //     std::vector<std::string> files_to_try = {
+    //         path + "/model.urdf")
+    //         , path + "/model.sdf")
+    //         , path + "/" + instanceName + ".urdf")
+    //         , path + "/" + instanceName + ".sdf")
+    //     }
+    // 
+    //     for(auto f : files_to_try)
+    //     {
+    //         if(fileExists(f)) 
+    //         {
+    //             model_str = fileToString(f);
+    //             model_path = f;
+    //         }
+    //     }
+    // 
+    //     if (model_str.empty()) {
+    //         std::cout << "\x1B[32m[[--- Model file " << model_path
+    //                 << " is empty ! ---]]\033[0m" << std::endl;
+    //         return false;
+    //     }
+    // 
+    //     TiXmlDocument gazebo_model_xml;
+    //     gazebo_model_xml.Parse(model_xml.c_str());
+    // 
+    //     TiXmlElement* name_urdf = gazebo_model_xml.FirstChildElement("robot");
+    //     TiXmlElement* name_sdf = gazebo_model_xml.FirstChildElement("model");
+    // 
+    //     if(name_urdf)
+    //     {
+    //         if (nameElement->Attribute("name") != NULL) {
+    //             // removing old model name
+    //             nameElement->RemoveAttribute("name");
+    //         }
+    //         // replace with user specified name
+    //         nameElement->SetAttribute("name", instanceName);
+    //     }
+    // 
+    //     if (!nameElement) {
+    //         cout << "it's not an urdf check for sdf" << endl;
+    //         nameElement = gazebo_model_xml.FirstChildElement("model");
+    //         if (!nameElement) {
+    //             std::cout
+    //                     << "\x1B[31m[[--- Can't be parsed: No <model> or <robot> tag found! ---]]\033[0m"
+    //                     << std::endl;
+    //             return false;
+    //         } else {
+    //             // handle sdf
+    //             sdf::SDF root;
+    //             root.SetFromString(model_xml);
+    // #if GAZEBO_MAJOR_VERSION >= 6
+    //               sdf::ElementPtr nameElementSDF = root.Root()->GetElement("model");
+    // #else
+    //               sdf::ElementPtr nameElementSDF = root.root->GetElement("model");
+    // #endif
+    //             nameElementSDF->GetAttribute("name")->SetFromString(instanceName);
+    //         }
+    //     } else {
+    //         // handle urdf
+    // 
+    //         if (nameElement->Attribute("name") != NULL) {
+    //             // removing old model name
+    //             nameElement->RemoveAttribute("name");
+    //         }
+    //         // replace with user specified name
+    //         nameElement->SetAttribute("name", instanceName);
+    //     }
+    // 
+    // //	world->InsertModelFile(modelName);
+    //     TiXmlPrinter printer;
+    //     printer.SetIndent("    ");
+    //     gazebo_model_xml.Accept(&printer);
+    // 
+    //     world_->InsertModelString(printer.CStr());
+    // 
+    //     gazebo::common::Time timeout((double) timeoutSec);
+    // 
+    //     auto modelDeployTimer(new gazebo::common::Timer());
+    // 
+    //     modelDeployTimer->Start();
+    //     while (modelDeployTimer->GetRunning()) {
+    //         if (modelDeployTimer->GetElapsed() > timeout) {
+    //             gzerr
+    //                     << "SpawnModel: Model pushed to spawn queue, but spawn service timed out waiting for model to appear in simulation under the name "
+    //                     << instanceName << endl;
+    //             modelDeployTimer->Stop();
+    //             return false;
+    //         }
+    // 
+    //         {
+    // #if GAZEBO_MAJOR_VERSION > 8
+    //             auto model = world_->ModelByName(instanceName);
+    // #else
+    //             auto model = world_->GetModel(instanceName);
+    // #endif
+    //             if (model){
+    //                 modelDeployTimer->Stop();
+    //                 break;
+    //             }
+    //         }
+    //         std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    //     }
 
+        return false;
+    }
+    
     double getDt()
     {
         assertWorldLoaded();
