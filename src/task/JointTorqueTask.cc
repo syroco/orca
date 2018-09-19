@@ -13,6 +13,7 @@ JointTorqueTask::JointTorqueTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointTorque)
 {
     this->addParameter("pid",&pid_);
+    this->addParameter("feedforward",&feedforward_,ParamPolicy::Optional);
 }
 
 void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
@@ -23,7 +24,12 @@ void JointTorqueTask::setDesired(const Eigen::VectorXd& desired_joint_torque)
 }
 
 void JointTorqueTask::onActivation()
-{}
+{
+    if(!feedforward_.isSet())
+    {
+        feedforward_ = Eigen::VectorXd::Zero(robot()->getNrOfDegreesOfFreedom());
+    }
+}
 
 void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
 {
@@ -45,6 +51,15 @@ void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
 PIDController::Ptr JointTorqueTask::pid()
 {
     return pid_.get();
+}
+
+void JointTorqueTask::setFeedforward(const Eigen::VectorXd& ff)
+{
+    feedforward_ = ff;
+}
+const Eigen::VectorXd& JointTorqueTask::getFeedforward() const
+{
+    return feedforward_.get();
 }
 
 void JointTorqueTask::onResize()
