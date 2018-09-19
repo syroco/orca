@@ -39,7 +39,7 @@ void JointTorqueTask::onUpdateAffineFunction(double current_time, double dt)
         jnt_trq_des_ = robot()->getJointGravityTorques();
     }
 
-    f() = - pid_.get()->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
+    f() = - getFeedforward() - pid_.get()->computeCommand(current_jnt_trq_ - jnt_trq_des_ , dt);
 }
 
 void JointTorqueTask::setCurrent(const Eigen::VectorXd& current_joint_torque)
