@@ -5,6 +5,9 @@ docs/xml/
 # Visual Studio Code
 .vscode
 
+# kate
+*.kate-swp
+
 # orca logs
 orca-log.*
 
