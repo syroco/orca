@@ -10,16 +10,15 @@ JointAccelerationTask::JointAccelerationTask(const std::string& name)
 : GenericTask(name,ControlVariable::JointAcceleration)
 {
     this->addParameter("pid",&pid_);
+    this->addParameter("jnt_pos_des",&jnt_pos_des_,ParamPolicy::Optional);
+    this->addParameter("jnt_vel_des",&jnt_vel_des_,ParamPolicy::Optional);
+    this->addParameter("jnt_acc_des",&jnt_acc_des_,ParamPolicy::Optional);
 }
 
 void JointAccelerationTask::setDesired(const Eigen::VectorXd& jnt_pos_des
                                     , const Eigen::VectorXd& jnt_vel_des
                                     , const Eigen::VectorXd& jnt_acc_des)
 {
-    assertSize(jnt_pos_des,jnt_pos_des_);
-    assertSize(jnt_vel_des,jnt_vel_des_);
-    assertSize(jnt_acc_des,jnt_acc_des_);
-
     jnt_pos_des_ = jnt_pos_des;
     jnt_vel_des_ = jnt_vel_des;
     jnt_acc_des_ = jnt_acc_des;
@@ -31,7 +30,13 @@ PIDController::Ptr JointAccelerationTask::pid()
 }
 void JointAccelerationTask::onActivation()
 {
-    jnt_pos_des_ = robot()->getJointPos();
+    // Set the desired position to the current robot state
+    if(!jnt_pos_des_.isSet())
+        jnt_pos_des_ = robot()->getJointPos();
+        
+    assertSize(jnt_pos_des_.get(),robot()->getNrOfDegreesOfFreedom());
+    assertSize(jnt_vel_des_.get(),robot()->getNrOfDegreesOfFreedom());
+    assertSize(jnt_acc_des_.get(),robot()->getNrOfDegreesOfFreedom());
 }
 
 void JointAccelerationTask::onUpdateAffineFunction(double current_time, double dt)
@@ -39,7 +44,7 @@ void JointAccelerationTask::onUpdateAffineFunction(double current_time, double d
     const Eigen::VectorXd& current_jnt_pos = robot()->getJointPos();
     const Eigen::VectorXd& current_jnt_vel = robot()->getJointVel();
 
-    f() = - (jnt_acc_des_ + pid_.get()->computeCommand( jnt_pos_des_ - current_jnt_pos , jnt_vel_des_ - current_jnt_vel , dt) );
+    f() = - (jnt_acc_des_.get() + pid_.get()->computeCommand( jnt_pos_des_.get() - current_jnt_pos , jnt_vel_des_.get() - current_jnt_vel , dt) );
 }
 
 void JointAccelerationTask::onResize()
@@ -53,9 +58,12 @@ void JointAccelerationTask::onResize()
         
         pid_.get()->resize(dof);
         
-        jnt_pos_des_.setZero( dof );
-        jnt_vel_des_.setZero( dof );
-        jnt_acc_des_.setZero( dof );
+        if(!jnt_pos_des_.isSet())
+            jnt_pos_des_ = Eigen::VectorXd::Zero( dof );
+        if(!jnt_vel_des_.isSet())
+            jnt_vel_des_ = Eigen::VectorXd::Zero( dof );
+        if(!jnt_acc_des_.isSet())
+            jnt_acc_des_ = Eigen::VectorXd::Zero( dof );
     }
 }
 
