@@ -269,6 +269,7 @@ public:
     const Eigen::VectorXd& getJointGravityAndCoriolisTorques();
     unsigned int getNrOfJoints() const;
     std::string getJointName(unsigned int idx) const;
+    unsigned int getJointIndex(const std::string& jointName) const;
     const std::vector<std::string>& getLinkNames() const;
     const std::vector<std::string>& getFrameNames() const;
     const std::vector<std::string>& getJointNames() const;
