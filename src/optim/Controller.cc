@@ -288,9 +288,9 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
                 LOG_WARNING << "\n\n"
                     <<" Solution found but the problem is dry !\n"
                     << "It means that an optimal solution is found but the problem \n"
-                    << "only has one task computing anything, ans it's the"
+                    << "only has one task computing, and it's the "
                     << "GlobalRegularisation task (This will only be printed once)\n\n"
-                    << "/!\\ Resulting torques will cause the robot to fall /!\\";
+                    << "/!\\ Resulting torques might cause the robot to fall /!\\";
             }
 
             if(!solutionFound())
