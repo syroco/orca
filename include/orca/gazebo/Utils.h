@@ -98,3 +98,27 @@ inline ignition::math::Pose3d convPose(const Eigen::Affine3d &_T)
     pose.Rot() = convQuat(Eigen::Quaterniond(_T.linear()));
     return pose;
 }
+
+
+// Allows to use the gazebo command line
+#include <stdio.h>
+inline std::string custom_exec(const std::string &_cmd)
+{
+  FILE* pipe = popen(_cmd.c_str(), "r");
+
+  if (!pipe)
+    return "ERROR";
+
+  char buffer[128];
+  std::string result = "";
+
+  while (!feof(pipe))
+  {
+    if (fgets(buffer, 128, pipe) != NULL)
+      result += buffer;
+  }
+
+  pclose(pipe);
+  return result;
+}
+
