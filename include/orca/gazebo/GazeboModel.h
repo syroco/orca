@@ -190,8 +190,8 @@ public:
             }
 
             std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << (added ? "Adding":"Not adding")
-                << " joint " << joint->GetName()
-                << " type " << joint->GetType()
+                << (added ? "" : " fixed/invalid") << " joint " << joint->GetName()
+                << " type (" << joint->GetType() << ")"
                 #if GAZEBO_MAJOR_VERSION > 8
                 << " lower limit " << joint->LowerLimit(0u)
                 << " upper limit " << joint->UpperLimit(0u)
@@ -207,21 +207,13 @@ public:
             std::cerr << "[GazeboModel \'" << model->GetName() << "\'] " << "Could not get any actuated joint for model " << model->GetName() << '\n';
             return false;
         }
-
-        std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << "Actuated joints" << '\n';
-        for(auto n : actuated_joint_names_)
-            std::cout << "   - " << n << '\n';
         
-        links_.clear();
-        std::cout << "[GazeboModel \'" << model->GetName() << "\'] " << "Links" << '\n';
-        for(auto link : model->GetLinks())
-        {
-            std::cout << "   - " << link->GetName() << '\n';
-            links_.push_back(link);
-        }
 
         model_ = model;
+        
+        links_ = model->GetLinks();
         name_ = model->GetName();
+        
         ndof_ = actuated_joint_names_.size();
         current_joint_positions_.setZero(ndof_);
         joint_gravity_torques_.setZero(ndof_);
@@ -229,6 +221,8 @@ public:
         current_joint_external_torques_.setZero(ndof_);
         joint_torque_command_.setZero(ndof_);
         current_joint_measured_torques_.setZero(ndof_);
+
+        print();
 
         return true;
     }
@@ -404,7 +398,12 @@ public:
 
     void printState() const
     {
-        assertModelLoaded();
+        if(!model_)
+        {
+            std::cout << "[GazeboModel] Model is not loaded." << '\n';
+            return;
+        }
+        
         std::cout << "[GazeboModel \'" << getName() << "\'] State :\n" << '\n';
         std::cout << "- Gravity "                   << getGravity().transpose()                << '\n';
         std::cout << "- Base velocity\n"            << getBaseVelocity().transpose()           << '\n';
@@ -459,12 +458,7 @@ public:
         {
             std::cout << "      Link " << i << ": '" << links_[i] << "'" << '\n';
         }
-        // TODO: print state
-        // std::cout << "  Current State " << '\n';
-        // std::cout << "     Joint Pos: " << impl_->getJointPos().transpose() << '\n';
-        // std::cout << "     Joint Vel: " << impl_->getJointPos().transpose() << '\n';
-        // std::cout << "     Base Vel: " << impl_->getBaseVelocity().transpose() << '\n';
-        // std::cout << "     WorldToBase: \n" << impl_->getWorldToBaseTransform() << '\n';
+        printState();
     }
 protected:
     void worldUpdateBegin()

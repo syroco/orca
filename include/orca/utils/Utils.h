@@ -234,6 +234,13 @@ void assertSize(const Eigen::EigenBase<Derived>& a, const Eigen::EigenBase<Deriv
     throw std::length_error(Formatter() << "Size mismatched, provided size (" << a.rows() << " , " << a.cols() << "), but have size (" << b.rows() << " , " << b.cols() << ")");
 }
 
+inline void assertSize(const Eigen::VectorXd& a, int s)
+{
+    if(a.size() == s)
+        return;
+    throw std::length_error(Formatter() << "Vector size is " << a.size() << ", but should be (" << s << ")");
+}
+
 template<class T> bool exists(const T& t,std::list< T > l){
     return std::find(l.begin(),l.end(),t) != l.end();
 }
