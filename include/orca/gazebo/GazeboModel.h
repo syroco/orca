@@ -434,7 +434,38 @@ public:
             return world_->GetIterations();
         #endif
     }
+    void print() const
+    {
+        if(!model_)
+        {
+            std::cout << "[GazeboModel] Model is not loaded." << '\n';
+            return;
+        }
 
+        std::cerr << "[GazeboModel::" << getName() << "]" << '\n';
+        std::cout << "  Joints (" << model_->GetJoints().size() << ")" << '\n';
+        int i=0;
+        for(auto joint : model_->GetJoints())
+        {
+            std::cout << "     Joint " << i++ << ": '" << joint->GetName() << "'" << '\n';
+        }
+        std::cout << "  Actuated joints (" << actuated_joint_names_.size() << ")" << '\n';
+        for(unsigned int i=0; i < actuated_joint_names_.size() ; i++)
+        {
+            std::cout << "     Actuated joint " << i << ": '" << actuated_joint_names_[i] << "'" << '\n';
+        }
+        std::cout << "  Links (" << links_.size() << ")" << '\n';
+        for(unsigned int i=0; i < links_.size() ; i++)
+        {
+            std::cout << "      Link " << i << ": '" << links_[i] << "'" << '\n';
+        }
+        // TODO: print state
+        // std::cout << "  Current State " << '\n';
+        // std::cout << "     Joint Pos: " << impl_->getJointPos().transpose() << '\n';
+        // std::cout << "     Joint Vel: " << impl_->getJointPos().transpose() << '\n';
+        // std::cout << "     Base Vel: " << impl_->getBaseVelocity().transpose() << '\n';
+        // std::cout << "     WorldToBase: \n" << impl_->getWorldToBaseTransform() << '\n';
+    }
 protected:
     void worldUpdateBegin()
     {
@@ -464,7 +495,7 @@ protected:
     {
         for(int i=0 ; i < ndof_ ; ++i)
         {
-            auto joint = model_->GetJoint(actuated_joint_names_[i]);
+            auto joint = joints_[i];
             #if GAZEBO_MAJOR_VERSION > 8
                 current_joint_positions_[i] = joint->Position(0);
             #else
