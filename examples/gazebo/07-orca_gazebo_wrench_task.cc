@@ -104,16 +104,10 @@ int main(int argc, char const *argv[])
     wrench_task->setRampDuration(60.0);
     
     auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("ati_joint");
-
+    // Connect gazebo force torque sensor to the wrench_task
     auto c = ft_sensor_j6->ConnectUpdate([&](::gazebo::msgs::WrenchStamped w)
     {
-        Vector6d current_wrench;
-        current_wrench[0] = w.wrench().force().x();
-        current_wrench[1] = w.wrench().force().y();
-        current_wrench[2] = w.wrench().force().z();
-        current_wrench[3] = w.wrench().torque().x();
-        current_wrench[4] = w.wrench().torque().y();
-        current_wrench[5] = w.wrench().torque().z();
+        Vector6d current_wrench = gazeboMsgToEigen(w);
         wrench_task->setCurrentWrenchValue( current_wrench );
         std::cout << " Desired Wrench: " << desired_wrench.transpose() << '\n';
         std::cout << " Current Wrench: " << current_wrench.transpose() << '\n';
