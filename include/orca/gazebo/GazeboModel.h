@@ -73,6 +73,35 @@ public:
         assertModelLoaded();
         return base_name_;
     }
+    
+    void setJointMapping(const std::vector<std::string>& joint_names)
+    {
+        assertModelLoaded();
+        
+        if(joint_names.size() != actuated_joint_names_.size())
+        {
+            std::cerr << "[GazeboModel] Size of provided joint names does not match actual configuration" 
+                << "\nCurrent config has " << actuated_joint_names_.size() << " actuated joints."
+                << "\nProvided config has " << joint_names.size() << " actuated joints."
+                << '\n';
+            return;
+        }
+        
+        joints_.clear();
+        for(auto joint_name : joint_names)
+        {
+            auto joint = model_->GetJoint(joint_name);
+            if(!joint)
+            {
+                //print();
+                throw std::runtime_error("Joint " + joint_name + " does not exists in model");
+            }
+            joints_.push_back(joint);
+        }
+        
+        this->actuated_joint_names_ = joint_names;
+    }
+    
     bool setModelConfiguration(const std::vector<std::string>& joint_names,const std::vector<double>& joint_positions)
     {
         assertModelLoaded();
@@ -435,7 +464,7 @@ protected:
     {
         for(int i=0 ; i < ndof_ ; ++i)
         {
-            auto joint = joints_[i];
+            auto joint = model_->GetJoint(actuated_joint_names_[i]);
             #if GAZEBO_MAJOR_VERSION > 8
                 current_joint_positions_[i] = joint->Position(0);
             #else
