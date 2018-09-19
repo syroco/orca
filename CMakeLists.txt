@@ -99,26 +99,7 @@ set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes t
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 
 #################### libxml2 #########################
-# find_package(LibXml2 QUIET)
-# if(NOT LibXml2_FOUND)
-#     message("libxml2 not found, using embbedded. Please install it standalone")
-include(ExternalProject)
-
-ExternalProject_Add(
-    libxml2
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7
-    CONFIGURE_COMMAND  ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/configure --prefix ${CMAKE_INSTALL_PREFIX} --enable-static --without-python
-    BUILD_COMMAND ${MAKE}
-    BUILD_IN_SOURCE 0
-)
-
-set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2-2.9.7/include CACHE PATH "")
-set(LIBXML2_LIBRARY xml2 CACHE STRING "")
-set(LIBXML2_FOUND TRUE CACHE BOOL "")
-set(LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIR} CACHE PATH "")
-set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARY} CACHE STRING "")
-
-# endif()
+add_subdirectory(external/libxml2 EXCLUDE_FROM_ALL)
 
 #################### iDynTree #########################
 set(BUILD_SHARED_LIBS OFF)
