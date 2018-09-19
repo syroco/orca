@@ -404,7 +404,7 @@ public:
             return;
         }
         
-        std::cout << "[GazeboModel \'" << getName() << "\'] State :\n" << '\n';
+        std::cout << "[GazeboModel \'" << getName() << "\'] State :" << '\n';
         std::cout << "- Gravity "                   << getGravity().transpose()                << '\n';
         std::cout << "- Base velocity\n"            << getBaseVelocity().transpose()           << '\n';
         std::cout << "- Tworld->base\n"             << getWorldToBaseTransform().matrix()      << '\n';
@@ -442,22 +442,19 @@ public:
         }
 
         std::cerr << "[GazeboModel::" << getName() << "]" << '\n';
-        std::cout << "  Joints (" << model_->GetJoints().size() << ")" << '\n';
-        int i=0;
-        for(auto joint : model_->GetJoints())
-        {
-            std::cout << "     Joint " << i++ << ": '" << joint->GetName() << "'" << '\n';
-        }
+        
+        std::cout << "  Joints (" << joints_.size() << ")" << '\n';
+        for(unsigned int i=0; i < joints_.size() ; ++i)
+            std::cout << "     Joint " << i << ": '" << joints_[i]->GetName() << "'" << '\n';
+        
         std::cout << "  Actuated joints (" << actuated_joint_names_.size() << ")" << '\n';
         for(unsigned int i=0; i < actuated_joint_names_.size() ; i++)
-        {
             std::cout << "     Actuated joint " << i << ": '" << actuated_joint_names_[i] << "'" << '\n';
-        }
+
         std::cout << "  Links (" << links_.size() << ")" << '\n';
         for(unsigned int i=0; i < links_.size() ; i++)
-        {
-            std::cout << "      Link " << i << ": '" << links_[i] << "'" << '\n';
-        }
+            std::cout << "      Link " << i << ": '" << links_[i]->GetName() << "'" << '\n';
+        
         printState();
     }
 protected:

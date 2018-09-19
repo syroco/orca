@@ -354,9 +354,8 @@ public:
         , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
         , std::string model_name="")
     {
-        TiXmlDocument doc(urdf_url);
-        doc.LoadFile();
-        return insertModelFromTinyXML(&doc,init_pos,init_rot,model_name);
+        std::string cmd = "gz sdf -p " + urdf_url;
+        return insertModelFromSDFString( custom_exec(cmd) );
     }
 
     ::gazebo::physics::ModelPtr insertModelFromURDFString(const std::string& urdf_str
@@ -513,7 +512,7 @@ private:
         }
 
         std::cout << "[GazeboServer] Trying to insert model \'" << model_name << "\'" << std::endl;
-
+        
         sdf::URDF2SDF urdf_to_sdf;
         TiXmlDocument sdf_xml = urdf_to_sdf.InitModelDoc(doc);
         // NOTE : from parser_urdf.cc
@@ -529,40 +528,52 @@ private:
         TiXmlPrinter printer;
         printer.SetIndent( "    " );
         sdf_xml.Accept( &printer );
-        std::string xml_str = printer.CStr();
+
+        return insertModelFromSDFString(printer.CStr(),init_pos,init_rot,model_name);
+    }
+
+    ::gazebo::physics::ModelPtr insertModelFromSDFString(std::string sdf_string
+        , Eigen::Vector3d init_pos = Eigen::Vector3d::Zero()
+        , Eigen::Quaterniond init_rot = Eigen::Quaterniond::Identity()
+        , std::string model_name="")
+    {
         sdf::SDF _sdf;
-        _sdf.SetFromString(xml_str);
+        _sdf.SetFromString(sdf_string);
 
         // Set the initial position
         ignition::math::Pose3d init_pose(convVec3(init_pos),convQuat(init_rot));
         // WARNING: These elemts should always exist, so i'm not checking is they are null
         _sdf.Root()->GetElement("model")->GetElement("pose")->Set<ignition::math::Pose3d>(init_pose);
 
-        //std::cout << "[GazeboServer] Converted to sdf :\n" << _sdf.ToString() << '\n';
-
+        if(model_name.empty())
+        {
+            model_name = _sdf.Root()->GetElement("model")->GetAttribute("name")->GetAsString();
+        }
+        
+        std::cout << "[GazeboServer] Converted to sdf :\n" << _sdf.ToString() << '\n';
 
         world_->InsertModelSDF(_sdf);
 
         std::atomic<bool> do_exit(false);
         auto th = std::thread([&]()
         {
-            int i=100;
+            int i=10;
             while(--i)
             {
                 if(do_exit)
                     return;
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
 
             std::cerr << "[GazeboServer] \x1B[33m\n\nYou are seeing this message because gazebo does not know where to find the meshes for the \'" << model_name << "\' model\n\e[0m" << std::endl
                 << "\x1B[33mTo make it work, you need to append the path to the dir containing the meshes to the GAZEBO_MODEL_PATH env variable\n, one level above the package.xml. Example :\n\e[0m" << std::endl
                 << "\x1B[33mIf the meshes for the model \'" << model_name << "\' are located at /path/to/" << model_name << "_description\n\e[0m" << std::endl
                 << "\x1B[33mThen append \'/path/to/\' to GAZEBO_MODEL_PATH with export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:/path/to/\n\e[0m" << std::endl
-                << "\x1B[33mIf you are using ROS (and rospack find  " << model_name << "_description works), just add this to your ~/.bashrc :\n\nexport GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$ROS_PACKAGE_PATH\n\e[0m" << std::endl;
+                << "\x1B[33mIf you are using ROS (and rospack find  " << model_name << "_description works), just add this to your ~/.bashrc :\n\nexport GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:$ROS_PACKAGE_PATH\n\e[0m" << std::endl
+                << "\x1B[33mIf you are NOT using ROS, add also :\n\nsource /usr/share/gazebo/setup.sh\n\e[0m" << std::endl;
         });
 
         int max_trials = 10;
-        ::gazebo::physics::ModelPtr model;
         for (size_t i = 0; i < max_trials; i++)
         {
             std::cout << "[GazeboServer] Runing the world (" << i+1 << "/" << max_trials << ") ... " << std::endl;
@@ -570,18 +581,18 @@ private:
             ::gazebo::runWorld(world_,1);
 
             std::cout << "[GazeboServer] Now verifying if the model is correctly loaded..." << std::endl;
-
-            model = getModelByName(model_name);
+                        
+            ::gazebo::physics::ModelPtr model = getModelByName(model_name);
             if(model)
             {
                 do_exit = true;
                 if(th.joinable())
                     th.join();
-                std::cout << "[GazeboServer] Model " << model_name << " successfully loaded" << std::endl;
+                std::cout << "[GazeboServer] Model '" << model_name << "' successfully loaded" << std::endl;
                 countExistingSensors();
                 return model;
             }
-            std::cout << "[GazeboServer] Model not yet loaded" << std::endl;
+            std::cout << "[GazeboServer] Model '" << model_name << "' yet loaded" << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
         do_exit = true;
@@ -589,7 +600,7 @@ private:
             th.join();
         return nullptr;
     }
-
+    
     bool getRobotNameFromTinyXML(TiXmlElement* robotElement, std::string& model_name)
     {
         if(robotElement)
