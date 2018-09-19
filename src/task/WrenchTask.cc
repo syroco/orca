@@ -11,6 +11,7 @@ WrenchTask::WrenchTask(const std::string& name)
 {
     // NOTE : ExternalWrench objects creates a wrench required parameter
     this->addParameter("desired_wrench",&wrench_des_);
+    this->addParameter("feedforward",&feedforward_,ParamPolicy::Optional);
     this->addParameter("pid",&pid_);
 }
 
@@ -44,6 +45,16 @@ const std::string& WrenchTask::getControlFrame() const
     return this->getWrench()->getControlFrame();
 }
 
+void WrenchTask::setFeedforward(const math::Vector6d& feedforward_wrench)
+{
+    feedforward_ = feedforward_wrench;
+}
+
+const Vector6d & WrenchTask::getFeedforward() const
+{
+    return feedforward_.get();
+}
+
 void WrenchTask::setCurrentWrenchValue(const Vector6d& current_wrench_from_ft_sensor)
 {
     this->wrench()->setCurrentValue(current_wrench_from_ft_sensor);
@@ -55,13 +66,15 @@ PIDController::Ptr WrenchTask::pid()
 }
 void WrenchTask::onActivation()
 {
+    if(!feedforward_.isSet())
+        feedforward_ = Vector6d::Zero();
     if(!wrench_des_.isSet())
         wrench_des_ = Vector6d::Zero();
 }
 
 void WrenchTask::onUpdateAffineFunction(double current_time, double dt)
 {
-    f() = - pid_.get()->computeCommand( wrench()->getCurrentValue() - wrench_des_.get() , dt);
+    f() = - feedforward_.get() - pid_.get()->computeCommand( wrench()->getCurrentValue() - wrench_des_.get() , dt);
 }
 
 void WrenchTask::onResize()

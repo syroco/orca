@@ -63,6 +63,10 @@ public:
 
     void setCurrentWrenchValue(const math::Vector6d& current_wrench_from_ft_sensor);
 
+    void setFeedforward(const math::Vector6d& feedforward_wrench);
+    
+    const math::Vector6d& getFeedforward() const;
+    
     common::PIDController::Ptr pid();
 
 protected:
@@ -72,6 +76,7 @@ protected:
 private:
     common::Parameter<math::Vector6d> wrench_des_ = math::Vector6d::Zero();
     common::Parameter<common::PIDController::Ptr > pid_ = std::make_shared<common::PIDController>("pid");
+    common::Parameter<math::Vector6d> feedforward_;
 private:
     math::Vector6d wrench_tmp_;
 };
