@@ -39,6 +39,19 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
 #include <ignition/math/Pose3.hh>
+#include <gazebo/msgs/wrench_stamped.pb.h>
+
+inline Eigen::Matrix<double,6,1> gazeboMsgToEigen(const ::gazebo::msgs::WrenchStamped& w)
+{
+    Eigen::Matrix<double,6,1> e;
+    e[0] = w.wrench().force().x();
+    e[1] = w.wrench().force().y();
+    e[2] = w.wrench().force().z();
+    e[3] = w.wrench().torque().x();
+    e[4] = w.wrench().torque().y();
+    e[5] = w.wrench().torque().z();
+    return e;
+}
 
 inline Eigen::Quaterniond quatFromRPY(double roll,double pitch,double yaw )
 {
