@@ -8,7 +8,7 @@
 
 project(iDynTree_ModelIO_XML CXX)
 
-if(NOT (LIBXML2_LIBRARIES AND LIBXML2_INCLUDE_DIRS))
+if(NOT (LIBXML2_LIBRARIES AND LIBXML2_INCLUDE_DIR))
     find_package(LibXml2 REQUIRED)
 endif()
 
@@ -43,7 +43,7 @@ target_include_directories(${libraryname} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURR
                                                  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}>"
                                                   ${IDYNTREE_TREE_INCLUDE_DIRS}
                                           PRIVATE ${EIGEN3_INCLUDE_DIR}
-                                                  ${LIBXML2_INCLUDE_DIRS})
+                                                  ${LIBXML2_INCLUDE_DIR})
 
 target_link_libraries(${libraryname} LINK_PUBLIC LINK_PRIVATE ${LIBXML2_LIBRARIES} idyntree-core)
 
