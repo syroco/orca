@@ -1,8 +1,5 @@
 language: c++
 
-rvm:
-  - 2.5
-
 matrix:
   include:
     - os: linux
@@ -51,6 +48,7 @@ matrix:
         - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
 
 before_install:
+    - gem update bundler
     - eval "${MATRIX_EVAL}"
 
 script:
