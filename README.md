@@ -1,6 +1,6 @@
 <img src="docs/source/_static/orca-b.png?raw=true" alt="ORCA Logo" width="200">
 
-# Optimization-based framework for Robotic Control Applications
+## Optimization-based framework for Robotic Control Applications
 
 ## Dependencies
 
@@ -9,7 +9,7 @@
 * **Eigen** > 3.2 (optional, shipped)
 * **Gazebo** (optional)
 
-### Installation using a catkin workspace
+### Installation using plain cmake
 
 #### Gazebo (optional)
 
@@ -22,6 +22,6 @@ git clone https://github.com/syroco/orca
 cd orca
 mkdir build ; cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build .
+cmake --build . # This will generate a package in ~/.cmake/packages/orca
 # cmake --build . --target install
 ```
