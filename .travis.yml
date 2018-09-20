@@ -1,22 +1,59 @@
 language: c++
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
-env:
-  matrix:
-      - BUILD_TYPE=Debug
-      - BUILD_TYPE=Release
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-compiler:
-  - gcc
-  - clang
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="brew install gcc5 && CC=gcc-5 && CXX=g++-5"
+
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="brew install gcc6 && CC=gcc-6 && CXX=g++-6"
+
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+
+before_install:
+    - eval "${MATRIX_EVAL}"
 
 script:
   - mkdir build ; cd build
   - cmake .. -DCMAKE_INSTALL_PREFIX=../install || true
-  - cmake --build . --config $BUILD_TYPE
+  - cmake --build . --config Release
   - cmake --build . --target install
 
 after_success:
