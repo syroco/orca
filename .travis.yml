@@ -1,5 +1,8 @@
 language: c++
 
+rvm:
+  - 2.5
+
 matrix:
   include:
     - os: linux
