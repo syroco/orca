@@ -8,7 +8,9 @@
 
 project(iDynTree_ModelIO_XML CXX)
 
-find_package(LibXml2 REQUIRED)
+if(NOT (LIBXML2_LIBRARY AND LIBXML2_INCLUDE_DIR))
+    find_package(LibXml2 REQUIRED)
+endif()
 
 set(IDYNTREE_MODELIO_XML_HEADERS include/iDynTree/XMLParser.h
                                  include/iDynTree/XMLElement.h
@@ -41,13 +43,12 @@ target_include_directories(${libraryname} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURR
                                                  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}>"
                                                   ${IDYNTREE_TREE_INCLUDE_DIRS}
                                           PRIVATE ${EIGEN3_INCLUDE_DIR}
-                                                  ${LIBXML2_INCLUDE_DIR})
+                                                  ${LIBXML2_INCLUDE_DIRS})
 
-target_link_libraries(${libraryname} LINK_PUBLIC 
-                                     LINK_PRIVATE ${LIBXML2_LIBRARIES} idyntree-core)
+target_link_libraries(${libraryname} LINK_PUBLIC LINK_PRIVATE ${LIBXML2_LIBRARIES} idyntree-core)
                                      
 if(NOT CMAKE_VERSION VERSION_LESS 2.8.12)
-    target_compile_options(${libraryname} PRIVATE ${IDYNTREE_WARNING_FLAGS} ${LIBXML2_DEFINITIONS})
+    target_compile_options(${libraryname} PRIVATE ${IDYNTREE_WARNING_FLAGS})
 endif()
 
 # Ensure that build include directories are always included before system ones

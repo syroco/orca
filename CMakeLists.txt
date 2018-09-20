@@ -99,11 +99,17 @@ set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes t
 add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 
 #################### libxml2 #########################
-# TODO : figure out out to embed libxml2
-# So far adding the dir : add_subdirectory(external/libxml2 EXCLUDE_FROM_ALL)
-# Generates : CMake Error: install(EXPORT "iDynTree" ...) includes 
-# target "idyntree-modelio-xml" which requires target "xml2" that is not in the export set.
-find_package(LibXml2 REQUIRED)
+# TODO : Make a properer cmake for libxml2
+find_package(LibXml2 QUIET)
+if(NOT LIBXML2_FOUND)
+    message(WARNING "Using embedded libxml2")
+    add_subdirectory(external/libxml2 EXCLUDE_FROM_ALL)
+    set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2/libxml2-2.9.8/include )	
+    set(LIBXML2_LIBRARY xml2 )	
+    set(LIBXML2_FOUND TRUE )	
+    set(LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIR} )	
+    set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARY} )
+endif()
 
 #################### iDynTree #########################
 set(BUILD_SHARED_LIBS OFF)
