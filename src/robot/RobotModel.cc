@@ -155,7 +155,6 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         
         if(!getRobotNameFromTinyXML(&doc,name_in_xml))
         {
-            std::cerr << "modelString : \n" << modelString << '\n';
             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
                 << '\n'
                 << "Please use auto robot = std::make_shared<RobotModel>(\"my_robot_name\")";
@@ -174,7 +173,7 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         LOG_INFO << "Robot model '" << getName() << "' (" << getNrOfDegreesOfFreedom() << " dof) successfully loaded";
         return true;
     }
-    orca_throw(Formatter() << modelString << "\n\nCould not load robot model from above urdf string.\n\n");
+    orca_throw(Formatter() << "Could not load robot model from above urdf string.");
     return false;
 }
 
