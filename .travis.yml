@@ -35,17 +35,17 @@ matrix:
     - os: osx
       osx_image: xcode10
       env:
-        - MATRIX_EVAL="brew update && brew install --force gcc@5 && brew link --overwrite gcc@5 && CC=gcc && CXX=g++"
+        - MATRIX_EVAL="brew update && brew install gcc@5 && brew link --overwrite gcc@5 && CC=gcc && CXX=g++"
 
     - os: osx
       osx_image: xcode10
       env:
-        - MATRIX_EVAL="brew update && brew install --force gcc@6 && brew link --overwrite gcc@6 && CC=gcc && CXX=g++"
+        - MATRIX_EVAL="brew update && brew install gcc@6 && brew link --overwrite gcc@6 && CC=gcc && CXX=g++"
 
     - os: osx
       osx_image: xcode10
       env:
-        - MATRIX_EVAL="brew update && brew install --force gcc && brew link --overwrite gcc && CC=gcc && CXX=g++"
+        - MATRIX_EVAL="brew update && brew install gcc && brew link --overwrite gcc && CC=gcc && CXX=g++"
 
 before_install:
     - eval "${MATRIX_EVAL}"
