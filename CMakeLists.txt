@@ -103,7 +103,7 @@ add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 # TODO : Make a properer cmake for libxml2
 find_package(LibXml2 QUIET)
 if(LIBXML2_FOUND)
-    message(INFO "LibXml2 found:
+    message(STATUS "LibXml2 found:
     LIBXML2_INCLUDE_DIR: ${LIBXML2_INCLUDE_DIR}
     LIBXML2_LIBRARIES: ${LIBXML2_LIBRARIES}
         ")

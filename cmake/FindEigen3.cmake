@@ -70,7 +70,7 @@ endmacro(_eigen3_check_version)
 if (EIGEN3_INCLUDE_DIR)
 
   # in cache already
-  message("Eigen already in cache at ${EIGEN3_INCLUDE_DIR}")
+  message(STATUS "Eigen already in cache at ${EIGEN3_INCLUDE_DIR}")
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
 
