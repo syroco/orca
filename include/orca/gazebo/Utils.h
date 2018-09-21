@@ -35,6 +35,9 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
+#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#endif
 #include <Eigen/Geometry>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -121,4 +124,3 @@ inline std::string custom_exec(const std::string &_cmd)
   pclose(pipe);
   return result;
 }
-

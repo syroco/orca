@@ -36,6 +36,9 @@
 
 #pragma once
 #include <iostream>
+#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#endif
 #include <Eigen/Dense>
 #include <memory>
 #include <cstdlib>
@@ -176,7 +179,7 @@ inline void orca_throw(const std::string& arg)
 //         if(start_now)
 //             start();
 //     }
-// 
+//
 //     void start()
 //     {
 //         if(!running_)
@@ -185,18 +188,18 @@ inline void orca_throw(const std::string& arg)
 //             th_ = std::thread( std::bind(&PeriodicPosixThread::run,this) );
 //         }
 //     }
-// 
+//
 //     void run()
 //     {
 //         const auto timeWindow = std::chrono::milliseconds(period_ms_);
-// 
+//
 //         while(running_)
 //         {
 //             auto start = std::chrono::steady_clock::now();
 //             f_();
 //             auto end = std::chrono::steady_clock::now();
 //             auto elapsed = end - start;
-// 
+//
 //             auto timeToWait = timeWindow - elapsed;
 //             if(timeToWait > std::chrono::milliseconds::zero())
 //             {
@@ -204,7 +207,7 @@ inline void orca_throw(const std::string& arg)
 //             }
 //         }
 //     }
-// 
+//
 //     void stop()
 //     {
 //         if(running_)
@@ -213,12 +216,12 @@ inline void orca_throw(const std::string& arg)
 //             th_.join();
 //         }
 //     }
-// 
+//
 //     ~PeriodicPosixThread()
 //     {
 //         stop();
 //     }
-// 
+//
 // private:
 //     std::function<void(void)> f_;
 //     std::thread th_;
@@ -277,7 +280,7 @@ bool key_exists(const std::map<Key,Vals>& container, const Key& key)
 // class EigenVectorParam : public Param
 // {
 //     typedef Eigen::VectorXd type;
-// 
+//
 //     loadFromString(const std::string s)
 //     {
 //         data_ = s.as<type>();
@@ -285,10 +288,10 @@ bool key_exists(const std::map<Key,Vals>& container, const Key& key)
 //     Eigen::VectorXd& get(){ return data_ }
 //     Eigen::VectorXd data_;
 // }
-// 
-// 
+//
+//
 // std::map<std::string, Param*> parameters_;
-// 
+//
 // MyTask()
 // {
 // private:
@@ -302,15 +305,15 @@ bool key_exists(const std::map<Key,Vals>& container, const Key& key)
 //     addParam("control_frame",&control_frame_);
 // }
 // }
-// 
+//
 // MyTask task;
 // task.proportionalGain() = Eigen::VectorXd::Zero(6);
-// 
+//
 // myTask:
 //     - kp : [0,0,0,0,0,0,0,0]
 //     - kd : [0,0,0,0,0,0,0,0]
 //     - control_frame : link_7
-// 
+//
 // loadFromString(string params_str)
 // {
 //     YAML::Node lineup = YAML::Load("{1B: Prince Fielder, 2B: Rickie Weeks, LF: Ryan Braun}");
@@ -318,17 +321,17 @@ bool key_exists(const std::map<Key,Vals>& container, const Key& key)
 //     {
 //       auto param_name = it->first.as<std::string>(); // "kp"
 //       Param * param = parameters_[param_name];
-// 
-// 
+//
+//
 //       auto param_value_str =   << "\n";
-// 
+//
 //       parameters_[param_name]->loadFromNode(it->second)
 //     }
-// 
+//
 // }
-// 
+//
 // auto p = MyParam.as<MyParam::type>()
-// 
+//
 // std::vector< Param > params_;
 
 

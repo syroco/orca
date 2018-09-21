@@ -45,7 +45,7 @@ const std::string& WrenchTask::getControlFrame() const
     return this->getWrench()->getControlFrame();
 }
 
-void WrenchTask::setFeedforward(const math::Vector6d& feedforward_wrench)
+void WrenchTask::setFeedforward(const Vector6d& feedforward_wrench)
 {
     feedforward_ = feedforward_wrench;
 }
