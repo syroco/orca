@@ -52,8 +52,8 @@ before_install:
 
 script:
   - mkdir build ; cd build
-  - cmake .. -DCMAKE_INSTALL_PREFIX=../install || true
-  - cmake --build . --config Release
+  - cmake ..
+  - cmake --build . --config Release > /dev/null
   - cmake --build . --target install
 
 after_success:
