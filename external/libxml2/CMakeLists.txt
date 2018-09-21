@@ -7,7 +7,7 @@ set(xml2_dir ${xml2_top_dir}/libxml2-2.9.8)
 file(GLOB srcs ${xml2_dir}/*.c)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    configure_file(${xml2_top_dir}/include/win32config.h ${CMAKE_CURRENT_BINARY_DIR}/config.h COPYONLY)
+    configure_file(${xml2_dir}/include/win32config.h ${CMAKE_CURRENT_BINARY_DIR}/config.h COPYONLY)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     configure_file(${xml2_top_dir}/config-macos.h ${CMAKE_CURRENT_BINARY_DIR}/config.h COPYONLY)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")

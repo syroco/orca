@@ -8,7 +8,7 @@
 
 project(iDynTree_ModelIO_XML CXX)
 
-if(NOT (LIBXML2_LIBRARY AND LIBXML2_INCLUDE_DIR))
+if(NOT (LIBXML2_LIBRARIES AND LIBXML2_INCLUDE_DIR))
     find_package(LibXml2 REQUIRED)
 endif()
 
@@ -23,7 +23,7 @@ set(IDYNTREE_MODELIO_XML_SOURCES src/XMLParser.cpp
                                  src/XMLElement.cpp
                                  src/XMLAttribute.cpp
                                  src/XMLDocument.cpp)
-								  
+
 
 
 SOURCE_GROUP("Source Files" FILES ${IDYNTREE_MODELIO_XML_SOURCES})
@@ -43,10 +43,10 @@ target_include_directories(${libraryname} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURR
                                                  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}>"
                                                   ${IDYNTREE_TREE_INCLUDE_DIRS}
                                           PRIVATE ${EIGEN3_INCLUDE_DIR}
-                                                  ${LIBXML2_INCLUDE_DIRS})
+                                                  ${LIBXML2_INCLUDE_DIR})
 
 target_link_libraries(${libraryname} LINK_PUBLIC LINK_PRIVATE ${LIBXML2_LIBRARIES} idyntree-core)
-                                     
+
 if(NOT CMAKE_VERSION VERSION_LESS 2.8.12)
     target_compile_options(${libraryname} PRIVATE ${IDYNTREE_WARNING_FLAGS})
 endif()

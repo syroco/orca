@@ -40,32 +40,37 @@ if(NOT Eigen3_FIND_VERSION)
 endif(NOT Eigen3_FIND_VERSION)
 
 macro(_eigen3_check_version)
-  file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
+  if(EXISTS ${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h)
+    file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
 
-  string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
-  set(EIGEN3_WORLD_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen3_major_version_match "${_eigen3_version_header}")
-  set(EIGEN3_MAJOR_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen3_minor_version_match "${_eigen3_version_header}")
-  set(EIGEN3_MINOR_VERSION "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
+    set(EIGEN3_WORLD_VERSION "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen3_major_version_match "${_eigen3_version_header}")
+    set(EIGEN3_MAJOR_VERSION "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen3_minor_version_match "${_eigen3_version_header}")
+    set(EIGEN3_MINOR_VERSION "${CMAKE_MATCH_1}")
 
-  set(EIGEN3_VERSION ${EIGEN3_WORLD_VERSION}.${EIGEN3_MAJOR_VERSION}.${EIGEN3_MINOR_VERSION})
-  if(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
-    set(EIGEN3_VERSION_OK FALSE)
-  else(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
-    set(EIGEN3_VERSION_OK TRUE)
-  endif(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
+    set(EIGEN3_VERSION ${EIGEN3_WORLD_VERSION}.${EIGEN3_MAJOR_VERSION}.${EIGEN3_MINOR_VERSION})
+    if(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
+      set(EIGEN3_VERSION_OK FALSE)
+    else(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
+      set(EIGEN3_VERSION_OK TRUE)
+    endif(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
 
-  if(NOT EIGEN3_VERSION_OK)
+    if(NOT EIGEN3_VERSION_OK)
 
-    message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
-                   "but at least version ${Eigen3_FIND_VERSION} is required")
-  endif(NOT EIGEN3_VERSION_OK)
+      message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
+                     "but at least version ${Eigen3_FIND_VERSION} is required")
+    endif(NOT EIGEN3_VERSION_OK)
+  else()
+    message(WARNING "Could not find ${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h")
+  endif()
 endmacro(_eigen3_check_version)
 
 if (EIGEN3_INCLUDE_DIR)
 
   # in cache already
+  message("Eigen already in cache at ${EIGEN3_INCLUDE_DIR}")
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
 

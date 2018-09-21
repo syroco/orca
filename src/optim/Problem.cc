@@ -157,12 +157,12 @@ bool Problem::addTask(std::shared_ptr<GenericTask> task)
     }
 }
 
-bool Problem::constraintExists(std::shared_ptr< constraint::GenericConstraint> cstr)
+bool Problem::constraintExists(std::shared_ptr< GenericConstraint> cstr)
 {
     return exists(cstr,constraints_);
 }
 
-bool Problem::taskExists(std::shared_ptr< task::GenericTask> task)
+bool Problem::taskExists(std::shared_ptr< GenericTask> task)
 {
     return exists(task,tasks_);
 }

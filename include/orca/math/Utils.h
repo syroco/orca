@@ -35,6 +35,9 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
+#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#endif
 #include <Eigen/Dense>
 #include <limits>
 

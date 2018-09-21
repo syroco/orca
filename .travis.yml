@@ -1,23 +1,55 @@
 language: c++
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
-env:
-  matrix:
-      - BUILD_TYPE=Debug
-      - BUILD_TYPE=Release
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-compiler:
-  - gcc
-  - clang
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: osx
+      osx_image: xcode8
+
+    - os: osx
+      osx_image: xcode9
+
+    - os: osx
+      osx_image: xcode10
+        
+before_install:
+    - eval "${MATRIX_EVAL}"
 
 script:
+  - mkdir -p $HOME/orca-install
   - mkdir build ; cd build
-  - cmake .. -DCMAKE_INSTALL_PREFIX=../install || true
-  - cmake --build . --config $BUILD_TYPE
+  - cmake .. -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX=$HOME/orca-install
+  - cmake --build . --config Release
   - cmake --build . --target install
 
 after_success:
-  - ./examples/01-simple_controller ../examples/resources/lwr.urdf
+  - $HOME/orca-install/lib/orca/examples/01-simple_controller $HOME/orca-install/share/orca/examples/resources/lwr.urdf -l debug

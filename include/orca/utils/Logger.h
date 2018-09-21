@@ -69,6 +69,9 @@ namespace orca
 }
 
 #ifdef _WIN32
+#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#endif
 #include <Eigen/Dense>
 #include <sstream>
 namespace plog
