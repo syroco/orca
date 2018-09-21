@@ -57,20 +57,21 @@ else()
     # Some linking issues might happend, which are fixed with the 'auto' config
     # of eigen subdir. This is considered necessary for the code to be portable
     set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
+    set(eigen_dir ${PROJECT_SOURCE_DIR}/external/eigen-3.3.5)
     if(system_eigen3_found)
         message(WARNING "Found system Eigen3 ${system_eigen3_version} at ${system_eigen3_include_dir}, but internal iDynTree requires at least 3.2.
-        ORCA will build using internal Eigen3 (3.3.90) for the build but will not overwrite the system version.")
+        ORCA will build using internal Eigen3 (3.3.5) for the build but will not overwrite the system version.")
         # it means we have it on the system, just not the right version
         # so we dont mess with the system libs
-        add_subdirectory(external/eigen-3.3.90/eigen3 EXCLUDE_FROM_ALL)
+        add_subdirectory(${eigen_dir}/eigen3 EXCLUDE_FROM_ALL)
     else()
-        message(WARNING "Using internal Eigen3 (3.3.90) for the build. ORCA will export it as the system does not seem to have eigen3 installed")
+        message(WARNING "Using internal Eigen3 (3.3.5) for the build. ORCA will export it as the system does not seem to have eigen3 installed")
         # export/install the package as we really dont have eigen on the system
-        add_subdirectory(external/eigen-3.3.90/eigen3)
+        add_subdirectory(${eigen_dir}/eigen3)
     endif()
-    set(ENV{EIGEN3_ROOT} ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90)
+    set(ENV{EIGEN3_ROOT} ${eigen_dir})
     set(EIGEN3_ROOTDIR $ENV{EIGEN3_ROOT})
-    set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/eigen-3.3.90/eigen3)
+    set(EIGEN3_INCLUDE_DIR ${eigen_dir}/eigen3)
     add_library(Eigen3::Eigen ALIAS eigen)
 endif()
 
