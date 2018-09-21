@@ -75,11 +75,11 @@ int main(int argc, char const *argv[])
     if(!gz_native_model)
         return -1;
     
-    auto gz_model = GazeboModel(gz_native_model);
+    GazeboModel gz_model(gz_native_model);
 
     std::cout << "Gazebo model has " << gz_model.getNDof() << " joints" << '\n';
     
-    std::cout << "Gazebo is running, open the gui via 'gzclient'" << '\n';
+    std::cout << "Gazebo is running (CTRL+C to quit), open the gui via 'gzclient'" << '\n';
     gz_server.run();
     return 0;
 }
