@@ -52,4 +52,4 @@ script:
   - cmake --build . --target install
 
 after_success:
-  - ./examples/01-simple_controller ../examples/resources/lwr.urdf
+  - $HOME/orca-install/lib/orca/examples/01-simple_controller $HOME/orca-install/share/orca/examples/resources/lwr.urdf -l debug
