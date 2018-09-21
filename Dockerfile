@@ -30,4 +30,4 @@ WORKDIR build
 RUN cmake ..
 RUN cmake --build . -- -j`nproc`
 RUN ./orca-test
-RUN /orca/build/examples/basic/00-load_robot_model /orca/examples/resources/lwr.urdf -l debug
+RUN /usr/local/lib/orca/examples/01-simple_controller /usr/local/share/orca/examples/resources/lwr.urdf -l debug
