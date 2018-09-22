@@ -93,6 +93,14 @@ namespace math
             * Eigen::AngleAxisd(B, Eigen::Vector3d::UnitY())
             * Eigen::AngleAxisd(C, Eigen::Vector3d::UnitX());
     }
+    
+    inline Eigen::Matrix<double,6,1>& transportWrench(const Eigen::Matrix<double,6,1>& wrench_in_a, const Eigen::Matrix<double,3,1>& b_to_a, Eigen::Matrix<double,6,1>& wrench_in_b_out)
+    {
+        // w = [F M].T,  M_b = M_a + cross( BA, F )
+        wrench_in_b_out.head<3>() = wrench_in_a.head<3>();
+        wrench_in_b_out.tail<3>() =  wrench_in_a.tail<3>() + b_to_a.cross(wrench_in_a.head<3>());
+        return wrench_in_b_out;
+    }
 
     struct Size
     {
