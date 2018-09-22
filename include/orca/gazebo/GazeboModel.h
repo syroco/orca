@@ -227,7 +227,8 @@ public:
         return true;
     }
 
-    ::gazebo::sensors::ForceTorqueSensorPtr attachForceTorqueSensorToJoint(const std::string& joint_name,double update_rate = 0)
+
+    std::shared_ptr<orca::gazebo::GazeboForceTorqueSensor> attachForceTorqueSensorToJoint(const std::string& joint_name,double update_rate = 0)
     {
         assertModelLoaded();
         
@@ -241,8 +242,15 @@ public:
         ss << "    <update_rate>" << update_rate << "</update_rate>";
         ss << "    <always_on>true</always_on>";
         ss << "    <visualize>true</visualize>";
+        ss << "    <force_torque>";
+        ss << "        <measure_direction>child_to_parent</measure_direction>";
+        ss << "        <frame>child</frame>";
+        ss << "    </force_torque>";
         ss << "  </sensor>";
         ss << "</sdf>";
+        auto sensor_base_link = joint->GetChild(); // this is related to the <frame>child</frame> setting in the SDF. Forced.
+        auto  sensor = std::make_shared<orca::gazebo::GazeboForceTorqueSensor>(sensor_base_link);
+        
         std::string forceTorqueSensorString = ss.str();
         // Create the SDF file to configure the sensor
         sdf::ElementPtr sdf(new sdf::Element);
@@ -262,13 +270,15 @@ public:
         mgr->Update();
 
         // Get a pointer to the force torque sensor
-        auto sensor = std::dynamic_pointer_cast<::gazebo::sensors::ForceTorqueSensor>(
+        auto gz_sensor = std::dynamic_pointer_cast<::gazebo::sensors::ForceTorqueSensor>(
                 mgr->GetSensor(sensorName));
 
         // Make sure the above dynamic cast worked.
-        if(!sensor) throw std::runtime_error("Could not create force_torque sensor for joint " + joint_name);
+        if(!gz_sensor) throw std::runtime_error("Could not create force_torque sensor for joint " + joint_name);
 
-        if(!sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+        if(!gz_sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+        
+        sensor->setSensor(gz_sensor);
         
         std::cout << "[GazeboModel \'" << getName() << "\'] " << "Force torque sensor '" << sensorName << "' successfully created" << '\n';
         return sensor;
@@ -277,22 +287,35 @@ public:
 #endif
     }
 
-    ::gazebo::sensors::ContactSensorPtr attachContactSensorToLink(const std::string& link_name,double update_rate = 0)
+    std::shared_ptr<orca::gazebo::GazeboContactSensor>  attachContactSensorToLink(const std::string& link_name, const std::string& collision_name, double update_rate = 0)
     {
         assertModelLoaded();
         
     #if GAZEBO_MAJOR_VERSION > 8
         auto link = model_->GetLink(link_name);
-        if(!link)
+        if (!link)
             throw std::runtime_error("Link " + link_name + " does not exists");
+        auto collision = link->GetChildCollision(collision_name);
+        if (!collision) 
+        {
+            std::string error = "Collision " + collision_name + " does not exist in link " + link_name + ".\nCandidates are:\n";
+            for (const auto& coll : link->GetCollisions())
+                error += " - " + coll->GetName() + "\n";
+            throw std::runtime_error(error);
+        }
         std::stringstream ss;
         ss << "<sdf version='1.4'>";
         ss << "  <sensor name='contact' type='contact'>";
         ss << "    <update_rate>" << update_rate << "</update_rate>";
         ss << "    <always_on>true</always_on>";
         ss << "    <visualize>true</visualize>";
+        ss << "    <contact>";
+        ss << "        <collision>" << collision_name << "</collision>";
+        ss << "    </contact>";
         ss << "  </sensor>";
         ss << "</sdf>";
+        auto sensor = std::make_shared<orca::gazebo::GazeboContactSensor>(link, collision_name);
+
         std::string contactSensorStr = ss.str();
         // Create the SDF file to configure the sensor
         sdf::ElementPtr sdf(new sdf::Element);
@@ -312,13 +335,15 @@ public:
         mgr->Update();
 
         // Get a pointer to the force torque sensor
-        auto sensor = std::dynamic_pointer_cast<::gazebo::sensors::ContactSensor>(
+        auto gz_sensor = std::dynamic_pointer_cast<::gazebo::sensors::ContactSensor>(
                 mgr->GetSensor(sensorName));
 
         // Make sure the above dynamic cast worked.
-        if(!sensor) throw std::runtime_error("Could not create contact sensor for link " + link_name);
+        if(!gz_sensor) throw std::runtime_error("Could not create contact sensor for link " + link_name);
 
-        if(!sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+        if(!gz_sensor->IsActive()) throw std::runtime_error("Sensor is not active");
+
+        sensor->setSensor(gz_sensor);
         
         std::cout << "[GazeboModel \'" << getName() << "\'] " << "Contact sensor '" << sensorName << "' successfully created" << '\n';
         return sensor;
@@ -326,7 +351,7 @@ public:
         throw std::runtime_error("Adding sensors is only supported for gz version > 8");
 #endif
     }
-    
+
     const Eigen::Vector3d& getGravity() const
     {
         assertModelLoaded();

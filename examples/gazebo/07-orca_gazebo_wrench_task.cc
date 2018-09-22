@@ -105,16 +105,21 @@ int main(int argc, char const *argv[])
     
     auto ft_sensor_j6 = gz_model.attachForceTorqueSensorToJoint("ati_joint");
     // Connect gazebo force torque sensor to the wrench_task
-    auto c = ft_sensor_j6->ConnectUpdate([&](::gazebo::msgs::WrenchStamped w)
+    ft_sensor_j6->connectUpdate([&](::gazebo::msgs::WrenchStamped w)
     {
-        Vector6d current_wrench = gazeboMsgToEigen(w);
-        wrench_task->setCurrentWrenchValue( current_wrench );
+        ft_sensor_j6->setWrenchFrom(w);
+        wrench_task->setCurrentWrenchValue( ft_sensor_j6->getWrench() );
         std::cout << " Desired Wrench: " << desired_wrench.transpose() << '\n';
-        std::cout << " Current Wrench: " << current_wrench.transpose() << '\n';
+        std::cout << " Current Wrench: " << ft_sensor_j6->getWrench().transpose() << '\n';
     });
     
     
-    auto contact_j6 = gz_model.attachContactSensorToLink("link_7");
+    auto contact_j6 = gz_model.attachContactSensorToLink("ati_link", "ati_link_fixed_joint_lump__collision_ati_link_collision");
+    contact_j6->connectUpdate([&]()
+    {
+        contact_j6->setWrenchFrom();
+        std::cout << "Contact Wrench:" << contact_j6->getWrench().transpose() << std::endl;
+    });
 
     auto jnt_trq_cstr = controller.addConstraint<JointTorqueLimitConstraint>("JointTorqueLimit");
     jnt_trq_cstr->setLimits(Eigen::VectorXd::Constant(ndof,-200.),Eigen::VectorXd::Constant(ndof,200.));
