@@ -2,6 +2,12 @@
 
 ## Optimization-based framework for Robotic Control Applications
 
+| Platform | Build status |
+| --- | --- |
+| Linux / macOS | [![Build Status](https://travis-ci.org/syroco/orca.svg?branch=master)](https://travis-ci.org/syroco/orca) |
+| Windows | [![Build status](https://ci.appveyor.com/api/projects/status/vq4jxmcqmtjgom1x/branch/master?svg=true)](https://ci.appveyor.com/project/ahoarau/orca/branch/master)
+ |
+ 
 ## Dependencies
 
 * **c++14** compiler (gcc > 5 or clang > 4)
@@ -22,6 +28,5 @@ git clone https://github.com/syroco/orca
 cd orca
 mkdir build ; cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . # This will generate a package in ~/.cmake/packages/orca
-# cmake --build . --target install
+cmake --build .
 ```
