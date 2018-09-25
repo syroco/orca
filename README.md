@@ -6,7 +6,6 @@
 | --- | --- |
 | Linux / macOS | [![Build Status](https://travis-ci.org/syroco/orca.svg?branch=master)](https://travis-ci.org/syroco/orca) |
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/vq4jxmcqmtjgom1x/branch/master?svg=true)](https://ci.appveyor.com/project/ahoarau/orca/branch/master)
- |
  
 ## Dependencies
 
