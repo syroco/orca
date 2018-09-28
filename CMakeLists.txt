@@ -11,6 +11,12 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# fix the eigen _ENABLE_EXTENDED_ALIGNED_STORAGE error on msvc 2017
+if(WIN32)
+  set(BUILD_SHARED_LIBS OFF)
+  add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE=1)
+endif()
+
 if(NOT BUILD_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
 endif()
@@ -102,13 +108,8 @@ add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
 #################### libxml2 #########################
 # TODO : Make a properer cmake for libxml2
 find_package(LibXml2 QUIET)
-if(LIBXML2_FOUND)
-    message(STATUS "LibXml2 found:
-    LIBXML2_INCLUDE_DIR: ${LIBXML2_INCLUDE_DIR}
-    LIBXML2_LIBRARIES: ${LIBXML2_LIBRARIES}
-        ")
-else()
-    message(WARNING "Using embedded libxml2 2.9.8")
+if(NOT LIBXML2_FOUND)
+    message(STATUS "Using embedded libxml2 2.9.8")
     add_subdirectory(external/libxml2 EXCLUDE_FROM_ALL)
     set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2/libxml2-2.9.8/include )
     set(LIBXML2_LIBRARY xml2 )
@@ -134,6 +135,7 @@ set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 #################### Yaml cpp #########################
 find_package(yaml-cpp QUIET)
 if(NOT yaml-cpp_FOUND)
+    message(STATUS "Using embedded yaml-cpp master branch 28-sept-2018")
     set(BUILD_SHARED_LIBS OFF)
     set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
     set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
@@ -248,7 +250,6 @@ target_link_libraries(orca PRIVATE
     ${PROJECT_NAME}_priv_tinyxml
     ${LIBXML2_LIBRARY}
 )
-
 #################### ORCA Examples #########################
 add_subdirectory(examples)
 
