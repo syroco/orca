@@ -157,7 +157,8 @@ private:
     Eigen::VectorXd joint_torque_command_;
     Eigen::VectorXd kkt_torques_;
     Eigen::VectorXd joint_acceleration_command_;
-
+    Eigen::VectorXd __fix_warnings__;
+    
     bool solution_found_ = false;
 };
 } // namespace optim

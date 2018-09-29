@@ -77,6 +77,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     const std::shared_ptr<T>& get() const
     {
@@ -85,6 +86,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     template<class T2>
     Parameter<std::shared_ptr<T> >& operator=(std::shared_ptr<T2> val)
@@ -92,6 +94,8 @@ public:
         this->set(val);
         return *this;
     }
+private:
+  std::shared_ptr<T> __fix_warnings__ = nullptr;
 };
 
 } // namespace common

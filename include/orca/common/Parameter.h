@@ -153,6 +153,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     const T& get() const
     {
@@ -161,6 +162,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     
     template<class T2>
@@ -169,6 +171,8 @@ public:
         this->set(val);
         return *this;
     }
+private:
+    T __fix_warnings__;
 // TODO : figure out how to remove the need to param->get()
 // These dont work yet
 //     template<class T2>
@@ -233,6 +237,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     const std::list<T >& get() const
     {
@@ -241,6 +246,7 @@ public:
         } catch (std::exception& e) {
             utils::orca_throw(utils::Formatter() << "Parameter '" << getName() << "' : " << e.what());
         }
+        return __fix_warnings__;
     }
     
     template<class T2>
@@ -249,6 +255,8 @@ public:
         this->set(val);
         return *this;
     }
+private:
+  std::list<T> __fix_warnings__;
 };
 
 } // namespace common

@@ -203,16 +203,18 @@ bool RobotModel::loadModelFromFile(const std::string &modelFile)
 
 const std::string& RobotModel::getUrdfUrl() const
 {
-    if(urdf_url_.get().empty() && !urdf_str_.get().empty())
+    if(urdf_url_.get().empty() && !urdf_str_.get().empty()) {
         LOG_WARNING << "Robot model has been loaded with a URDF string, so the url is empty";
+    }
     assertLoaded();
     return urdf_url_.get();
 }
 
 const std::string& RobotModel::getUrdfString() const
 {
-    if(urdf_str_.get().empty())
+    if(urdf_str_.get().empty()) {
         LOG_ERROR << "Robot is not loaded, URDF string is empty";
+    }
     return urdf_str_.get();
 }
 

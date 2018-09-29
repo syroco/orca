@@ -142,6 +142,7 @@ bool Controller::update(double current_time, double dt)
         default:
             orca_throw(Formatter() << "unsupported resolution strategy");
     }
+    return false;
 }
 
 bool Controller::solutionFound() const
@@ -163,6 +164,7 @@ common::ReturnCode Controller::getReturnCode() const
         default:
             orca_throw(Formatter() << "unsupported resolution strategy");
     }
+    return common::ReturnCode::RET_ERROR_UNDEFINED;
 }
 
 bool Controller::addTaskFromString(const std::string& task_description)
@@ -227,6 +229,7 @@ std::shared_ptr<task::GenericTask> Controller::getTask(const std::string& name, 
         if(t->getName() == name)
             return t;
     orca_throw(Formatter() << "Task " << name << " does not exist at level " << level);
+    return nullptr;
 }
 
 std::shared_ptr<task::GenericTask> Controller::getTask(unsigned int index, int level)
@@ -270,6 +273,8 @@ const Eigen::VectorXd& Controller::getSolution()
         default:
             orca_throw(Formatter() << "Unsupported resolution strategy");
     }
+    // to fix warnings
+    return __fix_warnings__;
 }
 
 const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_torques /*= false*/
@@ -310,6 +315,8 @@ const Eigen::VectorXd& Controller::getJointTorqueCommand(bool remove_gravity_tor
         default:
             orca_throw(Formatter() << "Unsupported resolution strategy");
     }
+    // to fix warnings
+    return joint_torque_command_;
 }
 
 const Eigen::VectorXd& Controller::computeKKTTorques()
@@ -328,6 +335,8 @@ const Eigen::VectorXd& Controller::getJointAccelerationCommand()
         default:
             orca_throw(Formatter() << "Unsupported resolution strategy");
     }
+    // To fix warnings
+    return joint_acceleration_command_;
 }
 
 void Controller::activateTasksAndConstraints()
@@ -431,6 +440,7 @@ std::shared_ptr<Problem> Controller::getProblemAtLevel(int level)
     }
     orca_throw(Formatter() << "Level " << level << " does not exist.\n"
                             << "There is only " << problems_.size() << " level(s)");
+    return nullptr;
 }
 
 std::shared_ptr<task::RegularisationTask<ControlVariable::X> > Controller::globalRegularization(int level)
