@@ -13,7 +13,7 @@ class QPSolverImpl_eigQuadProg : public QPSolverImpl
 {
 
 public:
-
+    virtual ~QPSolverImpl_eigQuadProg() {}
     void resize(unsigned int nvar,unsigned int nconstr)
     {
 

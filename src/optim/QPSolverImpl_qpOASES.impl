@@ -16,6 +16,7 @@ private:
     qpOASES::Options options_;
     bool qpoases_initialized_ = false;
 public:
+    virtual ~QPSolverImpl_qpOASES() {}
     void resize(unsigned int nvar,unsigned int nconstr)
     {
         if(!qpoases_)
