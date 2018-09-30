@@ -289,13 +289,13 @@ protected:
     common::Parameter<Eigen::Vector3d> gravity_;
     common::Parameter<Eigen::VectorXd> home_joint_positions_;
     common::Parameter<std::string> name_;
-    
+
     bool loadFromParameters();
 private:
-    
+
     template<RobotModelImplType type = iDynTree> class RobotModelImpl;
-    std::unique_ptr<RobotModelImpl<> > impl_;
-    
+    std::shared_ptr<RobotModelImpl<> > impl_;
+
 };
 
 } // namespace robot

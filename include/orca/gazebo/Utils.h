@@ -34,10 +34,6 @@
 //|  The fact that you are presently reading this means that you have had
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
-#pragma once
-#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
-  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
-#endif
 #include <Eigen/Geometry>
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Quaternion.hh>
@@ -145,8 +141,8 @@ namespace gazebo
 /**
  * \class GazeboWrenchSensor
  * \brief A Wrench sensor w.r.t. a base_link. Wrench is expressed from the world to the body, in the base_link frame.
- * 
- * This class is a wrapper to a ForceTorqueSensor or ContactSensor to store frame information. 
+ *
+ * This class is a wrapper to a ForceTorqueSensor or ContactSensor to store frame information.
  * Indeed there is no easy way to get the attributes of the Gazebo sensor.
  */
 class GazeboWrenchSensor
@@ -157,10 +153,10 @@ public:
 
     virtual ~GazeboWrenchSensor()
     {}
-    
+
 protected:
     GazeboWrenchSensor(const std::string& base_link)
-    : base_link_(base_link) 
+    : base_link_(base_link)
     {}
 
 public:
@@ -185,7 +181,7 @@ protected:
     {
         connection_ptr_ = conn_ptr;
     }
-    
+
     /**
      * \brief sets the wrench in the base_link frame
      * \warning the input wrench should be in the base_link frame, from the world to the body
@@ -194,7 +190,7 @@ protected:
     {
         wrench_ = wrench;
     }
-    
+
     Eigen::Matrix<double,6,1>& wrench()
     {
         return wrench_;
@@ -226,7 +222,7 @@ public:
                 sensor_->ConnectUpdate(subscriber)
             );
     }
-    
+
     /**
      * \brief sets the ForceTorqueSensorPtr to connect to
      * \warning the ForceTorqueSensorPtr should be with attributes <measure_direction>child_to_parent</measure_direction> <frame>child</frame>
@@ -235,12 +231,12 @@ public:
     {
         sensor_ = sensor;
     }
-    
+
     ::gazebo::sensors::ForceTorqueSensorPtr getSensor() const
     {
         return sensor_;
     }
-    
+
     void setWrenchFrom(const ::gazebo::msgs::WrenchStamped& wrench_stamped)
     {
         gazeboMsgToEigen(wrench_stamped, wrench());
@@ -265,7 +261,7 @@ public:
                 sensor_->ConnectUpdated(subscriber)
             );
     }
-    
+
     const std::string& getCollisionName() const
     {
         return collision_;
@@ -278,7 +274,7 @@ public:
     {
         sensor_ = sensor;
     }
-    
+
     ::gazebo::sensors::ContactSensorPtr getSensor() const
     {
         return sensor_;
@@ -288,7 +284,7 @@ public:
     {
         return link_;
     }
-    
+
     void setWrenchFrom( void )
     {
         /**
@@ -322,7 +318,7 @@ public:
                     wrench_res_atCoG_inLink.head<3>() += convVec3(contacts.contact(i).wrench(j).body_2_wrench().force());
                     wrench_res_atCoG_inLink.tail<3>() += convVec3(contacts.contact(i).wrench(j).body_2_wrench().torque());
                 }
-                else 
+                else
                     throw std::runtime_error("Mismatching collision bodies names");
             }
         }
@@ -333,7 +329,7 @@ private:
     ::gazebo::sensors::ContactSensorPtr sensor_ = nullptr;
     ::gazebo::physics::LinkPtr link_ = nullptr;
     std::string collision_;
-}; // GazeboContactSensor 
+}; // GazeboContactSensor
 
 
 } // namespace gazebo

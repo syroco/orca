@@ -49,10 +49,13 @@ class WeightedEuclidianNormFunction : public AffineFunction
 {
 public:
     WeightedEuclidianNormFunction();
-
+    virtual ~WeightedEuclidianNormFunction() {}
+    
     class QuadraticCost
     {
     public:
+        virtual ~QuadraticCost() {}
+
         void resize(int A_or_b_rows);
 
         Size getSize() const;

@@ -12,7 +12,7 @@ namespace optim
 class QPSolverImpl_qpOASES : public QPSolverImpl
 {
 private:
-    std::unique_ptr<qpOASES::SQProblem> qpoases_;
+    std::shared_ptr<qpOASES::SQProblem> qpoases_;
     qpOASES::Options options_;
     bool qpoases_initialized_ = false;
 public:

@@ -36,9 +36,6 @@
 
 #pragma once
 #include <iostream>
-#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
-  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
-#endif
 #include <Eigen/Dense>
 #include <memory>
 #include <cstdlib>
@@ -51,8 +48,6 @@
 #include <thread>
 #include <map>
 #include "orca/utils/Logger.h"
-
-#define UNUSED(expr) (void)(expr)
 
 namespace orca
 {

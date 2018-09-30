@@ -35,43 +35,38 @@
 //|  knowledge of the CeCILL-C license and that you accept its terms.
 
 #pragma once
-
 #include <plog/Log.h>
-
 
 namespace orca
 {
-    namespace utils
+namespace utils
+{
+
+    enum class LogLevel
     {
+        none = 0,
+        fatal = 1,
+        error = 2,
+        warning = 3,
+        info = 4,
+        debug = 5,
+        verbose = 6
+    };
 
-        enum class LogLevel
-        {
-            none = 0,
-            fatal = 1,
-            error = 2,
-            warning = 3,
-            info = 4,
-            debug = 5,
-            verbose = 6
-        };
+    struct Logger
+    {
+        Logger();
+        virtual ~Logger() {}
+        static void setLogLevel(LogLevel log_level);
+        static void setLogLevel(int log_level);
+        static void setLogLevel(const std::string& log_level);
+        static void parseArgv(int argc,char ** argv);
+        static void parseArgv(const std::vector<std::string>& v);
+        static void parseArgv(int argc,char const* argv[]);
+    };
+} // namespace utils
+} // namespace orca
 
-        struct Logger
-        {
-            Logger();
-            static void setLogLevel(LogLevel log_level);
-			static void setLogLevel(int log_level);
-			static void setLogLevel(const std::string& log_level);
-			static void parseArgv(int argc,char ** argv);
-			static void parseArgv(const std::vector<std::string>& v);
-			static void parseArgv(int argc,char const* argv[]);
-        };
-    }
-}
-
-#ifdef _WIN32
-#if defined(_WIN32) && !defined(_ENABLE_EXTENDED_ALIGNED_STORAGE)
-  #define _ENABLE_EXTENDED_ALIGNED_STORAGE
-#endif
 #include <Eigen/Dense>
 #include <sstream>
 namespace plog
@@ -91,4 +86,3 @@ namespace plog
 		return record << ss.str();
 	}
 }
-#endif

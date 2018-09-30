@@ -60,7 +60,7 @@ public:
     bool solve(orca::optim::ProblemData& data);
     common::ReturnCode getReturnCode() const;
 private:
-    std::unique_ptr<QPSolverImpl> pimpl_;
+    std::shared_ptr<QPSolverImpl> pimpl_;
     common::ReturnCode ret_ = common::ReturnCode::RET_INIT_FAILED;
     int nvar_ = 0;
     int nconstr_ = 0;
