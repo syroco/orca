@@ -58,7 +58,7 @@ struct g_vectorStringDup
 };
 namespace gazebo
 {
-    bool setupServer(const std::vector<std::string> &_args)
+    inline bool setupServer(const std::vector<std::string> &_args)
     {
       std::vector<char *> pointers(_args.size());
       std::transform(_args.begin(), _args.end(), pointers.begin(),
