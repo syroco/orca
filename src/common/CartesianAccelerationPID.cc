@@ -1,6 +1,9 @@
 #include "orca/common/CartesianAccelerationPID.h"
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
 using namespace orca::optim;
 
 CartesianAccelerationPID::CartesianAccelerationPID(const std::string& name)
@@ -97,7 +100,7 @@ void CartesianAccelerationPID::onActivation()
     {
         setBaseFrame(robot()->getBaseFrame());
     }
-    
+
     if(!desired_set_)
     {
         // Defaults the task to the current pose of the robot
@@ -135,5 +138,8 @@ const Vector6d& CartesianAccelerationPID::getCommand() const
 {
     return cart_acc_cmd_;
 }
+
+} // namespace common
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::common::CartesianAccelerationPID)

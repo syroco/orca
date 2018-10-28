@@ -1,7 +1,10 @@
 #include "orca/common/TaskBase.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::utils;
@@ -18,7 +21,7 @@ using namespace orca::utils;
         orca_throw(Formatter() << "[" << getPrintableName() << "] Robot is not initialized. Initialize it by setting at least one state (robot->setRobotState())");
 
 
-TaskBase::TaskBase(const std::string& name,ControlVariable control_var) 
+TaskBase::TaskBase(const std::string& name,ControlVariable control_var)
 : ConfigurableOrcaObject(name)
 , control_var_(control_var)
 , printable_name_(name)
@@ -92,10 +95,10 @@ void TaskBase::addChild(TaskBase::Ptr e)
     {
         if(hasProblem() && !e->hasProblem())
             e->setProblem(getProblem());
-        
+
         if(hasRobot() && !e->hasRobot())
             e->setRobotModel(robot());
-        
+
         e->setParentName(this->getName());
         children_.push_back(e);
         return;
@@ -193,10 +196,10 @@ bool TaskBase::setRobotModel(RobotModel::Ptr robot)
     }
 
     // bool ndof_changed = (robot_->getNrOfDegreesOfFreedom() != robot->getNrOfDegreesOfFreedom());
-    
+
     // Copy the new robot model
     robot_ = robot;
-    
+
     for(auto e : children_)
         e->setRobotModel(robot_);
 
@@ -344,11 +347,11 @@ void TaskBase::update(double current_time, double dt)
     }
     current_time_ = current_time;
     current_dt_ = dt;
-    
+
     // Lock the mutex to protect the update()
     // Its up the the user to lock the mutex in external thread
     // WARNING : the Controller will be blocked also as everything is serialized
-    // So make sure that it blocks only to copy data 
+    // So make sure that it blocks only to copy data
     MutexLock lock(mutex);
 
     for(auto t : children_)
@@ -536,8 +539,8 @@ bool TaskBase::setProblem(std::shared_ptr<const Problem> problem)
 
     if(!dependsOnProblem())
     {
-        LOG_WARNING << "[" << getPrintableName() << "] " 
-            << "Calling setProblem, but task do not depend on it " 
+        LOG_WARNING << "[" << getPrintableName() << "] "
+            << "Calling setProblem, but task do not depend on it "
             << "(control variable: " << getControlVariable() << ")"
             << "\nTherefore, not triggering resize.";
         return true;
@@ -567,7 +570,7 @@ void TaskBase::checkIfUpdatable() const
         this->printParameters();
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Task is not configured.");
     }
-    
+
     if(!hasRobot())
     {
         orca_throw(Formatter() << "[" << getPrintableName() << "] " << "Robot is not loaded");
@@ -609,3 +612,6 @@ std::shared_ptr<const Wrench> TaskBase::getWrench() const
     }
     return wrench_;
 }
+
+} // namespace common
+} // namespace orca

@@ -1,5 +1,10 @@
 #include "orca/math/WeightedEuclidianNormFunction.h"
-using namespace orca::math;
+
+namespace orca
+{
+namespace math
+{
+
 using namespace orca::utils;
 
 WeightedEuclidianNormFunction::WeightedEuclidianNormFunction()
@@ -128,3 +133,6 @@ void WeightedEuclidianNormFunction::resize(int rows,int cols)
         this->computeQuadraticCost();
     }
 }
+
+} // namespace math
+} // namespace orca

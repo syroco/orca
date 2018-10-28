@@ -1,7 +1,11 @@
 #include "orca/math/ConstraintFunction.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::math;
+namespace orca
+{
+namespace math
+{
+
 using namespace orca::utils;
 
 void ConstraintFunction::print() const
@@ -180,3 +184,6 @@ int ConstraintFunction::cols() const
 {
     return C_.cols();
 }
+
+} // namespace math
+} // namespace orca

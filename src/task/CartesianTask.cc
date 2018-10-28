@@ -2,7 +2,10 @@
 #include "orca/common/CartesianAccelerationPID.h"
 #include <orca/common/Factory.h>
 
-using namespace orca::task;
+namespace orca
+{
+namespace task
+{
 using namespace orca::optim;
 using namespace orca::common;
 
@@ -92,5 +95,8 @@ void CartesianTask::onResize()
     const int fulldim = this->robot()->getConfigurationSpaceDimension();
     euclidianNorm().resize(6,fulldim);
 }
+
+} // namespace task
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::task::CartesianTask)

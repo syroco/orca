@@ -1,5 +1,9 @@
 #include "orca/constraint/JointVelocityLimitConstraint.h"
-using namespace orca::constraint;
+
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 
 JointVelocityLimitConstraint::JointVelocityLimitConstraint(const std::string& name)
@@ -22,5 +26,8 @@ void JointVelocityLimitConstraint::onUpdateConstraintFunction(double current_tim
     constraintFunction().lowerBound().noalias() = ( minLimit() - current_jnt_vel ) / ( horizon_dt );
     constraintFunction().upperBound().noalias() = ( maxLimit() - current_jnt_vel ) / ( horizon_dt );
 }
+
+} // namespace constraint
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::constraint::JointVelocityLimitConstraint)

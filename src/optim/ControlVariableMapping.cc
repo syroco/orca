@@ -1,9 +1,12 @@
 #include "orca/optim/ControlVariableMapping.h"
 
-using namespace orca::optim;
-
+namespace orca
+{
+namespace optim
+{
+    
 unsigned int ControlVariableMapping::generate(unsigned int ndof, unsigned int nwrenches)
-{   
+{
     const int fulldim = (floating_base_ ? 6 : 0) + ndof;
 
     size_map_[    ControlVariable::X                          ] = 2 * fulldim + nwrenches * 6;
@@ -54,3 +57,6 @@ unsigned int ControlVariableMapping::getTotalSize() const
 {
     return this->getSize(ControlVariable::X);
 }
+
+} // namespace optim
+} // namespace orca

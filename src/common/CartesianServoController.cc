@@ -2,7 +2,11 @@
 #include "orca/optim/ControlVariable.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
+
 using namespace orca::optim;
 using namespace orca::utils;
 
@@ -34,3 +38,6 @@ const std::string& CartesianServoController::getControlFrame() const
 {
     return control_frame_.get();
 }
+
+} // namespace common
+} // namespace orca

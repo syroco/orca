@@ -1,6 +1,9 @@
 #include "orca/constraint/DynamicsEquationConstraint.h"
 
-using namespace orca::constraint;
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 using namespace orca::common;
 
@@ -55,5 +58,8 @@ void DynamicsEquationConstraint::onUpdateConstraintFunction(double current_time,
     // The output is a set of generalized torques (base wrenches + joint torques (Corio-Centrifugal + Gravity))
     this->bound() = this->robot()->generalizedBiasForces();
 }
+
+} // namespace constraint
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::constraint::DynamicsEquationConstraint)

@@ -4,7 +4,12 @@
 // #include "QPSolverImpl_osqp.impl"
 //#include "QPSolverImpl_eigQuadProg.impl"
 #include <iostream>
-using namespace orca::optim;
+
+namespace orca
+{
+namespace optim
+{
+
 using namespace orca::utils;
 using namespace orca::common;
 
@@ -22,7 +27,7 @@ bool QPSolver::setImplementationType(QPSolverImplType solver_type)
     // We need resize if we previously had a pimpl
     // And the size makes sens
     bool need_resize = (bool(pimpl_) && nvar_ > 0 && nconstr_ > 0 );
-    
+
     switch(solver_type)
     {
         case QPSolverImplType::qpOASES:
@@ -37,12 +42,12 @@ bool QPSolver::setImplementationType(QPSolverImplType solver_type)
         default:
             orca_throw(Formatter() << "QPSolver '" << QPSolverImplTypeToString(solver_type) << "' not implemented");
     }
-    
+
     solver_type_ = solver_type;
-    
+
     if(need_resize)
         resize(nvar_,nconstr_);
-    
+
     return bool(pimpl_);
 }
 
@@ -74,3 +79,6 @@ bool QPSolver::solve(ProblemData& data)
     pimpl_->getPrimalSolution(data.primal_solution_);
     return ret_ == ReturnCode::SUCCESSFUL_RETURN;
 }
+
+} // namespace optim
+} // namespace orca

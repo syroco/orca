@@ -1,6 +1,10 @@
 #include <orca/common/ConfigurableOrcaObject.h>
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
+
 using namespace orca::utils;
 
 ConfigurableOrcaObject::ConfigurableOrcaObject(const std::string& config_name)
@@ -23,10 +27,10 @@ void ConfigurableOrcaObject::addParameter(const std::string& param_name,Paramete
 {
     if(param_name.empty())
         orca_throw(Formatter() << "Cannot have an empty parameter name !");
-    
+
     if(!param)
         orca_throw(Formatter() << "Param is null !");
-    
+
     if(key_exists(parameters_,param_name))
     {
         LOG_ERROR << "[" << getName() << "] " << "Parameter " << param_name << " already declared !";
@@ -61,8 +65,8 @@ void ConfigurableOrcaObject::printParameters() const
     for(auto p : parameters_)
     {
         ss << " * " << p.second->getName()
-            << "\n      - is required " << std::boolalpha << p.second->isRequired() 
-            << "\n      - is set " << std::boolalpha << p.second->isSet() << '\n'; 
+            << "\n      - is required " << std::boolalpha << p.second->isRequired()
+            << "\n      - is set " << std::boolalpha << p.second->isSet() << '\n';
     }
     LOG_INFO << ss.str();
 }
@@ -78,7 +82,7 @@ std::string ConfigurableOrcaObject::fileToString(const std::string& yaml_url)
 
     YAML::Emitter out;
     out << config;
-    
+
     return out.c_str();
 }
 
@@ -125,7 +129,7 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
 //                 {
 //                     orca_throw(Formatter() << "YAML Node name (" << config_name << ") does not match with config name (" << name_ ")");
 //                 }
-    
+
     if(!config)
     {
         return false;
@@ -134,16 +138,16 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
     {
         return false;
     }
-    
-    auto to_string = [](const YAML::Node& n) -> std::string 
+
+    auto to_string = [](const YAML::Node& n) -> std::string
             { YAML::Emitter out; out << n; return out.c_str(); };
 
     std::cout << "Configuring from config " << to_string(config) << '\n';
-    
+
     for(auto c : config)
     {
         std::cout << "Analysing subconfig " << to_string(c.first) << '\n';
-        
+
         auto param_name = c.first.as<std::string>();
         // Special case for the 'type' param
         if(param_name == "type")
@@ -154,7 +158,7 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
         if(!key_exists(parameters_,param_name))
         {
             std::stringstream ss;
-            ss << "[" << getName() << "] " 
+            ss << "[" << getName() << "] "
                 << "Parameter \"" << param_name << "\" not declared but present in the yaml file\n"
                 << "Did you forget to addParameter() in the component constructor ?\n"
                 << "Declared parameters : \n";
@@ -178,7 +182,7 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
             }
         }
     }
-    
+
     // Check if all the required parameters are present in the config file
     bool all_present = true;
     for(auto p : parameters_)
@@ -189,7 +193,7 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
             {
                 if(p.second->isSet())
                 {
-                    LOG_WARNING << "[" << getName() << "] " << "Required parameter '" << p.first 
+                    LOG_WARNING << "[" << getName() << "] " << "Required parameter '" << p.first
                         << "' is set but not present in config file.\n"
                         << "Declare the parameter to remove this warning.";
                     p.second->print();
@@ -202,14 +206,14 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
             }
         }
     }
-    
+
     // All required parameters should be in the config file
     if(!all_present)
     {
         LOG_ERROR << "[" << getName() << "] " << "Configuring failed";
         return false;
     }
-    
+
     // Check if all required parameters are set (can be from file or calling specific methods)
     bool all_set = isConfigured();
     if(!all_set)
@@ -217,11 +221,11 @@ bool ConfigurableOrcaObject::configureFromString(const std::string& yaml_str)
         for(auto p : parameters_)
         {
             LOG_WARNING_IF(p.second->isRequired() && ! p.second->isSet()) << "[" << getName() << "] "
-                    << "Required parameter '" << p.second->getName() 
+                    << "Required parameter '" << p.second->getName()
                     << "' is not set yet. It has to be set before any update.";
         }
     }
-    
+
     LOG_INFO << "[" << getName() << "] " << "Sucessfully configured";
 
     if(on_success_)
@@ -248,3 +252,6 @@ const ConfigurableOrcaObject::ParamMap& ConfigurableOrcaObject::getParameters() 
 {
     return parameters_;
 }
+
+} // namespace common
+} // namespace orca

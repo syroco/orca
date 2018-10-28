@@ -1,8 +1,11 @@
 #include "orca/task/WrenchTask.h"
 #include "orca/optim/ControlVariable.h"
 
+namespace orca
+{
+namespace task
+{
 using namespace orca::math;
-using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::common;
 
@@ -83,5 +86,8 @@ void WrenchTask::onResize()
     E().setIdentity();
     pid_.get()->resize(6);
 }
+
+} // namespace task
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::task::WrenchTask)

@@ -1,7 +1,9 @@
 #include "orca/constraint/JointPositionLimitConstraint.h"
 
-
-using namespace orca::constraint;
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
@@ -38,5 +40,8 @@ void JointPositionLimitConstraint::onUpdateConstraintFunction(double current_tim
     constraintFunction().lowerBound().noalias() = 2. * ( minLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
     constraintFunction().upperBound().noalias() = 2. * ( maxLimit() - (current_jnt_pos + horizon_dt * current_jnt_vel )) / ( horizon_dt * horizon_dt );
 }
+
+} // namespace constraint
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::constraint::JointPositionLimitConstraint)

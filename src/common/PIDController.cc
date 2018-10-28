@@ -1,7 +1,10 @@
 #include "orca/common/PIDController.h"
 #include <orca/common/Factory.h>
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
 
 PIDController::PIDController(const std::string& name)
 : ConfigurableOrcaObject(name)
@@ -26,22 +29,22 @@ void PIDController::resize(int dim)
         dimension_ = dim;
         if(!p_gain_.isSet() || p_gain_.get().size() != dim)
             p_gain_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(!i_gain_.isSet() || i_gain_.get().size() != dim)
             i_gain_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(!d_gain_.isSet() || d_gain_.get().size() != dim)
             d_gain_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(i_error_.size() != dim)
             i_error_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(d_error_.size() != dim)
             d_error_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(cmd_.size() != dim)
             cmd_ = Eigen::VectorXd::Zero(dim);
-        
+
         if(!windup_limit_.isSet() || windup_limit_.get().size() != dim)
             windup_limit_ = Eigen::VectorXd::Constant(dim,math::Infinity);
     }
@@ -145,5 +148,8 @@ void PIDController::print() const
     std::cout << "      derror " << d_error_.transpose() << '\n';
     std::cout << "      Command " << cmd_.transpose() << '\n';
 }
+
+} // namespace common
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::common::PIDController)

@@ -1,5 +1,9 @@
 #include "orca/constraint/GenericConstraint.h"
-using namespace orca::constraint;
+
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::utils;
@@ -132,3 +136,6 @@ void GenericConstraint::onCompute(double current_time, double dt)
             );
     }
 }
+
+} // namespace constraint
+} // namespace orca

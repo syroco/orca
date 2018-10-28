@@ -6,8 +6,11 @@
 #include "orca/constraint/DynamicsEquationConstraint.h"
 #include "orca/common/ParameterSharedPtr.h"
 
-using namespace orca;
-using namespace orca::optim;
+namespace orca
+{
+namespace optim
+{
+
 using namespace orca::utils;
 using namespace orca::common;
 using namespace orca::robot;
@@ -25,16 +28,16 @@ Controller::Controller(const std::string& name)
     this->onConfigureSuccess([&](){
 
         LOG_WARNING << "[" << getName() << "]" << " Config sucessfully loaded ";
-        
+
         joint_acceleration_command_.setZero(robot()->getNrOfDegreesOfFreedom());
         joint_torque_command_.setZero(robot()->getNrOfDegreesOfFreedom());
         kkt_torques_.setZero(robot()->getNrOfDegreesOfFreedom());
 
         insertNewLevel();
-        
+
         LOG_WARNING << "[" << getName() << "]" << " Adding " << tasks_.get().size() << " tasks "
             << " and " << constraints_.get().size() << " constraints";
-        
+
         for(auto task : tasks_.get())
             this->addTask(task);
         for(auto constraint: constraints_.get())
@@ -51,7 +54,7 @@ Controller::Controller(const std::string& name
     resolution_strategy_ = resolution_strategy;
     solver_type_ = solver_type;
     robot_ = robot;
-    
+
     joint_acceleration_command_.setZero(robot->getNrOfDegreesOfFreedom());
     joint_torque_command_.setZero(robot->getNrOfDegreesOfFreedom());
     kkt_torques_.setZero(robot->getNrOfDegreesOfFreedom());
@@ -174,7 +177,7 @@ bool Controller::addTaskFromString(const std::string& task_description)
         Parameter<task::GenericTask::Ptr> param;
         param.loadFromString(task_description);
         return this->addTask(param.get());
-    } 
+    }
     catch(std::exception& e)
     {
         LOG_WARNING << "Could not add task from string : " << e.what();
@@ -190,7 +193,7 @@ bool Controller::addConstraintFromString(const std::string& cstr_description)
         if(!param.loadFromString(cstr_description))
             return false;
         return this->addConstraint(param.get());
-    } 
+    }
     catch(std::exception& e)
     {
         LOG_WARNING << "Could not add constraint from string : " << e.what();
@@ -466,7 +469,7 @@ void Controller::insertNewLevel()
 
     auto dynamics_equation = std::make_shared<constraint::DynamicsEquationConstraint>("DynamicsEquation");
     auto global_regularisation = std::make_shared<task::RegularisationTask<ControlVariable::X> >("GlobalRegularisation");
-    
+
     // NOTE: The order matters : 1rst things first to be updated
     addConstraint(dynamics_equation);
     addTask(global_regularisation);
@@ -511,3 +514,6 @@ void Controller::updateConstraints(double current_time, double dt)
         }
     }
 }
+
+} // namespace optim
+} // namespace orca

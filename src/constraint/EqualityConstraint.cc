@@ -1,5 +1,9 @@
 #include "orca/constraint/EqualityConstraint.h"
-using namespace orca::constraint;
+
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 
 EqualityConstraint::EqualityConstraint(const std::string& name,ControlVariable control_var)
@@ -34,3 +38,6 @@ void EqualityConstraint::setBound(const Eigen::VectorXd& newBound)
     GenericConstraint::setUpperBound(newBound);
     GenericConstraint::setLowerBound(newBound);
 }
+
+} // namespace constraint
+} // namespace orca

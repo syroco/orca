@@ -1,7 +1,10 @@
 #include "orca/math/AffineFunction.h"
 
-using namespace orca::math;
-
+namespace orca
+{
+namespace math
+{
+    
 void AffineFunction::print() const
 {
     std::cout << "Ax+b" << std::endl;
@@ -73,3 +76,6 @@ int AffineFunction::rows() const
 {
     return A_.rows();
 }
+
+} // namespace math
+} // namespace orca

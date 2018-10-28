@@ -1,7 +1,10 @@
 #include "orca/task/GenericTask.h"
 #include "orca/optim/ControlVariable.h"
 
-using namespace orca::task;
+namespace orca
+{
+namespace task
+{
 using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::common;
@@ -23,7 +26,7 @@ void GenericTask::print() const
 {
     TaskBase::print();
     getEuclidianNorm().print();
-    std::cout << " - Weight " << weight_ << '\n';
+    std::cout << " - Weight " << weight_.get() << '\n';
     std::cout << " - Ramp   " << getCurrentRampValue() << '\n';
     std::cout << " - Ramp duration " << getRampDuration() << '\n';
 }
@@ -166,3 +169,6 @@ void GenericTask::computeQuadraticCost()
 {
     euclidian_norm_.computeQuadraticCost();
 }
+
+} // namespace task
+} // namespace orca

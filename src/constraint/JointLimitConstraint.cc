@@ -3,7 +3,10 @@
 #include "orca/math/Utils.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::constraint;
+namespace orca
+{
+namespace constraint
+{
 using namespace orca::optim;
 using namespace orca::common;
 using namespace orca::utils;
@@ -47,10 +50,13 @@ void JointLimitConstraint::onResize()
     {
         max_ = Eigen::VectorXd::Constant(dim,   math::Infinity);
     }
-    
+
     if(constraintFunction().rows() != dim)
     {
         constraintFunction().resize(dim,dim);
         constraintFunction().constraintMatrix().setIdentity();
     }
 }
+
+} // namespace constraint
+} // namespace orca

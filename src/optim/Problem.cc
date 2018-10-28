@@ -6,10 +6,14 @@
 #include "orca/constraint/GenericConstraint.h"
 #include "orca/robot/RobotModel.h"
 
+namespace orca
+{
+namespace optim
+{
+
 using namespace orca::common;
 using namespace orca::task;
 using namespace orca::constraint;
-using namespace orca::optim;
 using namespace orca::math;
 using namespace orca::utils;
 using namespace orca::robot;
@@ -220,9 +224,9 @@ unsigned int Problem::generateVariableMapping()
 void Problem::resize()
 {
     // NOTE : We only need to call resize when
-    // * It receives the robot 
+    // * It receives the robot
     //      --> generate mapping between variables
-    //          --> resize its data 
+    //          --> resize its data
     //              --> resize all tasks that depends on the problem size (tasks resize their children)
     // * It receives a task that has a wrench
     //      --> re-generate mapping to take into account the new wrench (the whole optimisation vector gets +6 in size)
@@ -231,7 +235,7 @@ void Problem::resize()
 
     int nvars = generateVariableMapping();
     int nconstr = computeNumberOfConstraintRows();
-    
+
     // Verify if size has changed
     if(nvars != this->number_of_variables_ || nconstr != this->number_of_constraints_rows_)
     {
@@ -405,3 +409,6 @@ void Problem::build()
         }
     }
 }
+
+} // namespace optim
+} // namespace orca

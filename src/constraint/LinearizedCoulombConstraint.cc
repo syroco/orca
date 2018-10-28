@@ -2,7 +2,12 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-using namespace orca::constraint;
+
+namespace orca
+{
+namespace constraint
+{
+
 using namespace orca::common;
 
 LinearizedCoulombConstraint::LinearizedCoulombConstraint(const std::string& name)
@@ -97,5 +102,8 @@ void LinearizedCoulombConstraint::onUpdateConstraintFunction(double current_time
     constraintFunction().constraintMatrix() *= R_cone_.transpose();
     constraintFunction().upperBound().setConstant(margin_);
 }
+
+} // namespace constraint
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::constraint::LinearizedCoulombConstraint)

@@ -1,6 +1,10 @@
 #include "orca/constraint/ContactExistenceConditionConstraint.h"
 
-using namespace orca::constraint;
+namespace orca
+{
+namespace constraint
+{
+
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
@@ -56,5 +60,8 @@ void ContactExistenceConditionConstraint::onResize()
         jacobian_.setZero(6,fulldim);
     }
 }
+
+} // namespace constraint
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::constraint::ContactExistenceConditionConstraint)

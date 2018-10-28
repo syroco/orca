@@ -1,7 +1,10 @@
 #include "orca/common/Wrench.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::common;
+namespace orca
+{
+namespace common
+{
 using namespace orca::utils;
 using namespace orca::robot;
 
@@ -99,5 +102,8 @@ void Wrench::print() const
     std::cout << " - Current value : " << getCurrentValue().transpose() << '\n';
     std::cout << " - Current jacobian : \n" << getJacobian() << '\n';
 }
+
+} // namespace common
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::common::Wrench)

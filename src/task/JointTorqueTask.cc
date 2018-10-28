@@ -1,8 +1,11 @@
 #include "orca/task/JointTorqueTask.h"
 #include "orca/utils/Utils.h"
 
+namespace orca
+{
+namespace task
+{
 
-using namespace orca::task;
 using namespace orca::optim;
 using namespace orca::robot;
 using namespace orca::common;
@@ -78,5 +81,8 @@ void JointTorqueTask::onResize()
         E().setIdentity();
     }
 }
+
+} // namespace task
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::task::JointTorqueTask)

@@ -10,7 +10,11 @@
 #include <tinyxml.h>
 #include <orca/common/Factory.h>
 
-using namespace orca::robot;
+namespace orca
+{
+namespace robot
+{
+
 using namespace orca::utils;
 using namespace orca::math;
 using namespace orca::common;
@@ -65,7 +69,7 @@ RobotModel::RobotModel(const std::string& robot_name)
     this->addParameter("urdf_str",&urdf_str_,ParamPolicy::Optional);
     this->addParameter("gravity",&gravity_,ParamPolicy::Optional);
     this->addParameter("home_joint_positions",&home_joint_positions_,ParamPolicy::Optional);
-    
+
     gravity_ = Eigen::Vector3d(0,0,-9.809);
 
     switch(robot_kinematics_type_)
@@ -82,7 +86,7 @@ bool RobotModel::loadFromParameters()
 {
     if(!urdf_url_.isSet() && !urdf_str_.isSet())
         orca_throw(Formatter() << "urdf_str and urdf_url are not set !\nYou should at least provide one of them to load the robot model.");
-    
+
     if(urdf_url_.isSet())
     {
         if(!this->loadModelFromFile(urdf_url_.get()))
@@ -93,7 +97,7 @@ bool RobotModel::loadFromParameters()
         if(!this->loadModelFromString(urdf_str_.get()))
             return false;
     }
-    
+
     this->setBaseFrame(base_frame_.get());
 
     if(gravity_.isSet())
@@ -102,11 +106,11 @@ bool RobotModel::loadFromParameters()
     if(home_joint_positions_.isSet())
     {
         if(home_joint_positions_.get().size() != getNrOfDegreesOfFreedom())
-            orca_throw(Formatter() << "home_joint_positions provided does not match ndof (" 
-                << home_joint_positions_.get().size() 
+            orca_throw(Formatter() << "home_joint_positions provided does not match ndof ("
+                << home_joint_positions_.get().size()
                 << " vs " << getNrOfDegreesOfFreedom() << ")"
             );
-        
+
         Eigen::VectorXd zero_vel = Eigen::VectorXd::Zero(getNrOfDegreesOfFreedom());
 
         // Set the first state to the robot
@@ -150,9 +154,9 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         // If no name is provided, let's find it on the URDF
         TiXmlDocument doc;
         doc.Parse(modelString.c_str());
-        
+
         std::string name_in_xml;
-        
+
         if(!getRobotNameFromTinyXML(&doc,name_in_xml))
         {
             LOG_ERROR << "Could not extract automatically the robot name from the urdf." \
@@ -163,7 +167,7 @@ bool RobotModel::loadModelFromString(const std::string &modelString)
         {
             LOG_DEBUG << "Name extracted from URDF string : " << name_in_xml;
         }
-        
+
         // Set the new name
         name_.set( name_in_xml );
     }
@@ -469,5 +473,8 @@ const Eigen::VectorXd& RobotModel::generalizedBiasForces()
     assertInitialized();
     return impl_->generalizedBiasForces();
 }
+
+} // namespace robot
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::robot::RobotModel)

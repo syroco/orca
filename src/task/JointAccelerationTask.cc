@@ -1,7 +1,11 @@
 #include "orca/task/JointAccelerationTask.h"
 #include "orca/utils/Utils.h"
 
-using namespace orca::task;
+namespace orca
+{
+namespace task
+{
+
 using namespace orca::optim;
 using namespace orca::common;
 using namespace orca::utils;
@@ -33,7 +37,7 @@ void JointAccelerationTask::onActivation()
     // Set the desired position to the current robot state
     if(!jnt_pos_des_.isSet())
         jnt_pos_des_ = robot()->getJointPos();
-        
+
     assertSize(jnt_pos_des_.get(),robot()->getNrOfDegreesOfFreedom());
     assertSize(jnt_vel_des_.get(),robot()->getNrOfDegreesOfFreedom());
     assertSize(jnt_acc_des_.get(),robot()->getNrOfDegreesOfFreedom());
@@ -55,9 +59,9 @@ void JointAccelerationTask::onResize()
     {
         euclidianNorm().resize(dof,dof);
         E().setIdentity();
-        
+
         pid_.get()->resize(dof);
-        
+
         if(!jnt_pos_des_.isSet())
             jnt_pos_des_ = Eigen::VectorXd::Zero( dof );
         if(!jnt_vel_des_.isSet())
@@ -66,5 +70,8 @@ void JointAccelerationTask::onResize()
             jnt_acc_des_ = Eigen::VectorXd::Zero( dof );
     }
 }
+
+} // namespace task
+} // namespace orca
 
 ORCA_REGISTER_CLASS(orca::task::JointAccelerationTask)
