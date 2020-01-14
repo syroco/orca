@@ -63,15 +63,15 @@ else()
     # Some linking issues might happend, which are fixed with the 'auto' config
     # of eigen subdir. This is considered necessary for the code to be portable
     set(BUILD_TESTING OFF CACHE BOOL "Disable eigen tests")
-    set(eigen_dir ${PROJECT_SOURCE_DIR}/external/eigen-3.3.5)
+    set(eigen_dir ${PROJECT_SOURCE_DIR}/external/eigen-3.3.7)
     if(system_eigen3_found)
         message(WARNING "Found system Eigen3 ${system_eigen3_version} at ${system_eigen3_include_dir}, but internal iDynTree requires at least 3.2.
-        ORCA will build using internal Eigen3 (3.3.5) for the build but will not overwrite the system version.")
+        ORCA will build using internal Eigen3 (3.3.7) for the build but will not overwrite the system version.")
         # it means we have it on the system, just not the right version
         # so we dont mess with the system libs
         add_subdirectory(${eigen_dir}/eigen3 EXCLUDE_FROM_ALL)
     else()
-        message(WARNING "Using internal Eigen3 (3.3.5) for the build. ORCA will export it as the system does not seem to have eigen3 installed")
+        message(WARNING "Using internal Eigen3 (3.3.7) for the build. ORCA will export it as the system does not seem to have eigen3 installed")
         # export/install the package as we really dont have eigen on the system
         add_subdirectory(${eigen_dir}/eigen3)
     endif()
@@ -103,19 +103,17 @@ set(UNITTESTS OFF CACHE BOOL "")
 set(PROFILING OFF CACHE BOOL "")
 set(ENABLE_MKL_PARDISO OFF CACHE BOOL "")
 set(DLONG OFF CACHE BOOL "Use int instead of long long for storing the indexes to match eigen sparseviews")
-add_subdirectory(external/osqp-0.3.0 EXCLUDE_FROM_ALL)
+add_subdirectory(external/osqp-0.6.0 EXCLUDE_FROM_ALL)
 
 #################### libxml2 #########################
 # TODO : Make a properer cmake for libxml2
-find_package(LibXml2 QUIET)
+#find_package(LibXml2 QUIET)
 if(NOT LIBXML2_FOUND)
-    message(STATUS "Using embedded libxml2 2.9.8")
-    add_subdirectory(external/libxml2 EXCLUDE_FROM_ALL)
-    set(LIBXML2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/external/libxml2/libxml2-2.9.8/include )
-    set(LIBXML2_LIBRARY xml2 )
-    set(LIBXML2_FOUND TRUE )
-    set(LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIR} )
-    set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARY} )
+    message(STATUS "Using embedded libxml2 2.9.10")
+    set(LIBXML2_WITH_PYTHON OFF CACHE BOOL "")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
+    add_subdirectory(external/libxml2-v2.9.10)
+    set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 endif()
 
 #################### iDynTree #########################
@@ -128,21 +126,21 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
     message(WARNING "Detected idyntree git version. Dev only !")
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
 else()
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-fe5a3d7 EXCLUDE_FROM_ALL)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-1.0.0 EXCLUDE_FROM_ALL)
 endif()
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
 #################### Yaml cpp #########################
 find_package(yaml-cpp QUIET)
 if(NOT yaml-cpp_FOUND)
-    message(STATUS "Using embedded yaml-cpp master branch 28-sept-2018")
+    message(STATUS "Using embedded yaml-cpp 0.6.3")
     set(BUILD_SHARED_LIBS OFF)
     set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
     set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
     set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "")
     #add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/ EXCLUDE_FROM_ALL)
     # TODO: Figure out how to remove yaml-cpp from headers
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-master/)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/yaml-cpp-yaml-cpp-0.6.3/)
     set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 endif()
 

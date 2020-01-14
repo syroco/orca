@@ -1,0 +1,9 @@
+build/*
+*kdev4
+*~
+*pyc
+**/build/*
+
+.DS_Store
+*.txt.user*
+.idea/*

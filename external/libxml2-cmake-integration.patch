@@ -1,0 +1,1224 @@
+From c3a33b70cce4c9f1b9e81b3effe24a5bc07dd95f Mon Sep 17 00:00:00 2001
+From: Markus Rickert <rickert@fortiss.org>
+Date: Sat, 9 Sep 2017 21:05:55 +0200
+Subject: [PATCH] Add CMake build files
+
+---
+ CMakeLists.txt                | 725 ++++++++++++++++++++++++++++++++++
+ config.h.cmake.in             | 310 +++++++++++++++
+ libxml2-config.cmake.cmake.in | 157 ++++++++
+ 3 files changed, 1192 insertions(+)
+ create mode 100644 CMakeLists.txt
+ create mode 100644 config.h.cmake.in
+ create mode 100644 libxml2-config.cmake.cmake.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 000000000..a86b723aa
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,725 @@
++cmake_minimum_required(VERSION 2.8.11)
++
++project(libxml2)
++
++include(CheckCSourceCompiles)
++include(CheckFunctionExists)
++include(CheckIncludeFiles)
++include(CheckLibraryExists)
++include(CheckStructHasMember)
++include(CheckSymbolExists)
++include(CMakePackageConfigHelpers)
++include(GNUInstallDirs)
++
++set(LIBXML_MAJOR_VERSION 2)
++set(LIBXML_MINOR_VERSION 9)
++set(LIBXML_MICRO_VERSION 10)
++
++set(VERSION "${LIBXML_MAJOR_VERSION}.${LIBXML_MINOR_VERSION}.${LIBXML_MICRO_VERSION}")
++set(LIBXML_VERSION ${LIBXML_MAJOR_VERSION}0${LIBXML_MINOR_VERSION}0${LIBXML_MICRO_VERSION})
++set(LIBXML_VERSION_STRING "${LIBXML_VERSION}")
++set(LIBXML_VERSION_EXTRA "")
++set(LIBXML_VERSION_NUMBER ${LIBXML_VERSION})
++
++find_package(Iconv QUIET CONFIG)
++
++if(NOT CMAKE_VERSION VERSION_LESS 3.7)
++	find_package(ICU)
++endif()
++
++find_package(LibLZMA QUIET CONFIG)
++
++if(NOT CMAKE_VERSION VERSION_LESS 3.12)
++	find_package(Python COMPONENTS Interpreter Development)
++else()
++	find_package(PythonInterp)
++	set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
++	find_package(PythonLibs)
++	if(PYTHONLIBS_FOUND)
++		add_library(Python::Python INTERFACE IMPORTED)
++		set_property(TARGET Python::Python PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
++		set_property(TARGET Python::Python PROPERTY INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
++	endif()
++	execute_process(
++		COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print sysconfig.get_python_lib(plat_specific=True,standard_lib=False)"
++		OUTPUT_VARIABLE Python_SITEARCH
++		OUTPUT_STRIP_TRAILING_WHITESPACE
++	)
++	set(Python_FOUND PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
++endif()
++
++find_package(Threads)
++find_package(ZLIB QUIET CONFIG)
++
++if(NOT Iconv_FOUND AND NOT CMAKE_VERSION VERSION_LESS 3.11)
++	find_package(Iconv)
++	if(Iconv_FOUND AND NOT TARGET Iconv::Iconv)
++		add_library(Iconv::Iconv INTERFACE IMPORTED)
++		set_property(TARGET Iconv::Iconv PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${Iconv_INCLUDE_DIRS}")
++		set_property(TARGET Iconv::Iconv PROPERTY INTERFACE_LINK_LIBRARIES "${Iconv_LIBRARIES}")
++	endif()
++endif()
++
++if(NOT LibLZMA_FOUND)
++	find_package(LibLZMA)
++	if((LibLZMA_FOUND OR LIBLZMA_FOUND) AND NOT TARGET LibLZMA::LibLZMA)
++		add_library(LibLZMA::LibLZMA UNKNOWN IMPORTED)
++		set_target_properties(LibLZMA::LibLZMA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${LIBLZMA_INCLUDE_DIRS})
++		set_target_properties(LibLZMA::LibLZMA PROPERTIES IMPORTED_LOCATION ${LIBLZMA_LIBRARIES})
++	endif()
++endif()
++
++if(Threads_FOUND AND NOT TARGET Threads::Threads)
++	add_library(Threads::Threads INTERFACE IMPORTED)
++	if(THREADS_HAVE_PTHREAD_ARG)
++		set_property(TARGET Threads::Threads PROPERTY INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -pthread>" "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>")
++	endif()
++	if(CMAKE_THREAD_LIBS_INIT)
++		set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
++	endif()
++endif()
++
++if(NOT ZLIB_FOUND)
++	find_package(ZLIB)
++	if(ZLIB_FOUND AND NOT TARGET ZLIB::ZLIB)
++		add_library(ZLIB::ZLIB UNKNOWN IMPORTED)
++		set_target_properties(ZLIB::ZLIB PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIRS}")
++		if(ZLIB_LIBRARY_RELEASE)
++			set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
++			set_target_properties(ZLIB::ZLIB PROPERTIES IMPORTED_LOCATION_RELEASE "${ZLIB_LIBRARY_RELEASE}")
++		endif()
++		if(ZLIB_LIBRARY_DEBUG)
++			set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
++			set_target_properties(ZLIB::ZLIB PROPERTIES IMPORTED_LOCATION_DEBUG "${ZLIB_LIBRARY_DEBUG}")
++		endif()
++		if(NOT ZLIB_LIBRARY_RELEASE AND NOT ZLIB_LIBRARY_DEBUG)
++			set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_LOCATION "${ZLIB_LIBRARY}")
++		endif()
++	endif()
++endif()
++
++option(BUILD_SHARED_LIBS "Build shared libraries" ON)
++set(LIBXML2_WITH_AUTOMATA ON)
++option(LIBXML2_WITH_C14N "Add the Canonicalization support" ON)
++option(LIBXML2_WITH_CATALOG "Add the Catalog support" ON)
++option(LIBXML2_WITH_DEBUG "Add the debugging module" ON)
++option(LIBXML2_WITH_DOCB "Add Docbook SGML support" ON)
++set(LIBXML2_WITH_EXPR ON)
++option(LIBXML2_WITH_FTP "Add the FTP support" ON)
++option(LIBXML2_WITH_HTML "Add the HTML support" ON)
++option(LIBXML2_WITH_HTTP "Add the HTTP support" ON)
++
++if(Iconv_FOUND)
++	option(LIBXML2_WITH_ICONV "Add ICONV support" ON)
++else()
++	set(LIBXML2_WITH_ICONV OFF)
++endif()
++
++if(ICU_FOUND)
++	option(LIBXML2_WITH_ICU "Add ICU support" OFF)
++else()
++	set(LIBXML2_WITH_ICU OFF)
++endif()
++
++option(LIBXML2_WITH_ISO8859X "Add ISO8859X support if no iconv" ON)
++option(LIBXML2_WITH_LEGACY "Add deprecated APIs for compatibility" ON)
++
++if(LibLZMA_FOUND OR LIBLZMA_FOUND)
++	option(LIBXML2_WITH_LZMA "Use liblzma" ON)
++else()
++	set(LIBXML2_WITH_LZMA OFF)
++endif()
++
++option(LIBXML2_WITH_MEM_DEBUG "Add the memory debugging module" OFF)
++option(LIBXML2_WITH_MODULES "Add the dynamic modules support" ON)
++option(LIBXML2_WITH_OUTPUT "Add the serialization support" ON)
++option(LIBXML2_WITH_PATTERN "Add the xmlPattern selection interface" ON)
++option(LIBXML2_WITH_PUSH "Add the PUSH parser interfaces" ON)
++
++if(Python_FOUND)
++	option(LIBXML2_WITH_PYTHON "Build Python bindings" ON)
++	set(LIBXML2_PYTHON_INSTALL_DIR ${Python_SITEARCH} CACHE PATH "Python bindings install directory")
++else()
++	set(LIBXML2_WITH_PYTHON OFF)
++endif()
++
++option(LIBXML2_WITH_READER "Add the xmlReader parsing interface" ON)
++option(LIBXML2_WITH_REGEXPS "Add Regular Expressions support" ON)
++option(LIBXML2_WITH_RUN_DEBUG "Add the runtime debugging module" OFF)
++option(LIBXML2_WITH_SAX1 "Add the older SAX1 interface" ON)
++option(LIBXML2_WITH_SCHEMAS "Add Relax-NG and Schemas support" ON)
++option(LIBXML2_WITH_SCHEMATRON "Add Schematron support" ON)
++
++if(Threads_FOUND)
++	option(LIBXML2_WITH_THREADS "Add multithread support" ON)
++else()
++	set(LIBXML2_WITH_THREADS OFF)
++endif()
++
++option(LIBXML2_WITH_THREAD_ALLOC "Add per-thread memory" OFF)
++option(LIBXML2_WITH_TREE "Add the DOM like tree manipulation APIs" ON)
++set(LIBXML2_WITH_TRIO OFF)
++set(LIBXML2_WITH_UNICODE ON)
++option(LIBXML2_WITH_VALID "Add the DTD validation support" ON)
++option(LIBXML2_WITH_WRITER "Add the xmlWriter saving interface" ON)
++option(LIBXML2_WITH_XINCLUDE "Add the XInclude support" ON)
++option(LIBXML2_WITH_XPATH "Add the XPATH support" ON)
++option(LIBXML2_WITH_XPTR "Add the XPointer support" ON)
++
++if(ZLIB_FOUND)
++	option(LIBXML2_WITH_ZLIB "Use libz" ON)
++else()
++	set(LIBXML2_WITH_ZLIB OFF)
++endif()
++
++foreach(VARIABLE IN ITEMS WITH_AUTOMATA WITH_C14N WITH_CATALOG WITH_DEBUG WITH_DOCB WITH_EXPR WITH_FTP WITH_HTML WITH_HTTP WITH_ICONV WITH_ICU WITH_ISO8859X WITH_LEGACY WITH_LZMA WITH_MEM_DEBUG WITH_MODULES WITH_OUTPUT WITH_PATTERN WITH_PUSH WITH_READER WITH_REGEXPS WITH_RUN_DEBUG WITH_SAX1 WITH_SCHEMAS WITH_SCHEMATRON WITH_THREADS WITH_THREAD_ALLOC WITH_TREE WITH_TRIO WITH_UNICODE WITH_VALID WITH_WRITER WITH_XINCLUDE WITH_XPATH WITH_XPTR WITH_ZLIB)
++	if(LIBXML2_${VARIABLE})
++		set(${VARIABLE} 1)
++	else()
++		set(${VARIABLE} 0)
++	endif()
++endforeach()
++
++set(MODULE_EXTENSION "${CMAKE_SHARED_LIBRARY_SUFFIX}")
++
++set(PACKAGE "libxml2")
++set(PACKAGE_BUGREPORT "xml@gnome.org")
++set(PACKAGE_NAME "libxml2")
++set(PACKAGE_STRING "libxml2 ${VERSION}")
++set(PACKAGE_TARNAME "libxml2")
++set(PACKAGE_URL "http://www.xmlsoft.org/")
++set(PACKAGE_VERSION ${VERSION})
++
++if(LibLZMA_FOUND OR LIBLZMA_FOUND)
++	list(APPEND CMAKE_REQUIRED_LIBRARIES LibLZMA::LibLZMA)
++endif()
++
++if(Threads_FOUND)
++	list(APPEND CMAKE_REQUIRED_LIBRARIES Threads::Threads)
++endif()
++
++if(ZLIB_FOUND)
++	list(APPEND CMAKE_REQUIRED_LIBRARIES ZLIB::ZLIB)
++endif()
++
++if(MSVC)
++	configure_file(include/win32config.h config.h COPYONLY)
++else()
++	check_c_source_compiles("
++		#include <netdb.h>
++		int main() { (void) gethostbyname((const char*) \"\"); return 0; }
++	" GETHOSTBYNAME_ARG_CAST_CONST)
++	if(NOT GETHOSTBYNAME_ARG_CAST_CONST)
++		set(GETHOSTBYNAME_ARG_CAST "(char*)")
++	else()
++		set(GETHOSTBYNAME_ARG_CAST "/**/")
++	endif()
++	check_include_files(arpa/inet.h HAVE_ARPA_INET_H)
++	check_include_files(arpa/nameser.h HAVE_ARPA_NAMESER_H)
++	check_struct_has_member("struct sockaddr_storage" ss_family "sys/socket.h;sys/types.h" HAVE_SS_FAMILY)
++	check_struct_has_member("struct sockaddr_storage" __ss_family "sys/socket.h;sys/types.h" HAVE_BROKEN_SS_FAMILY)
++	if(HAVE_BROKEN_SS_FAMILY)
++		set(ss_family __ss_family)
++	endif()
++	check_function_exists(class HAVE_CLASS)
++	check_include_files(ctype.h HAVE_CTYPE_H)
++	check_include_files(dirent.h HAVE_DIRENT_H)
++	check_include_files(dlfcn.h HAVE_DLFCN_H)
++	check_library_exists(dl dlopen "" HAVE_DLOPEN)
++	check_include_files(dl.h HAVE_DL_H)
++	check_include_files(errno.h HAVE_ERRNO_H)
++	check_include_files(fcntl.h HAVE_FCNTL_H)
++	check_function_exists(finite HAVE_FINITE)
++	check_include_files(float.h HAVE_FLOAT_H)
++	check_function_exists(fpclass HAVE_FPCLASS)
++	check_function_exists(fprintf HAVE_FPRINTF)
++	check_function_exists(fp_class HAVE_FP_CLASS)
++	check_function_exists(ftime HAVE_FTIME)
++	check_function_exists(getaddrinfo HAVE_GETADDRINFO)
++	check_function_exists(gettimeofday HAVE_GETTIMEOFDAY)
++	check_include_files(inttypes.h HAVE_INTTYPES_H)
++	check_function_exists(isascii HAVE_ISASCII)
++	check_function_exists(isinf HAVE_ISINF)
++	check_function_exists(isnan HAVE_ISNAN)
++	check_function_exists(isnand HAVE_ISNAND)
++	check_library_exists(history append_history "" HAVE_LIBHISTORY)
++	check_library_exists(lzma lzma_code "" HAVE_LIBLZMA)
++	check_library_exists(pthread pthread_join "" HAVE_LIBPTHREAD)
++	check_library_exists(readline readline "" HAVE_LIBREADLINE)
++	check_library_exists(z gzread "" HAVE_LIBZ)
++	check_include_files(limits.h HAVE_LIMITS_H)
++	check_function_exists(localtime HAVE_LOCALTIME)
++	check_include_files(lzma.h HAVE_LZMA_H)
++	check_include_files(malloc.h HAVE_MALLOC_H)
++	check_include_files(math.h HAVE_MATH_H)
++	check_include_files(memory.h HAVE_MEMORY_H)
++	check_function_exists(mmap HAVE_MMAP)
++	check_function_exists(munmap HAVE_MUNMAP)
++	check_symbol_exists(DIR ndir.h HAVE_NDIR_H)
++	check_include_files(netdb.h HAVE_NETDB_H)
++	check_include_files(netinet/in.h HAVE_NETINET_IN_H)
++	check_include_files(poll.h HAVE_POLL_H)
++	check_function_exists(printf HAVE_PRINTF)
++	check_include_files(pthread.h HAVE_PTHREAD_H)
++	check_function_exists(putenv HAVE_PUTENV)
++	check_function_exists(rand HAVE_RAND)
++	check_function_exists(rand_r HAVE_RAND_R)
++	check_include_files(resolv.h HAVE_RESOLV_H)
++	check_library_exists(dld shl_load "" HAVE_SHLLOAD)
++	check_function_exists(signal HAVE_SIGNAL)
++	check_include_files(signal.h HAVE_SIGNAL_H)
++	check_function_exists(snprintf HAVE_SNPRINTF)
++	check_function_exists(sprintf HAVE_SPRINTF)
++	check_function_exists(srand HAVE_SRAND)
++	check_function_exists(sscanf HAVE_SSCANF)
++	check_function_exists(stat HAVE_STAT)
++	check_include_files(stdarg.h HAVE_STDARG_H)
++	check_include_files(stdint.h HAVE_STDINT_H)
++	check_include_files(stdlib.h HAVE_STDLIB_H)
++	check_function_exists(strftime HAVE_STRFTIME)
++	check_include_files(strings.h HAVE_STRINGS_H)
++	check_include_files(string.h HAVE_STRING_H)
++	check_symbol_exists(DIR sys/dir.h HAVE_SYS_DIR_H)
++	check_include_files(sys/mman.h HAVE_SYS_MMAN_H)
++	check_symbol_exists(DIR sys/ndir.h HAVE_SYS_NDIR_H)
++	check_include_files(sys/select.h HAVE_SYS_SELECT_H)
++	check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
++	check_include_files(sys/stat.h HAVE_SYS_STAT_H)
++	check_include_files(sys/timeb.h HAVE_SYS_TIMEB_H)
++	check_include_files(sys/time.h HAVE_SYS_TIME_H)
++	check_include_files(sys/types.h HAVE_SYS_TYPES_H)
++	check_function_exists(time HAVE_TIME)
++	check_include_files(time.h HAVE_TIME_H)
++	check_include_files(unistd.h HAVE_UNISTD_H)
++	check_function_exists(va_copy HAVE_VA_COPY)
++	check_function_exists(vfprintf HAVE_VFPRINTF)
++	check_function_exists(vsnprintf HAVE_VSNPRINTF)
++	check_function_exists(vsprintf HAVE_VSPRINTF)
++	check_function_exists(__va_copy HAVE___VA_COPY)
++	check_c_source_compiles("
++		#include <stdlib.h>
++		#include <iconv.h>
++		extern
++		#ifdef __cplusplus
++		\"C\"
++		#endif
++		#if defined(__STDC__) || defined(__cplusplus)
++		size_t iconv(iconv_t cd, char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft);
++		#else
++		size_t iconv();
++		#endif
++		int main() { return 0; }
++	" ICONV_CONST_TEST)
++	if(NOT ICONV_CONST_TEST)
++		set(ICONV_CONST "const")
++	endif()
++	check_c_source_compiles("
++		#include <sys/socket.h>
++		#include <sys/types.h>
++		int main() { (void) send(1, (const char*) \"\", 1, 1); return 0; }
++	" SEND_ARG2_CAST_CONST)
++	if(NOT SEND_ARG2_CAST_CONST)
++		set(SEND_ARG2_CAST "(char*)")
++	else()
++		set(SEND_ARG2_CAST "/**/")
++	endif()
++	check_c_source_compiles("
++		#include <stdarg.h>
++		void a(va_list* ap) {};
++		int main() { va_list ap1, ap2; a(&ap1); ap2 = (va_list) ap1; return 0; }
++	" VA_LIST_IS_ARRAY_TEST)
++	if(VA_LIST_IS_ARRAY_TEST)
++		set(VA_LIST_IS_ARRAY FALSE)
++	else()
++		set(VA_LIST_IS_ARRAY TRUE)
++	endif()
++	check_c_source_compiles("
++		#include <stddef.h>
++		#include <sys/socket.h>
++		#include <sys/types.h>
++		int main() { (void) getsockopt(1, 1, 1, NULL, (socklen_t*) NULL); return 0; }
++	" XML_SOCKLEN_T_SOCKLEN_T)
++	if(XML_SOCKLEN_T_SOCKLEN_T)
++		set(XML_SOCKLEN_T socklen_t)
++	else()
++		check_c_source_compiles("
++			#include <stddef.h>
++			#include <sys/socket.h>
++			#include <sys/types.h>
++			int main() { (void) getsockopt(1, 1, 1, NULL, (size_t*) NULL); return 0; }
++		" XML_SOCKLEN_T_SIZE_T)
++		if(XML_SOCKLEN_T_SIZE_T)
++			set(XML_SOCKLEN_T size_t)
++		else()
++			check_c_source_compiles("
++				#include <stddef.h>
++				#include <sys/socket.h>
++				#include <sys/types.h>
++				int main() { (void) getsockopt (1, 1, 1, NULL, (int*) NULL); return 0; }
++			" XML_SOCKLEN_T_INT)
++			set(XML_SOCKLEN_T int)
++		endif()
++	endif()
++	if(LIBXML2_WITH_THREADS)
++		add_definitions(-D_REENTRANT)
++	endif()
++	configure_file(config.h.cmake.in config.h)
++endif()
++
++file(GLOB HDRS include/libxml/*.h)
++
++set(
++	SRCS
++	buf.c
++	c14n.c
++	catalog.c
++	chvalid.c
++	debugXML.c
++	dict.c
++	encoding.c
++	entities.c
++	error.c
++	globals.c
++	hash.c
++	HTMLparser.c
++	HTMLtree.c
++	legacy.c
++	list.c
++	nanoftp.c
++	nanohttp.c
++	parser.c
++	parserInternals.c
++	pattern.c
++	relaxng.c
++	SAX.c
++	SAX2.c
++	schematron.c
++	threads.c
++	tree.c
++	uri.c
++	valid.c
++	xinclude.c
++	xlink.c
++	xmlcatalog.c
++	xmlIO.c
++	xmlmemory.c
++	xmlmodule.c
++	xmlreader.c
++	xmlregexp.c
++	xmlsave.c
++	xmlschemas.c
++	xmlschemastypes.c
++	xmlstring.c
++	xmlunicode.c
++	xmlwriter.c
++	xpath.c
++	xpointer.c
++	xzlib.c
++)
++
++if(WIN32)
++	list(APPEND SRCS win32/libxml2.rc)
++	file(
++		WRITE
++		${CMAKE_CURRENT_BINARY_DIR}/rcVersion.h
++		"#define LIBXML_MAJOR_VERSION ${LIBXML_MAJOR_VERSION}\n"
++		"#define LIBXML_MINOR_VERSION ${LIBXML_MINOR_VERSION}\n"
++		"#define LIBXML_MICRO_VERSION ${LIBXML_MICRO_VERSION}\n"
++		"#define LIBXML_DOTTED_VERSION ${VERSION}\n"
++	)
++endif()
++
++if(LIBXML2_WITH_SAX1)
++	list(APPEND SRCS DOCBparser.c)
++endif()
++
++if(LIBXML2_WITH_TRIO)
++	list(APPEND SRCS trio.c triostr.c)
++endif()
++
++add_library(LibXml2 ${HDRS} ${SRCS})
++
++target_include_directories(
++	LibXml2
++	PUBLIC
++	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
++	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
++	$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}/libxml2>
++)
++
++if(HAVE_DLOPEN)
++	target_link_libraries(LibXml2 dl)
++endif()
++
++if(HAVE_LIBHISTORY)
++	target_link_libraries(LibXml2 history)
++endif()
++
++if(HAVE_LIBREADLINE)
++	target_link_libraries(LibXml2 readline)
++endif()
++
++if(HAVE_SHLLOAD)
++	target_link_libraries(LibXml2 dld)
++endif()
++
++if(UNIX)
++	target_link_libraries(LibXml2 m)
++endif()
++
++if(WIN32)
++	target_link_libraries(LibXml2 ws2_32)
++endif()
++
++if(LIBXML2_WITH_ICONV)
++	target_link_libraries(LibXml2 Iconv::Iconv)
++endif()
++
++if(LIBXML2_WITH_ICU)
++	target_link_libraries(LibXml2 ICU::i18n)
++endif()
++
++if(LIBXML2_WITH_LZMA)
++	target_link_libraries(LibXml2 LibLZMA::LibLZMA)
++endif()
++
++if(LIBXML2_WITH_THREADS)
++	target_link_libraries(LibXml2 Threads::Threads)
++endif()
++
++if(LIBXML2_WITH_ZLIB)
++	target_link_libraries(LibXml2 ZLIB::ZLIB)
++endif()
++
++set_target_properties(
++	LibXml2
++	PROPERTIES
++	IMPORT_PREFIX lib
++	OUTPUT_NAME xml2
++	POSITION_INDEPENDENT_CODE ON
++	PREFIX lib
++	VERSION ${VERSION}
++)
++
++if(WIN32)
++	if(BUILD_SHARED_LIBS)
++		set_target_properties(
++			LibXml2
++			PROPERTIES
++			DEBUG_POSTFIX d
++		)
++	else()
++		set_target_properties(
++			LibXml2
++			PROPERTIES
++			DEBUG_POSTFIX sd
++			MINSIZEREL_POSTFIX s
++			RELEASE_POSTFIX s
++			RELWITHDEBINFO_POSTFIX s
++		)
++	endif()
++endif()
++
++install(FILES ${HDRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libxml2/libxml COMPONENT development)
++
++install(
++	TARGETS	LibXml2
++	EXPORT LibXml2
++	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT development
++	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime NAMELINK_SKIP
++	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
++)
++
++if(BUILD_SHARED_LIBS)
++	install(
++		TARGETS	LibXml2
++		EXPORT LibXml2
++		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT development NAMELINK_ONLY
++	)
++endif()
++
++if(MSVC AND BUILD_SHARED_LIBS AND NOT CMAKE_VERSION VERSION_LESS 3.1)
++	install(FILES $<TARGET_PDB_FILE:LibXml2> DESTINATION ${CMAKE_INSTALL_BINDIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
++endif()
++
++set(
++	PROGRAMS
++	xmlcatalog
++	xmllint
++)
++
++foreach(PROGRAM ${PROGRAMS})
++	add_executable(${PROGRAM} ${PROGRAM}.c)
++	target_link_libraries(${PROGRAM} LibXml2)
++	install(TARGETS	${PROGRAM} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT programs)
++endforeach()
++
++set(
++	TESTS
++	runxmlconf
++	runsuite
++	runtest
++	testapi
++	testAutomata
++	testC14N
++	testchar
++	testdict
++	testHTML
++	testModule
++	testlimits
++	testReader
++	testrecurse
++	testRegexp
++	testRelax
++	testSAX
++	testSchemas
++	testThreads
++	testURI
++	testXPath
++)
++
++foreach(TEST ${TESTS})
++	add_executable(${TEST} ${TEST}.c)
++	target_link_libraries(${TEST} LibXml2)
++endforeach()
++
++if(LIBXML2_WITH_PYTHON)
++	execute_process(
++		COMMAND
++		${Python_EXECUTABLE}
++		${CMAKE_CURRENT_SOURCE_DIR}/python/generator.py
++		${CMAKE_CURRENT_SOURCE_DIR}/doc/libxml2-api.xml
++		${CMAKE_CURRENT_SOURCE_DIR}/python/libxml2-python-api.xml
++	)
++	file(READ python/libxml.py LIBXML_PY)
++	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in "${LIBXML_PY}")
++	file(READ ${CMAKE_CURRENT_BINARY_DIR}/libxml2class.py LIBXML2CLASS_PY)
++	file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in "${LIBXML2CLASS_PY}")
++	configure_file(${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in libxml2.py COPYONLY)
++	add_library(
++		LibXml2Mod
++		libxml2-py.c
++		libxml2-py.h
++		python/libxml.c
++		python/libxml_wrap.h
++		python/types.c
++	)
++	target_include_directories(
++		LibXml2Mod
++		PUBLIC
++		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/python>
++	)
++	target_link_libraries(LibXml2Mod LibXml2 Python::Python)
++	set_target_properties(
++		LibXml2Mod
++		PROPERTIES
++		IMPORT_PREFIX lib
++		OUTPUT_NAME xml2mod
++		PREFIX lib
++		VERSION ${VERSION}
++	)
++	install(
++		TARGETS	LibXml2Mod
++		ARCHIVE DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT development
++		LIBRARY DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime NAMELINK_SKIP
++		RUNTIME DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime
++	)
++	if(BUILD_SHARED_LIBS)
++		install(
++			TARGETS	LibXml2Mod
++			LIBRARY DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT development NAMELINK_ONLY
++		)
++	endif()
++	if(MSVC AND BUILD_SHARED_LIBS AND NOT CMAKE_VERSION VERSION_LESS 3.1)
++		install(FILES $<TARGET_PDB_FILE:LibXml2Mod> DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
++	endif()
++	install(FILES python/drv_libxml2.py DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime)
++	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime)
++endif()
++
++install(FILES libxml.3 DESTINATION ${CMAKE_INSTALL_MANDIR}/man3 COMPONENT documentation)
++install(FILES doc/xmlcatalog.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT documentation)
++install(FILES doc/xmllint.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT documentation)
++install(DIRECTORY doc/ DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/libxml2 COMPONENT documentation PATTERN Makefile.* EXCLUDE)
++
++configure_package_config_file(
++	libxml2-config.cmake.cmake.in libxml2-config.cmake
++	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libxml2-${VERSION}
++)
++
++install(
++	FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml2-config.cmake
++	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libxml2-${VERSION}
++	COMPONENT development
++)
++
++write_basic_package_version_file(
++	${CMAKE_CURRENT_BINARY_DIR}/libxml2-config-version.cmake
++	VERSION ${VERSION}
++	COMPATIBILITY ExactVersion
++)
++
++install(
++	FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml2-config-version.cmake
++	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libxml2-${VERSION}
++	COMPONENT development
++)
++
++install(
++	EXPORT LibXml2
++	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libxml2-${VERSION}
++	NAMESPACE LibXml2::
++	FILE libxml2-export.cmake
++	COMPONENT development
++)
++
++configure_file(include/libxml/xmlversion.h.in libxml/xmlversion.h)
++install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml/xmlversion.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libxml2/libxml COMPONENT development)
++
++if(LIBXML2_WITH_PYTHON)
++	set(prefix "${CMAKE_INSTALL_PREFIX}")
++	configure_file(python/setup.py.in setup.py @ONLY)
++endif()
++
++set(CPACK_COMPONENT_DEVELOPMENT_DEPENDS runtime)
++set(CPACK_COMPONENT_PROGRAMS_DEPENDS runtime)
++set(CPACK_DEB_COMPONENT_INSTALL ON)
++set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS "${PACKAGE_TARNAME}")
++set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "${PACKAGE_TARNAME}-dev")
++set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION "libdevel")
++set(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${PACKAGE_URL})
++set(CPACK_DEBIAN_PACKAGE_NAME ${PACKAGE_TARNAME})
++set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
++set(CPACK_DEBIAN_PROGRAMS_PACKAGE_DEPENDS "${PACKAGE_TARNAME}")
++set(CPACK_DEBIAN_PROGRAMS_PACKAGE_NAME "${PACKAGE_TARNAME}-utils")
++set(CPACK_DEBIAN_PROGRAMS_PACKAGE_SECTION "utils")
++set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME ${PACKAGE_TARNAME})
++set(CPACK_DEBIAN_RUNTIME_PACKAGE_RECOMMENDS "${PACKAGE_TARNAME}-utils")
++set(CPACK_DEBIAN_RUNTIME_PACKAGE_SECTION "libs")
++set(CPACK_NSIS_PACKAGE_NAME ${PACKAGE_STRING})
++set(CPACK_NSIS_URL_INFO_ABOUT ${PACKAGE_URL})
++set(CPACK_PACKAGE_CONTACT ${PACKAGE_BUGREPORT})
++set(CPACK_PACKAGE_DISPLAY_NAME ${PACKAGE_STRING})
++set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PACKAGE_TARNAME}-${PACKAGE_VERSION}")
++set(CPACK_PACKAGE_NAME ${PACKAGE_TARNAME})
++set(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION})
++set(CPACK_PACKAGE_VERSION_MAJOR ${LIBXML_MAJOR_VERSION})
++set(CPACK_PACKAGE_VERSION_MINOR ${LIBXML_MINOR_VERSION})
++set(CPACK_PACKAGE_VERSION_PATCH ${LIBXML_MICRO_VERSION})
++set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/Copyright)
++set(CPACK_RPM_COMPONENT_INSTALL ON)
++set(CPACK_RPM_development_PACKAGE_NAME "${PACKAGE_NAME}-devel")
++set(CPACK_RPM_development_PACKAGE_REQUIRES "${PACKAGE_NAME}")
++set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
++set(CPACK_RPM_PACKAGE_NAME ${PACKAGE_TARNAME})
++set(CPACK_RPM_PACKAGE_URL ${PACKAGE_URL})
++set(CPACK_RPM_programs_PACKAGE_NAME "${PACKAGE_NAME}-utils")
++set(CPACK_RPM_programs_PACKAGE_REQUIRES "${PACKAGE_NAME}")
++set(CPACK_RPM_runtime_PACKAGE_NAME "${PACKAGE_NAME}")
++set(CPACK_RPM_runtime_PACKAGE_SUGGESTS "${PACKAGE_NAME}-utils")
++
++if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
++	set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
++endif()
++
++include(CPack)
+diff --git a/config.h.cmake.in b/config.h.cmake.in
+new file mode 100644
+index 000000000..19272c3fe
+--- /dev/null
++++ b/config.h.cmake.in
+@@ -0,0 +1,310 @@
++/* config.h.in.  Generated from configure.ac by autoheader.  */
++
++/* Type cast for the gethostbyname() argument */
++#cmakedefine GETHOSTBYNAME_ARG_CAST @GETHOSTBYNAME_ARG_CAST@
++
++/* Define to 1 if you have the <arpa/inet.h> header file. */
++#cmakedefine HAVE_ARPA_INET_H 1
++
++/* Define to 1 if you have the <arpa/nameser.h> header file. */
++#cmakedefine HAVE_ARPA_NAMESER_H 1
++
++/* Whether struct sockaddr::__ss_family exists */
++#cmakedefine HAVE_BROKEN_SS_FAMILY 1
++
++/* Define to 1 if you have the <ctype.h> header file. */
++#cmakedefine HAVE_CTYPE_H 1
++
++/* Define to 1 if you have the <dirent.h> header file. */
++#cmakedefine HAVE_DIRENT_H 1
++
++/* Define to 1 if you have the <dlfcn.h> header file. */
++#cmakedefine HAVE_DLFCN_H 1
++
++/* Have dlopen based dso */
++#cmakedefine HAVE_DLOPEN 1
++
++/* Define to 1 if you have the <dl.h> header file. */
++#cmakedefine HAVE_DL_H 1
++
++/* Define to 1 if you have the <errno.h> header file. */
++#cmakedefine HAVE_ERRNO_H 1
++
++/* Define to 1 if you have the <fcntl.h> header file. */
++#cmakedefine HAVE_FCNTL_H 1
++
++/* Define to 1 if you have the <float.h> header file. */
++#cmakedefine HAVE_FLOAT_H 1
++
++/* Define to 1 if you have the `fprintf' function. */
++#cmakedefine HAVE_FPRINTF 1
++
++/* Define to 1 if you have the `ftime' function. */
++#cmakedefine HAVE_FTIME 1
++
++/* Define if getaddrinfo is there */
++#cmakedefine HAVE_GETADDRINFO 1
++
++/* Define to 1 if you have the `gettimeofday' function. */
++#cmakedefine HAVE_GETTIMEOFDAY 1
++
++/* Define to 1 if you have the <inttypes.h> header file. */
++#cmakedefine HAVE_INTTYPES_H 1
++
++/* Define to 1 if you have the `isascii' function. */
++#cmakedefine HAVE_ISASCII 1
++
++/* Define if isinf is there */
++#cmakedefine HAVE_ISINF 1
++
++/* Define if isnan is there */
++#cmakedefine HAVE_ISNAN 1
++
++/* Define if history library is there (-lhistory) */
++#cmakedefine HAVE_LIBHISTORY 1
++
++/* Define if pthread library is there (-lpthread) */
++#cmakedefine HAVE_LIBPTHREAD 1
++
++/* Define if readline library is there (-lreadline) */
++#cmakedefine HAVE_LIBREADLINE 1
++
++/* Define to 1 if you have the <limits.h> header file. */
++#cmakedefine HAVE_LIMITS_H 1
++
++/* Define to 1 if you have the `localtime' function. */
++#cmakedefine HAVE_LOCALTIME 1
++
++/* Define to 1 if you have the <lzma.h> header file. */
++#cmakedefine HAVE_LZMA_H 1
++
++/* Define to 1 if you have the <malloc.h> header file. */
++#cmakedefine HAVE_MALLOC_H 1
++
++/* Define to 1 if you have the <math.h> header file. */
++#cmakedefine HAVE_MATH_H 1
++
++/* Define to 1 if you have the <memory.h> header file. */
++#cmakedefine HAVE_MEMORY_H 1
++
++/* Define to 1 if you have the `mmap' function. */
++#cmakedefine HAVE_MMAP 1
++
++/* Define to 1 if you have the `munmap' function. */
++#cmakedefine HAVE_MUNMAP 1
++
++/* mmap() is no good without munmap() */
++#if defined(HAVE_MMAP) && !defined(HAVE_MUNMAP)
++#  undef /**/ HAVE_MMAP
++#endif
++
++/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
++#cmakedefine HAVE_NDIR_H 1
++
++/* Define to 1 if you have the <netdb.h> header file. */
++#cmakedefine HAVE_NETDB_H 1
++
++/* Define to 1 if you have the <netinet/in.h> header file. */
++#cmakedefine HAVE_NETINET_IN_H 1
++
++/* Define to 1 if you have the <poll.h> header file. */
++#cmakedefine HAVE_POLL_H 1
++
++/* Define to 1 if you have the `printf' function. */
++#cmakedefine HAVE_PRINTF 1
++
++/* Define if <pthread.h> is there */
++#cmakedefine HAVE_PTHREAD_H 1
++
++/* Define to 1 if you have the `putenv' function. */
++#cmakedefine HAVE_PUTENV 1
++
++/* Define to 1 if you have the `rand' function. */
++#cmakedefine HAVE_RAND 1
++
++/* Define to 1 if you have the `rand_r' function. */
++#cmakedefine HAVE_RAND_R 1
++
++/* Define to 1 if you have the <resolv.h> header file. */
++#cmakedefine HAVE_RESOLV_H 1
++
++/* Have shl_load based dso */
++#cmakedefine HAVE_SHLLOAD 1
++
++/* Define to 1 if you have the `signal' function. */
++#cmakedefine HAVE_SIGNAL 1
++
++/* Define to 1 if you have the <signal.h> header file. */
++#cmakedefine HAVE_SIGNAL_H 1
++
++/* Define to 1 if you have the `snprintf' function. */
++#cmakedefine HAVE_SNPRINTF 1
++
++/* Define to 1 if you have the `sprintf' function. */
++#cmakedefine HAVE_SPRINTF 1
++
++/* Define to 1 if you have the `srand' function. */
++#cmakedefine HAVE_SRAND 1
++
++/* Define to 1 if you have the `sscanf' function. */
++#cmakedefine HAVE_SSCANF 1
++
++/* Define to 1 if you have the `stat' function. */
++#cmakedefine HAVE_STAT 1
++
++/* Define to 1 if you have the <stdarg.h> header file. */
++#cmakedefine HAVE_STDARG_H 1
++
++/* Define to 1 if you have the <stdint.h> header file. */
++#cmakedefine HAVE_STDINT_H 1
++
++/* Define to 1 if you have the <stdlib.h> header file. */
++#cmakedefine HAVE_STDLIB_H 1
++
++/* Define to 1 if you have the `strftime' function. */
++#cmakedefine HAVE_STRFTIME 1
++
++/* Define to 1 if you have the <strings.h> header file. */
++#cmakedefine HAVE_STRINGS_H 1
++
++/* Define to 1 if you have the <string.h> header file. */
++#cmakedefine HAVE_STRING_H 1
++
++/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
++   */
++#cmakedefine HAVE_SYS_DIR_H 1
++
++/* Define to 1 if you have the <sys/mman.h> header file. */
++#cmakedefine HAVE_SYS_MMAN_H 1
++
++/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
++   */
++#cmakedefine HAVE_SYS_NDIR_H 1
++
++/* Define to 1 if you have the <sys/select.h> header file. */
++#cmakedefine HAVE_SYS_SELECT_H 1
++
++/* Define to 1 if you have the <sys/socket.h> header file. */
++#cmakedefine HAVE_SYS_SOCKET_H 1
++
++/* Define to 1 if you have the <sys/stat.h> header file. */
++#cmakedefine HAVE_SYS_STAT_H 1
++
++/* Define to 1 if you have the <sys/timeb.h> header file. */
++#cmakedefine HAVE_SYS_TIMEB_H 1
++
++/* Define to 1 if you have the <sys/time.h> header file. */
++#cmakedefine HAVE_SYS_TIME_H 1
++
++/* Define to 1 if you have the <sys/types.h> header file. */
++#cmakedefine HAVE_SYS_TYPES_H 1
++
++/* Define to 1 if you have the `time' function. */
++#cmakedefine HAVE_TIME 1
++
++/* Define to 1 if you have the <time.h> header file. */
++#cmakedefine HAVE_TIME_H 1
++
++/* Define to 1 if you have the <unistd.h> header file. */
++#cmakedefine HAVE_UNISTD_H 1
++
++/* Whether va_copy() is available */
++#cmakedefine HAVE_VA_COPY 1
++
++/* Define to 1 if you have the `vfprintf' function. */
++#cmakedefine HAVE_VFPRINTF 1
++
++/* Define to 1 if you have the `vsnprintf' function. */
++#cmakedefine HAVE_VSNPRINTF 1
++
++/* Define to 1 if you have the `vsprintf' function. */
++#cmakedefine HAVE_VSPRINTF 1
++
++/* Define to 1 if you have the <zlib.h> header file. */
++#cmakedefine HAVE_ZLIB_H 1
++
++/* Whether __va_copy() is available */
++#cmakedefine HAVE___VA_COPY 1
++
++/* Define as const if the declaration of iconv() needs const. */
++#define ICONV_CONST @ICONV_CONST@
++
++/* Define to the sub-directory where libtool stores uninstalled libraries. */
++#cmakedefine LT_OBJDIR @LT_OBJDIR@
++
++/* Name of package */
++#define PACKAGE "@PACKAGE@"
++
++/* Define to the address where bug reports for this package should be sent. */
++#define PACKAGE_BUGREPORT "@PACKAGE_BUGREPORT@"
++
++/* Define to the full name of this package. */
++#define PACKAGE_NAME "@PACKAGE_NAME@"
++
++/* Define to the full name and version of this package. */
++#define PACKAGE_STRING "@PACKAGE_STRING@"
++
++/* Define to the one symbol short name of this package. */
++#define PACKAGE_TARNAME "@PACKAGE_TARNAME@"
++
++/* Define to the home page for this package. */
++#define PACKAGE_URL "@PACKAGE_URL@"
++
++/* Define to the version of this package. */
++#define PACKAGE_VERSION "@PACKAGE_VERSION@"
++
++/* Type cast for the send() function 2nd arg */
++#cmakedefine SEND_ARG2_CAST @SEND_ARG2_CAST@
++
++/* Define to 1 if you have the ANSI C header files. */
++#cmakedefine STDC_HEADERS 1
++
++/* Support for IPv6 */
++#cmakedefine SUPPORT_IP6 1
++
++/* Define if va_list is an array type */
++#cmakedefine VA_LIST_IS_ARRAY 1
++
++/* Version number of package */
++#cmakedefine VERSION @VERSION@
++
++/* Determine what socket length (socklen_t) data type is */
++#cmakedefine XML_SOCKLEN_T @XML_SOCKLEN_T@
++
++/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
++   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
++   #define below would cause a syntax error. */
++#cmakedefine _UINT32_T @_UINT32_T@
++
++/* ss_family is not defined here, use __ss_family instead */
++#cmakedefine ss_family @ss_family@
++
++/* Define to the type of an unsigned integer type of width exactly 32 bits if
++   such a type exists and the standard includes do not define it. */
++#cmakedefine uint32_t @uint32_t@
++
++#if defined(_MSC_VER)
++#ifdef NEED_SOCKETS
++#include <wsockcompat.h>
++#endif
++#endif
++
++#if defined(_MSC_VER)
++#define mkdir(p,m) _mkdir(p)
++#if _MSC_VER < 1900
++#define snprintf _snprintf
++#endif
++#if _MSC_VER < 1500
++#define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
++#endif
++#elif defined(__MINGW32__)
++#define mkdir(p,m) _mkdir(p)
++#endif
++
++#if defined(_MSC_VER)
++#if defined(LIBXML_THREAD_ENABLED)
++#if !defined(HAVE_PTHREAD_H) && !defined(HAVE_WIN32_THREADS) && !defined(_WIN32_WCE)
++#define HAVE_WIN32_THREADS
++#endif
++#endif
++#endif
+diff --git a/libxml2-config.cmake.cmake.in b/libxml2-config.cmake.cmake.in
+new file mode 100644
+index 000000000..9da13f72a
+--- /dev/null
++++ b/libxml2-config.cmake.cmake.in
+@@ -0,0 +1,157 @@
++# libxml2-config.cmake
++# --------------------
++#
++# Libxml2 cmake module.
++# THis module sets the following variables:
++#
++# ::
++#
++#   LIBXML2_INCLUDE_DIRS      - Directory where libxml2 headers are located.
++#   LIBXML2_LIBRARIES         - xml2 libraries to link against.
++#   LIBXML2_VERSION_MAJOR     - The major version of libxml2.
++#   LIBXML2_VERSION_MINOR     - The minor version of libxml2.
++#   LIBXML2_VERSION_PATCH     - The patch version of libxml2.
++#   LIBXML2_VERSION_STRING    - version number as a string (ex: "2.3.4")
++#   LIBXML2_MODULES           - whether libxml2 has dso support
++
++include("${CMAKE_CURRENT_LIST_DIR}/libxml2-export.cmake")
++
++@PACKAGE_INIT@
++
++set(LIBXML2_VERSION_MAJOR  @LIBXML_MAJOR_VERSION@)
++set(LIBXML2_VERSION_MINOR  @LIBXML_MINOR_VERSION@)
++set(LIBXML2_VERSION_PATCH  @LIBXML_MICRO_VERSION@)
++set(LIBXML2_VERSION_STRING "@VERSION@")
++set(LIBXML2_INSTALL_PREFIX ${PACKAGE_PREFIX_DIR})
++set(LIBXML2_INCLUDE_DIRS   ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@ ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@/libxml2)
++set(LIBXML2_LIBRARY_DIR    ${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@)
++
++macro(select_library_location target basename)
++  foreach(property IN ITEMS IMPORTED_LOCATION IMPORTED_IMPLIB)
++    get_target_property(${basename}_${property}_DEBUG ${target} ${property}_DEBUG)
++    get_target_property(${basename}_${property}_MINSIZEREL ${target} ${property}_MINSIZEREL)
++    get_target_property(${basename}_${property}_RELEASE ${target} ${property}_RELEASE)
++    get_target_property(${basename}_${property}_RELWITHDEBINFO ${target} ${property}_RELWITHDEBINFO)
++    
++    if(${basename}_${property}_DEBUG AND ${basename}_${property}_RELEASE)
++      set(${basename}_LIBRARIES debug ${${basename}_${property}_DEBUG} optimized ${${basename}_${property}_RELEASE})
++    elseif(${basename}_${property}_DEBUG AND ${basename}_${property}_RELWITHDEBINFO)
++      set(${basename}_LIBRARIES debug ${${basename}_${property}_DEBUG} optimized ${${basename}_${property}_RELWITHDEBINFO})
++    elseif(${basename}_${property}_DEBUG AND ${basename}_${property}_MINSIZEREL)
++      set(${basename}_LIBRARIES debug ${${basename}_${property}_DEBUG} optimized ${${basename}_${property}_MINSIZEREL})
++    elseif(${basename}_${property}_RELEASE)
++      set(${basename}_LIBRARIES ${${basename}_${property}_RELEASE})
++    elseif(${basename}_${property}_RELWITHDEBINFO)
++      set(${basename}_LIBRARIES ${${basename}_${property}_RELWITHDEBINFO})
++    elseif(${basename}_${property}_MINSIZEREL)
++      set(${basename}_LIBRARIES ${${basename}_${property}_MINSIZEREL})
++    elseif(${basename}_${property}_DEBUG)
++      set(${basename}_LIBRARIES ${${basename}_${property}_DEBUG})
++    endif()
++  endforeach()
++endmacro()
++
++select_library_location(LibXml2::LibXml2 LIBXML2)
++
++include(CMakeFindDependencyMacro)
++
++if(@LIBXML2_WITH_THREADS@)
++  find_dependency(Threads)
++  if(Threads_FOUND AND NOT TARGET Threads::Threads)
++    add_library(Threads::Threads INTERFACE IMPORTED)
++    if(THREADS_HAVE_PTHREAD_ARG)
++      set_property(TARGET Threads::Threads PROPERTY INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -pthread>" "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>")
++    endif()
++    if(CMAKE_THREAD_LIBS_INIT)
++      set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}")
++    endif()
++  endif()
++  list(APPEND LIBXML2_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
++endif()
++
++if(@LIBXML2_WITH_ICONV@)
++  find_package(Iconv QUIET CONFIG)
++  if(NOT Iconv_FOUND)
++    find_dependency(Iconv)
++    if(Iconv_FOUND AND NOT TARGET Iconv::Iconv)
++      add_library(Iconv::Iconv INTERFACE IMPORTED)
++      set_property(TARGET Iconv::Iconv PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${Iconv_INCLUDE_DIRS}")
++      set_property(TARGET Iconv::Iconv PROPERTY INTERFACE_LINK_LIBRARIES "${Iconv_LIBRARIES}")
++    endif()
++  endif()
++  list(APPEND LIBXML2_LIBRARIES    ${Iconv_LIBRARIES})
++  list(APPEND LIBXML2_INCLUDE_DIRS ${Iconv_INCLUDE_DIRS})
++endif()
++
++if(@LIBXML2_WITH_ICU@)
++  find_dependency(ICU)
++  list(APPEND LIBXML2_LIBRARIES    ${ICU_LIBRARIES})
++  list(APPEND LIBXML2_INCLUDE_DIRS ${ICU_INCLUDE_DIRS})
++endif()
++
++if(@LIBXML2_WITH_LZMA@)
++  find_package(LibLZMA QUIET CONFIG)
++  if(NOT LibLZMA_FOUND)
++    find_dependency(LibLZMA)
++    if((LibLZMA_FOUND OR LIBLZMA_FOUND) AND NOT TARGET LibLZMA::LibLZMA)
++      add_library(LibLZMA::LibLZMA UNKNOWN IMPORTED)
++      set_target_properties(LibLZMA::LibLZMA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${LIBLZMA_INCLUDE_DIRS})
++      set_target_properties(LibLZMA::LibLZMA PROPERTIES IMPORTED_LOCATION ${LIBLZMA_LIBRARIES})
++    endif()
++  endif()
++  list(APPEND LIBXML2_LIBRARIES    ${LIBLZMA_LIBRARIES})
++  list(APPEND LIBXML2_INCLUDE_DIRS ${LIBLZMA_INCLUDE_DIRS})
++endif()
++
++if(@LIBXML2_WITH_ZLIB@)
++  find_package(ZLIB QUIET CONFIG)
++  if(NOT ZLIB_FOUND)
++    find_dependency(ZLIB)
++    if(ZLIB_FOUND AND NOT TARGET ZLIB::ZLIB)
++      add_library(ZLIB::ZLIB UNKNOWN IMPORTED)
++      set_target_properties(ZLIB::ZLIB PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_INCLUDE_DIRS}")
++      if(ZLIB_LIBRARY_RELEASE)
++        set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
++        set_target_properties(ZLIB::ZLIB PROPERTIES IMPORTED_LOCATION_RELEASE "${ZLIB_LIBRARY_RELEASE}")
++      endif()
++      if(ZLIB_LIBRARY_DEBUG)
++        set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
++        set_target_properties(ZLIB::ZLIB PROPERTIES IMPORTED_LOCATION_DEBUG "${ZLIB_LIBRARY_DEBUG}")
++      endif()
++      if(NOT ZLIB_LIBRARY_RELEASE AND NOT ZLIB_LIBRARY_DEBUG)
++        set_property(TARGET ZLIB::ZLIB APPEND PROPERTY IMPORTED_LOCATION "${ZLIB_LIBRARY}")
++      endif()
++    endif()
++  endif()
++  list(APPEND LIBXML2_LIBRARIES    ${ZLIB_LIBRARIES})
++  list(APPEND LIBXML2_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS})
++endif()
++
++if(@HAVE_DLOPEN@)
++  list(APPEND LIBXML2_LIBRARIES dl)
++endif()
++
++if(@HAVE_LIBHISTORY@)
++  list(APPEND LIBXML2_LIBRARIES history)
++endif()
++
++if(@HAVE_LIBREADLINE@)
++  list(APPEND LIBXML2_LIBRARIES readline)
++endif()
++
++if(@HAVE_SHLLOAD@)
++  list(APPEND LIBXML2_LIBRARIES dld)
++endif()
++
++if(UNIX)
++  list(APPEND LIBXML2_LIBRARIES m)
++endif()
++
++if(WIN32)
++  list(APPEND LIBXML2_LIBRARIES ws2_32)
++endif()
++
++# whether libxml2 has dso support
++set(LIBXML2_MODULES @LIBXML2_WITH_MODULES@)
++
++mark_as_advanced( LIBXML2_INCLUDE_DIRS LIBXML2_LIBRARIES )
