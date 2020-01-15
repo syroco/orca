@@ -126,7 +126,7 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
     message(WARNING "Detected idyntree git version. Dev only !")
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
 else()
-    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-1.0.0 EXCLUDE_FROM_ALL)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree-1.0.1 EXCLUDE_FROM_ALL)
 endif()
 set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
 
