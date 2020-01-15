@@ -114,6 +114,7 @@ if(NOT LIBXML2_FOUND)
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
     add_subdirectory(external/libxml2-v2.9.10)
     set(BUILD_SHARED_LIBS ${build_shared_libs_saved})
+    # add_library(LibXml2::LibXml2 ALIAS LibXml2)
 endif()
 
 #################### iDynTree #########################
@@ -122,6 +123,8 @@ set(IDYNTREE_SHARED_LIBRARY OFF CACHE BOOL "")
 set(__ADD_UNINSTALL_TARGET_INCLUDED TRUE CACHE BOOL "")
 set(IDYNTREE_USES_YARP FALSE CACHE BOOL "")
 set(IDYNTREE_USES_ICUB_MAIN FALSE CACHE BOOL "")
+set(IDYNTREE_COMPILES_OPTIMALCONTROL FALSE CACHE BOOL "")
+set(IDYNTREE_USES_OPTIMALCONTROL FALSE CACHE BOOL "")
 if(EXISTS ${PROJECT_SOURCE_DIR}/external/idyntree/)
     message(WARNING "Detected idyntree git version. Dev only !")
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/idyntree EXCLUDE_FROM_ALL)
@@ -246,7 +249,8 @@ target_link_libraries(orca PRIVATE
     ${PROJECT_NAME}_priv_qpOASES
     osqpstatic
     ${PROJECT_NAME}_priv_tinyxml
-    ${LIBXML2_LIBRARY}
+    LibXml2::LibXml2
+    #${LIBXML2_LIBRARY}
 )
 #################### ORCA Examples #########################
 add_subdirectory(examples)

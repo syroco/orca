@@ -8,7 +8,7 @@
 
 project(iDynTree_ModelIO_URDF CXX)
 
-if(NOT LIBXML2_LIBRARY OR NOT LIBXML2_INCLUDE_DIR)
+if(NOT TARGET LibXml2::LibXml2)
     find_package(LibXml2 REQUIRED)
 endif()
 
@@ -74,13 +74,11 @@ target_include_directories(${libraryname} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURR
                                                  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/deprecated>"
                                                  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/private>"
                                                  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}>"
-                                          PRIVATE ${EIGEN3_INCLUDE_DIR}
-                                                  ${LIBXML2_INCLUDE_DIR})
+                                          PRIVATE ${EIGEN3_INCLUDE_DIR})
 
-target_link_libraries(${libraryname} LINK_PUBLIC idyntree-core idyntree-model idyntree-sensors idyntree-modelio-xml
-                                     LINK_PRIVATE ${LIBXML2_LIBRARIES})
+target_link_libraries(${libraryname} LINK_PUBLIC idyntree-core idyntree-model idyntree-sensors idyntree-modelio-xml)
 
-target_compile_options(${libraryname} PRIVATE ${IDYNTREE_WARNING_FLAGS} ${LIBXML2_DEFINITIONS})
+target_compile_options(${libraryname} PRIVATE ${IDYNTREE_WARNING_FLAGS})
 
 target_include_directories(${libraryname} PRIVATE ${EIGEN3_INCLUDE_DIR})
 # See https://stackoverflow.com/questions/38832528/transitive-target-include-directories-on-object-libraries
